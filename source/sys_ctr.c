@@ -308,8 +308,7 @@ int main (int argc, char **argv)
 
 	parms.memsize = 16*1024*1024;
 	parms.membase = malloc (parms.memsize);
-	//parms.basedir = ".";
-	parms.basedir = "/3ds/ctrQuake";
+	parms.basedir = ".";
 
 	COM_InitArgv (argc, argv);
 

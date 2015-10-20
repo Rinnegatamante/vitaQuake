@@ -316,7 +316,13 @@ void CL_ParseServerInfo (void)
 
 	noclip_anglehack = false;		// noclip is turned off at start
 
+	for(i=0; i<MAX_MODELS; i++){
+		free(model_precache[i]);
+	}
 	free(model_precache);
+	for(i=0; i<MAX_SOUNDS; i++){
+		free(sound_precache[i]);
+	}
 	free(sound_precache);
 }
 
