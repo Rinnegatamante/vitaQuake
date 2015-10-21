@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // common.c -- misc functions used in client and server
 
 #include "quakedef.h"
-#include <3ds.h>
+
 
 #define NUM_SAFE_ARGVS  7
 
@@ -1691,8 +1691,8 @@ void COM_AddGameDirectory (char *dir)
 	pack_t                  *pak;
 	char                    pakfile[MAX_OSPATH];
 
-	strcpy (com_gamedir, dir);
-
+	//strcpy (com_gamedir, dir);
+	strcpy (com_gamedir, "cache0:/id1");
 //
 // add the directory to the search path
 //
@@ -1706,7 +1706,7 @@ void COM_AddGameDirectory (char *dir)
 //
 	for (i=0 ; ; i++)
 	{
-		sprintf (pakfile, "%s/pak%i.pak", dir, i);
+		sprintf (pakfile, "%s/pak%i.pak", com_gamedir, i);
 		pak = COM_LoadPackFile (pakfile);
 		if (!pak)
 			break;

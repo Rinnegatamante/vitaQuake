@@ -21,19 +21,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
-
-#include <3ds.h>
-#include "ctr.h"
-
-u8 isN3DS;
+#include <psp2/ctrl.h>
+#include <psp2/types.h>
+#include <psp2/rtc.h>
+#include "draw_psp2.h"
+#include <psp2/io/fcntl.h>
+#include <psp2/io/stat.h>
 
 #define TICKS_PER_SEC 268123480.0
 
 qboolean		isDedicated;
 
-u64 initialTime = 0;
-int hostInitialized = 0;
-
+uint64_t initialTime = 0;
+int y = 0;
 /*
 ===============================================================================
 
@@ -163,18 +163,25 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 
 void Sys_Error (char *error, ...)
 {
-	va_list         argptr;
 
-	printf ("Sys_Error: ");
+	font_draw_string(0, y, 0xFFFFFFFF, "SYS ERROR!");
+	char buf[256];
+	va_list argptr;
+	y = y + 15;
+	if (y > 500) y = 0;
 	va_start (argptr,error);
-	vprintf (error,argptr);
+	vsnprintf (buf, sizeof(buf), error,argptr);
 	va_end (argptr);
-	printf ("\n");
-	printf("Press START to exit");
+	font_draw_string(0, y, 0xFFFFFFFF, buf);
+	y = y + 15;
+	if (y > 500) y = 0;
+	font_draw_string(0, y, 0xFFFFFFFF, "Press START to exit");
+	y = y + 15;
+	if (y > 500) y = 0;
 	while(1){
-		hidScanInput();
-		u32 kDown = hidKeysDown();
-		if (kDown & KEY_START)
+		int kDown;
+		sceCtrlPeekBufferPositive(0, &kDown, 1);
+		if (kDown & PSP2_CTRL_START)
 			break;
 	}
 	Host_Shutdown();
@@ -183,29 +190,32 @@ void Sys_Error (char *error, ...)
 
 void Sys_Printf (char *fmt, ...)
 {
-	if(hostInitialized)
-		return;
-
-	va_list         argptr;
+	char buf[256];
+	va_list argptr;
 
 	va_start (argptr,fmt);
-	vprintf (fmt,argptr);
+	vsnprintf (buf, sizeof(buf), fmt,argptr);
 	va_end (argptr);
+	font_draw_string(0, y, 0xFFFFFFFF, buf);
+	y = y + 15;
+	if (y > 500) y = 0;
+	
 }
 
 void Sys_Quit (void)
 {
 	Host_Shutdown();
-	gfxExit();
+	end_video();
 	exit (0);
 }
 
 double Sys_FloatTime (void)
 {
 	if(!initialTime){
-		initialTime = svcGetSystemTick();
+		sceRtcGetCurrentTick(&initialTime);
 	}
-	u64 curTime = svcGetSystemTick();
+	uint64_t curTime;
+	sceRtcGetCurrentTick(&curTime);
 	return (curTime - initialTime)/TICKS_PER_SEC;
 }
 
@@ -218,77 +228,70 @@ void Sys_Sleep (void)
 {
 }
 
-void CTR_KeyDown(u32 keys){
-	if( keys & KEY_SELECT)
+void PSP2_KeyDown(int keys){
+	if( keys & PSP2_CTRL_SELECT)
 		Key_Event(K_ESCAPE, true);
-	if( keys & KEY_START)
+	if( keys & PSP2_CTRL_START)
 		Key_Event(K_ENTER, true);
-	if( keys & KEY_DUP)
+	if( keys & PSP2_CTRL_UP)
 		Key_Event(K_UPARROW, true);
-	if( keys & KEY_DDOWN)
+	if( keys & PSP2_CTRL_DOWN)
 		Key_Event(K_DOWNARROW, true);
-	if( keys & KEY_DLEFT)
+	if( keys & PSP2_CTRL_LEFT)
 		Key_Event(K_LEFTARROW, true);
-	if( keys & KEY_DRIGHT)
+	if( keys & PSP2_CTRL_RIGHT)
 		Key_Event(K_RIGHTARROW, true);
-	if( keys & KEY_Y)
+	if( keys & PSP2_CTRL_SQUARE)
 		Key_Event('y', true);
-	if( keys & KEY_X)
+	if( keys & PSP2_CTRL_TRIANGLE)
 		Key_Event('x', true);
-	if( keys & KEY_B)
+	if( keys & PSP2_CTRL_CROSS)
 		Key_Event('b', true);
-	if( keys & KEY_A)
+	if( keys & PSP2_CTRL_CIRCLE)
 		Key_Event('a', true);
-	if( keys & KEY_L)
+	if( keys & PSP2_CTRL_LTRIGGER)
 		Key_Event('l', true);
-	if( keys & KEY_R)
+	if( keys & PSP2_CTRL_RTRIGGER)
 		Key_Event('r', true);
-	if( keys & KEY_ZL)
-		Key_Event('k', true);
-	if( keys & KEY_ZR)
-		Key_Event('t', true);
 }
 
-void CTR_KeyUp(u32 keys){
-	if( keys & KEY_SELECT)
+void PSP2_KeyUp(int keys){
+	if( keys & PSP2_CTRL_SELECT)
 		Key_Event(K_ESCAPE, false);
-	if( keys & KEY_START)
+	if( keys & PSP2_CTRL_START)
 		Key_Event(K_ENTER, false);
-	if( keys & KEY_DUP)
+	if( keys & PSP2_CTRL_UP)
 		Key_Event(K_UPARROW, false);
-	if( keys & KEY_DDOWN)
+	if( keys & PSP2_CTRL_DOWN)
 		Key_Event(K_DOWNARROW, false);
-	if( keys & KEY_DLEFT)
+	if( keys & PSP2_CTRL_LEFT)
 		Key_Event(K_LEFTARROW, false);
-	if( keys & KEY_DRIGHT)
+	if( keys & PSP2_CTRL_RIGHT)
 		Key_Event(K_RIGHTARROW, false);
-	if( keys & KEY_Y)
+	if( keys & PSP2_CTRL_SQUARE)
 		Key_Event('y', false);
-	if( keys & KEY_X)
+	if( keys & PSP2_CTRL_TRIANGLE)
 		Key_Event('x', false);
-	if( keys & KEY_B)
+	if( keys & PSP2_CTRL_CROSS)
 		Key_Event('b', false);
-	if( keys & KEY_A)
+	if( keys & PSP2_CTRL_CIRCLE)
 		Key_Event('a', false);
-	if( keys & KEY_L)
+	if( keys & PSP2_CTRL_LTRIGGER)
 		Key_Event('l', false);
-	if( keys & KEY_R)
+	if( keys & PSP2_CTRL_RTRIGGER)
 		Key_Event('r', false);
-	if( keys & KEY_ZL)
-		Key_Event('k', false);
-	if( keys & KEY_ZR)
-		Key_Event('t', false);
 }
 
 void Sys_SendKeyEvents (void)
 {
-	hidScanInput();
-	u32 kDown = hidKeysDown();
-	u32 kUp = hidKeysUp();
+	int kDown;
+	sceCtrlPeekBufferPositive(0, &kDown, 1);
+	int kUp;
+	sceCtrlPeekBufferNegative(0, &kUp, 1);
 	if(kDown)
-		CTR_KeyDown(kDown);
+		PSP2_KeyDown(kDown);
 	if(kUp)
-		CTR_KeyUp(kUp);
+		PSP2_KeyUp(kUp);
 }
 
 void Sys_HighFPPrecision (void)
@@ -304,16 +307,7 @@ void Sys_LowFPPrecision (void)
 int main (int argc, char **argv)
 {
 	float		time, oldtime;
-	APT_CheckNew3DS(NULL, &isN3DS);
-	if(isN3DS)
-		osSetSpeedupEnable(true);
-
-	gfxInit(GSP_RGB565_OES,GSP_RGB565_OES,false);
-	hidInit();
-	gfxSetDoubleBuffering(GFX_TOP, false);
-	gfxSetDoubleBuffering(GFX_BOTTOM, false);
-	gfxSet3D(false);
-	consoleInit(GFX_BOTTOM, NULL);
+	init_video();
 	static quakeparms_t    parms;
 
 	parms.memsize = 16*1024*1024;
@@ -325,8 +319,6 @@ int main (int argc, char **argv)
 	parms.argc = com_argc;
 	parms.argv = com_argv;
 	Host_Init (&parms);
-	hostInitialized = true;
-	ctrDrawTouchOverlay();
 	//Sys_Init();
 	oldtime = Sys_FloatTime() -0.1;
 	while (1)
@@ -335,6 +327,7 @@ int main (int argc, char **argv)
 		Host_Frame (time - oldtime);
 		oldtime = time;
 	}
-	gfxExit();
+	end_video();
+	sceKernelExitProcess(0);
 	return 0;
 }

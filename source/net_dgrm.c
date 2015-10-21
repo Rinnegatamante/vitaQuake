@@ -47,8 +47,10 @@ struct sockaddr_in
 	struct in_addr	sin_addr;
     char			sin_zero[8];
 };
-char *inet_ntoa(struct in_addr in);
-unsigned long inet_addr(const char *cp);
+//char *inet_ntoa(struct in_addr in);
+#define inet_ntoa(x) 1
+//unsigned long inet_addr(const char *cp);
+#define inet_addr(x) 1
 #endif
 #endif	// BAN_TEST
 

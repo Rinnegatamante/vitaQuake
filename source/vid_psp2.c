@@ -1,4 +1,5 @@
 /*
+Copyright (C) 2015 Felipe Izzo
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -17,25 +18,43 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// vid_null.c -- null video driver to aid porting efforts
 
+#include <psp2/display.h>
 #include "quakedef.h"
 #include "d_local.h"
+#include "draw_psp2.h"
+#define u16 uint16_t
+#define u8 uint8_t
+#define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
+#define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 viddef_t	vid;				// global video state
 
-#define	BASEWIDTH	320
-#define	BASEHEIGHT	200
+#define	BASEWIDTH	960
+#define	BASEHEIGHT	544
 
 byte	vid_buffer[BASEWIDTH*BASEHEIGHT];
 short	zbuffer[BASEWIDTH*BASEHEIGHT];
 byte	surfcache[256*1024];
+extern SceDisplayFrameBuf fb;
+u16* fb_struct;
 
-unsigned short	d_8to16table[256];
-unsigned	d_8to24table[256];
+u16	d_8to16table[256];
 
 void	VID_SetPalette (unsigned char *palette)
 {
+	int i;
+	u8 *pal = palette;
+	u16 *table = d_8to16table;
+	unsigned r, g, b;
+	for(i=0; i<256; i++){
+		r = pal[0];
+		g = pal[1];
+		b = pal[2];
+		table[0] = RGB8_to_565(r,g,b);
+		table++;
+		pal += 3;
+	}
 }
 
 void	VID_ShiftPalette (unsigned char *palette)
@@ -52,9 +71,10 @@ void	VID_Init (unsigned char *palette)
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 	vid.buffer = vid.conbuffer = vid_buffer;
 	vid.rowbytes = vid.conrowbytes = BASEWIDTH;
-
+	VID_SetPalette(palette);
 	d_pzbuffer = zbuffer;
 	D_InitCaches (surfcache, sizeof(surfcache));
+	fb_struct = fb.base;
 }
 
 void	VID_Shutdown (void)
@@ -63,6 +83,12 @@ void	VID_Shutdown (void)
 
 void	VID_Update (vrect_t *rects)
 {
+	int x,y;
+	for(x=0; x<BASEWIDTH; x++){
+		for(y=0; y<BASEHEIGHT;y++){
+			fb_struct[y*BASEWIDTH + x] = d_8to16table[vid.buffer[y*BASEWIDTH + x]];
+		}
+	}
 }
 
 /*
