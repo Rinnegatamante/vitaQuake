@@ -1,5 +1,4 @@
 /*
-Copyright (C) 2015 Felipe Izzo
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -61,9 +60,7 @@ void IN_Move (usercmd_t *cmd)
 	int x_cam = abs(right_x) < 10 ? 0 : right_x * sensitivity.value * 0.01;
 	int y_cam = abs(right_y) < 15 ? 0 : right_y * sensitivity.value * 0.01;
 	cl.viewangles[YAW] -= x_cam;
-	if(in_mlook.state & 1){
-		V_StopPitchDrift();
-		cl.viewangles[PITCH] -= y_cam;
-	}
+	V_StopPitchDrift();
+	cl.viewangles[PITCH] += y_cam;
 
 }
