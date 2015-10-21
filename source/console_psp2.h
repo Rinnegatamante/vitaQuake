@@ -6,7 +6,7 @@
 #define CONSOLE_H
 
 #include <psp2/types.h>
-#include "draw.h"
+#include "draw_psp2.h"
 
 void console_init();
 void console_fini();

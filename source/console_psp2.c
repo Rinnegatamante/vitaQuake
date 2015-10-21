@@ -8,7 +8,7 @@
 #include <psp2/kernel/threadmgr.h>
 #include <psp2/kernel/error.h>
 
-#include "console.h"
+#include "console_psp2.h"
 
 static int top_margin = 10;
 static int cns_x = 0, cns_y = 0;
