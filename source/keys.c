@@ -55,8 +55,8 @@ typedef struct
 keyname_t keynames[] =
 {
 	{"TAB", K_TAB},
-	{"ENTER", K_ENTER},
-	{"ESCAPE", K_ESCAPE},
+	{"START", K_ENTER}, // Start Button
+	{"SELECT", K_ESCAPE}, // Select Button
 	{"SPACE", K_SPACE},
 	{"BACKSPACE", K_BACKSPACE},
 	{"UPARROW", K_UPARROW},
@@ -96,13 +96,14 @@ keyname_t keynames[] =
 	{"JOY2", K_JOY2},
 	{"JOY3", K_JOY3},
 	{"JOY4", K_JOY4},
-
-	{"AUX1", K_AUX1},
-	{"AUX2", K_AUX2},
-	{"AUX3", K_AUX3},
-	{"AUX4", K_AUX4},
-	{"AUX5", K_AUX5},
-	{"AUX6", K_AUX6},
+	
+	// PSVITA Buttons
+	{"CROSS", K_AUX1},
+	{"SQUARE", K_AUX2},
+	{"TRIANGLE", K_AUX3},
+	{"CIRCLE", K_AUX4},
+	{"LTRIGGER", K_AUX5},
+	{"RTRIGGER", K_AUX6},
 	{"AUX7", K_AUX7},
 	{"AUX8", K_AUX8},
 	{"AUX9", K_AUX9},
