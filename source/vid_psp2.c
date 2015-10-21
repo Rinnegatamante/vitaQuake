@@ -35,11 +35,10 @@ viddef_t	vid;				// global video state
 
 byte	vid_buffer[BASEWIDTH*BASEHEIGHT];
 short	zbuffer[BASEWIDTH*BASEHEIGHT];
-byte	surfcache[256*1024];
-extern SceDisplayFrameBuf fb;
-u16* fb_struct;
+byte	surfcache[1024*1024];
 
 u16	d_8to16table[256];
+uint32_t palette_tbl[256];
 
 void	VID_SetPalette (unsigned char *palette)
 {
@@ -51,8 +50,7 @@ void	VID_SetPalette (unsigned char *palette)
 		r = pal[0];
 		g = pal[1];
 		b = pal[2];
-		table[0] = RGB8_to_565(r,g,b);
-		table++;
+		palette_tbl[i] = r | (g << 8) | (b << 16);
 		pal += 3;
 	}
 }
@@ -74,7 +72,6 @@ void	VID_Init (unsigned char *palette)
 	VID_SetPalette(palette);
 	d_pzbuffer = zbuffer;
 	D_InitCaches (surfcache, sizeof(surfcache));
-	fb_struct = fb.base;
 }
 
 void	VID_Shutdown (void)
@@ -86,9 +83,10 @@ void	VID_Update (vrect_t *rects)
 	int x,y;
 	for(x=0; x<BASEWIDTH; x++){
 		for(y=0; y<BASEHEIGHT;y++){
-			fb_struct[y*BASEWIDTH + x] = d_8to16table[vid.buffer[y*BASEWIDTH + x]];
+			draw_pixel(x, y, palette_tbl[vid.buffer[y*BASEWIDTH + x]]);
 		}
 	}
+	sceKernelPowerTick(0);
 }
 
 /*

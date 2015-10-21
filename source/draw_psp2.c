@@ -78,7 +78,7 @@ void init_video()
 		return;
 	}
 
-	sceDisplaySetFrameBuf(&fb, PSP2_DISPLAY_SETBUF_NEXTFRAME);
+	sceDisplaySetFrameBuf(&fb, PSP2_DISPLAY_SETBUF_IMMEDIATE);
 
 	printf(
 		"\nframebuffer 0:\n"
