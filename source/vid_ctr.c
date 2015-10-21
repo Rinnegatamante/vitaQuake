@@ -23,14 +23,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "d_local.h"
 
 #include <3ds.h>
+#include "ctr.h"
 
 viddef_t	vid;				// global video state
 
-#define	BASEWIDTH	400
-#define	BASEHEIGHT	240
+int	basewidth, baseheight, offset;
 
-byte	vid_buffer[BASEWIDTH*BASEHEIGHT];
-short	zbuffer[BASEWIDTH*BASEHEIGHT];
+byte	*vid_buffer;
+short	*zbuffer;
 byte	surfcache[256*1024];
 u16* fb;
 
@@ -58,14 +58,29 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
-	vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
+	baseheight = 240;
+
+	if(isN3DS){
+		basewidth = 400;
+		offset = 0;
+	}
+
+	else{
+		basewidth = 320;
+		offset = 40;
+	}
+
+	vid_buffer = malloc(sizeof(byte) * basewidth * baseheight);
+	zbuffer = malloc(sizeof(short) * basewidth * baseheight);
+
+	vid.maxwarpwidth = vid.width = vid.conwidth = basewidth;
+	vid.maxwarpheight = vid.height = vid.conheight = baseheight;
 	vid.aspect = 1.0;
 	vid.numpages = 1;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 	vid.buffer = vid.conbuffer = vid_buffer;
-	vid.rowbytes = vid.conrowbytes = BASEWIDTH;
+	vid.rowbytes = vid.conrowbytes = basewidth;
 	VID_SetPalette(palette);
 	d_pzbuffer = zbuffer;
 	D_InitCaches (surfcache, sizeof(surfcache));
@@ -79,9 +94,9 @@ void	VID_Shutdown (void)
 void	VID_Update (vrect_t *rects)
 {
 	int x,y;
-	for(x=0; x<BASEWIDTH; x++){
-		for(y=0; y<BASEHEIGHT;y++){
-			fb[(x*240 + (239 -y))] = d_8to16table[vid.buffer[y*BASEWIDTH + x]];
+	for(x=0; x<basewidth; x++){
+		for(y=0; y<baseheight;y++){
+			fb[((offset + x)*240 + (239 -y))] = d_8to16table[vid.buffer[y*basewidth + x]];
 		}
 	}
 }

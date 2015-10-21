@@ -23,12 +23,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "errno.h"
 
 #include <3ds.h>
+#include "ctr.h"
+
+u8 isN3DS;
 
 #define TICKS_PER_SEC 268123480.0
 
 qboolean		isDedicated;
 
 u64 initialTime = 0;
+int hostInitialized = 0;
 
 /*
 ===============================================================================
@@ -179,6 +183,9 @@ void Sys_Error (char *error, ...)
 
 void Sys_Printf (char *fmt, ...)
 {
+	if(hostInitialized)
+		return;
+
 	va_list         argptr;
 
 	va_start (argptr,fmt);
@@ -297,7 +304,10 @@ void Sys_LowFPPrecision (void)
 int main (int argc, char **argv)
 {
 	float		time, oldtime;
-	osSetSpeedupEnable(true);
+	APT_CheckNew3DS(NULL, &isN3DS);
+	if(isN3DS)
+		osSetSpeedupEnable(true);
+
 	gfxInit(GSP_RGB565_OES,GSP_RGB565_OES,false);
 	hidInit();
 	gfxSetDoubleBuffering(GFX_TOP, false);
@@ -315,6 +325,8 @@ int main (int argc, char **argv)
 	parms.argc = com_argc;
 	parms.argv = com_argv;
 	Host_Init (&parms);
+	hostInitialized = true;
+	ctrDrawTouchOverlay();
 	//Sys_Init();
 	oldtime = Sys_FloatTime() -0.1;
 	while (1)
