@@ -114,7 +114,7 @@ void IN_Init (void)
 
   tmode = 1;
   Cvar_RegisterVariable (&m_filter);
-  FILE *texture = fopen("/touchpadOverlay.bin", "rb");
+  FILE *texture = fopen("touchpadOverlay.bin", "rb");
   if(!texture)
     Sys_Error("Could not open touchpadOverlay.bin\n");
   fseek(texture, 0, SEEK_END);
@@ -123,7 +123,7 @@ void IN_Init (void)
   touchpadOverlay = malloc(size);
   fread(touchpadOverlay, 1, size, texture);
   fclose(texture);
-  texture = fopen("/keyboardOverlay.bin", "rb");
+  texture = fopen("keyboardOverlay.bin", "rb");
   if(!texture)
     Sys_Error("Could not open keyboardOverlay.bin\n");
   fseek(texture, 0, SEEK_END);
