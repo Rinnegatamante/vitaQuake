@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // mouse variables
 cvar_t	m_filter = {"m_filter","0"};
 
-SceCtrlData oldtouch, touch;
+SceCtrlData oldanalogs, analogs;
 
 void IN_Init (void)
 {
@@ -45,20 +45,25 @@ void IN_Commands (void)
 
 void IN_Move (usercmd_t *cmd)
 {
-	sceCtrlPeekBufferPositive(0, &touch, 1);
-	int x_val;
-	int y_val;
-	x_val = abs(touch.lx) < 10 ? 0 : touch.lx * sensitivity.value * 0.01;
-	y_val = abs(touch.ly) < 15 ? 0 : touch.ly * sensitivity.value * 0.01;
-	if (x_val == 0 && y_val == 0){
-		x_val = abs(touch.rx) < 10 ? 0 : touch.rx * sensitivity.value * 0.01;
-		y_val = abs(touch.ry) < 15 ? 0 : touch.ry * sensitivity.value * 0.01;
+	sceCtrlPeekBufferPositive(0, &analogs, 1);
+	int left_x = analogs.lx - 127;
+	int left_y = analogs.ly - 127;
+	int right_x = analogs.rx - 127;
+	int right_y = analogs.ry - 127;
+	
+	// Left analog support for player movement
+	int x_mov = abs(left_x) < 10 ? 0 : left_x * m_forward.value * 2;
+	int y_mov = abs(left_y) < 15 ? 0 : left_y * m_side.value * 2;
+	cmd->forwardmove -= y_mov;
+	cmd->sidemove += x_mov;
+	
+	// Right analog support for camera movement
+	int x_cam = abs(right_x) < 10 ? 0 : right_x * sensitivity.value * 0.01;
+	int y_cam = abs(right_y) < 15 ? 0 : right_y * sensitivity.value * 0.01;
+	cl.viewangles[YAW] -= x_cam;
+	if(in_mlook.state & 1){
+		V_StopPitchDrift();
+		cl.viewangles[PITCH] -= y_cam;
 	}
-  cl.viewangles[YAW] -= touch.rx;
-  if(in_mlook.state & 1){
-    V_StopPitchDrift ();
-    cl.viewangles[PITCH] -= touch.ry;
-  }
-
 
 }
