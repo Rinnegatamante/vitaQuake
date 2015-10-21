@@ -1,5 +1,4 @@
 /*
-Copyright (C) 2015 Felipe Izzo
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -146,6 +145,7 @@ int     Sys_FileTime (char *path)
 
 void Sys_mkdir (char *path)
 {
+	sceIoMkdir(path, 0777);
 }
 
 
@@ -161,6 +161,13 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 {
 }
 
+void Sys_Quit (void)
+{
+	Host_Shutdown();
+	console_fini();
+	end_video();
+	sceKernelExitProcess(0);
+}
 
 void Sys_Error (char *error, ...)
 {
@@ -182,8 +189,7 @@ void Sys_Error (char *error, ...)
 		if (kDown & PSP2_CTRL_START)
 			break;
 	}
-	Host_Shutdown();
-	exit(1);
+	Sys_Quit();
 }
 
 void Sys_Printf (char *fmt, ...)
@@ -198,13 +204,6 @@ void Sys_Printf (char *fmt, ...)
 	va_end (argptr);
 	INFO(buf);
 	
-}
-
-void Sys_Quit (void)
-{
-	Host_Shutdown();
-	end_video();
-	exit (0);
 }
 
 char *Sys_ConsoleInput (void)
@@ -234,17 +233,17 @@ void PSP2_KeyDown(int keys){
 	if( keys & PSP2_CTRL_RIGHT)
 		Key_Event(K_RIGHTARROW, true);
 	if( keys & PSP2_CTRL_SQUARE)
-		Key_Event('y', true);
+		Key_Event(K_AUX2, true);
 	if( keys & PSP2_CTRL_TRIANGLE)
-		Key_Event('x', true);
+		Key_Event(K_AUX3, true);
 	if( keys & PSP2_CTRL_CROSS)
-		Key_Event('b', true);
+		Key_Event(K_AUX1, true);
 	if( keys & PSP2_CTRL_CIRCLE)
-		Key_Event('a', true);
+		Key_Event(K_AUX4, true);
 	if( keys & PSP2_CTRL_LTRIGGER)
-		Key_Event('l', true);
+		Key_Event(K_AUX5, true);
 	if( keys & PSP2_CTRL_RTRIGGER)
-		Key_Event('r', true);
+		Key_Event(K_AUX6, true);
 }
 
 void PSP2_KeyUp(int keys, int oldkeys){
@@ -261,17 +260,17 @@ void PSP2_KeyUp(int keys, int oldkeys){
 	if ((!(keys & PSP2_CTRL_RIGHT)) && (oldkeys & PSP2_CTRL_RIGHT))
 		Key_Event(K_RIGHTARROW, false);
 	if ((!(keys & PSP2_CTRL_SQUARE)) && (oldkeys & PSP2_CTRL_SQUARE))
-		Key_Event('s', false);
+		Key_Event(K_AUX2, false);
 	if ((!(keys & PSP2_CTRL_TRIANGLE)) && (oldkeys & PSP2_CTRL_TRIANGLE))
-		Key_Event('t', false);
+		Key_Event(K_AUX3, false);
 	if ((!(keys & PSP2_CTRL_CROSS)) && (oldkeys & PSP2_CTRL_CROSS))
-		Key_Event('x', false);
+		Key_Event(K_AUX1, false);
 	if ((!(keys & PSP2_CTRL_CIRCLE)) && (oldkeys & PSP2_CTRL_CIRCLE))
-		Key_Event('o', false);
+		Key_Event(K_AUX4, false);
 	if ((!(keys & PSP2_CTRL_LTRIGGER)) && (oldkeys & PSP2_CTRL_LTRIGGER))
-		Key_Event('l', false);
+		Key_Event(K_AUX5, false);
 	if ((!(keys & PSP2_CTRL_RTRIGGER)) && (oldkeys & PSP2_CTRL_RTRIGGER))
-		Key_Event('r', false);
+		Key_Event(K_AUX6, false);
 }
 
 void Sys_SendKeyEvents (void)
@@ -324,6 +323,7 @@ int main (int argc, char **argv)
 	
 	while (1)
 	{
+		sceKernelPowerTick(0);
 		u64 tick;
 		sceRtcGetCurrentTick(&tick);
 		const unsigned int deltaTick  = tick - lastTick;

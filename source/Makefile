@@ -3,8 +3,8 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub	\
-	-lSceNet_stub -lSceNetCtl_stub \
+LIBS = -lSceKernel_stub -lSceDisplay_stub	\
+	-lSceGxm_stub -lSceNet_stub -lSceNetCtl_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lScePgf_stub -lSceRtc_stub -lc -lScePower_stub \
 
@@ -15,7 +15,7 @@ COMMON_OBJS =	chase.o \
 	cl_parse.o \
 	cl_tent.o \
 	cmd.o \
-	console.o \
+	console_psp2.o \
 	draw_psp2.o \
 	font_data.o \
 	common.o \

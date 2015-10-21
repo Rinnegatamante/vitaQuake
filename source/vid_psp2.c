@@ -1,5 +1,4 @@
 /*
-Copyright (C) 2015 Felipe Izzo
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -86,7 +85,6 @@ void	VID_Update (vrect_t *rects)
 			draw_pixel(x, y, palette_tbl[vid.buffer[y*BASEWIDTH + x]]);
 		}
 	}
-	sceKernelPowerTick(0);
 }
 
 /*
