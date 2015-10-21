@@ -298,7 +298,7 @@ void Sys_LowFPPrecision (void)
 
 int main (int argc, char **argv)
 {
-
+	scePowerSetArmClockFrequency(444);
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	
 	init_video();
