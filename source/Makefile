@@ -3,7 +3,7 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lSceKernel_stub -lSceDisplay_stub	\
+LIBS = -lSceAudio_stub -lSceKernel_stub -lSceDisplay_stub	\
 	-lSceGxm_stub -lSceNet_stub -lSceNetCtl_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lScePgf_stub -lSceRtc_stub -lc -lScePower_stub \
@@ -74,7 +74,10 @@ COMMON_OBJS =	chase.o \
 	r_surf.o \
 	r_vars.o \
 	screen.o \
-	snd_null.o \
+	snd_dma.o \
+	snd_mix.o \
+	snd_mem.o \
+	snd_psp2.o \
 	vid_psp2.o \
 	net_none.o \
 	in_psp2.o \
