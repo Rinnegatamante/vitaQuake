@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u64 uint64_t
 #define u8 uint8_t
 
-#define SAMPLE_RATE   32000
+#define SAMPLE_RATE   22050
 #define AUDIOSIZE 4096
 
 u8 *audiobuffer;
@@ -37,7 +37,7 @@ float tickRate;
 
 static int audio_thread(int args, void *argp)
 {
-	chn = sceAudioOutOpenPort(PSP2_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, 22050, PSP2_AUDIO_OUT_MODE_MONO);
+	chn = sceAudioOutOpenPort(PSP2_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, SAMPLE_RATE, PSP2_AUDIO_OUT_MODE_MONO);
 	sceAudioOutSetConfig(chn, -1, -1, -1);
     sceAudioOutSetVolume(chn, PSP2_AUDIO_VOLUME_FLAG_L_CH | PSP2_AUDIO_VOLUME_FLAG_R_CH, 32767);
 	
