@@ -3,10 +3,10 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lSceAudio_stub -lSceKernel_stub -lSceDisplay_stub	\
-	-lSceGxm_stub -lSceNet_stub -lSceNetCtl_stub \
+LIBS = -lSceAudio_stub -lSceKernel_stub \
+	-lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
-	-lScePgf_stub -lSceRtc_stub -lc -lScePower_stub \
+	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub \
 
 COMMON_OBJS =	chase.o \
 	cl_demo.o \

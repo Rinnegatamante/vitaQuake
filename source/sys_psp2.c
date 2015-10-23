@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
+#include "splash.h"
 #include <psp2/ctrl.h>
 #include <psp2/types.h>
 #include <psp2/rtc.h>
@@ -28,6 +29,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #define u64 uint64_t
+
+extern uint8_t* decodeJpg(unsigned char* in,u64 size);
 
 qboolean		isDedicated;
 
@@ -300,8 +303,23 @@ int main (int argc, char **argv)
 {
 	scePowerSetArmClockFrequency(444);
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
-	
 	init_video();
+	
+	// Revitalize splashscreen
+	uint8_t* buffer = decodeJpg(splash, size_splash);
+	int x;
+	int y;
+	for(x=0; x<960; x++){
+		for(y=0; y<544;y++){
+			int idx = (y*960 + x) * 3;
+			uint32_t color = (buffer[idx]) | (buffer[idx + 1] << 8) | (buffer[idx + 2] << 16);
+			draw_pixel(x, y, color);
+		}
+	}
+	sceKernelDelayThread(4000000);
+	free(buffer);
+	clear_screen();
+	
 	console_init();
 	console_set_color(WHITE);
 	static quakeparms_t    parms;
@@ -323,7 +341,7 @@ int main (int argc, char **argv)
 	Cbuf_AddText ("bind CROSS +jump\n"); // Cross
 	Cbuf_AddText ("bind SQUARE +attack\n"); // Square
 	Cbuf_AddText ("bind CIRCLE +jump\n"); // Circle
-	Cbuf_AddText ("bind TRIANGLE +use\n"); // Triangle
+	Cbuf_AddText ("bind TRIANGLE \"impulse 10\"\n"); // Triangle
 	Cbuf_AddText ("bind LTRIGGER +speed\n"); // Left Trigger
 	Cbuf_AddText ("bind RTRIGGER +attack\n"); // Right Trigger
 	Cbuf_AddText ("bind UPARROW +moveup\n"); // Up

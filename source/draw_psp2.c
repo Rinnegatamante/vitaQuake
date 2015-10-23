@@ -10,6 +10,8 @@
 #include <psp2/kernel/sysmem.h>
 #include "draw_psp2.h"
 #include "utils.h"
+#include <jpeglib.h>
+#include <setjmp.h>
 
 extern const unsigned char msx_font[];
 
@@ -137,6 +139,43 @@ void font_draw_char(int x, int y, uint32_t color, char c)
 		}
 		++font;
 	}
+}
+
+struct my_error_mgr {
+struct jpeg_error_mgr pub;
+jmp_buf setjmp_buffer;
+};
+typedef struct my_error_mgr * my_error_ptr;
+METHODDEF(void)
+my_error_exit (j_common_ptr cinfo)
+{
+my_error_ptr myerr = (my_error_ptr) cinfo->err;
+(*cinfo->err->output_message) (cinfo);
+longjmp(myerr->setjmp_buffer, 1);
+}
+
+uint8_t* decodeJpg(unsigned char* in,uint64_t size)
+{
+    struct jpeg_decompress_struct cinfo;
+	struct my_error_mgr jerr;
+	cinfo.err = jpeg_std_error(&jerr.pub);
+    jerr.pub.error_exit = my_error_exit;
+    jpeg_create_decompress(&cinfo);
+    jpeg_mem_src(&cinfo, in, size);
+    jpeg_read_header(&cinfo, TRUE);
+    jpeg_start_decompress(&cinfo);
+    int width = cinfo.output_width;
+    int height = cinfo.output_height;
+    int row_bytes = width * cinfo.num_components;
+    uint8_t* bgr_buffer = (uint8_t*) malloc(width*height*cinfo.num_components);
+    while (cinfo.output_scanline < cinfo.output_height) {
+        uint8_t* buffer_array[1];
+        buffer_array[0] = bgr_buffer + (cinfo.output_scanline) * row_bytes;
+        jpeg_read_scanlines(&cinfo, buffer_array, 1);
+    }
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
+    return bgr_buffer;
 }
 
 void font_draw_string(int x, int y, uint32_t color, const char *string)
