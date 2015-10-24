@@ -93,6 +93,7 @@ void	VID_Init (unsigned char *palette)
 
 void	VID_Shutdown (void)
 {
+	vita2d_free_texture(tex_buffer);
 	vita2d_fini();
 }
 
