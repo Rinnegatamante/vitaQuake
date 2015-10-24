@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // mouse variables
 cvar_t	m_filter = {"m_filter","0"};
+int inverted = false;
 
 SceCtrlData oldanalogs, analogs;
 
@@ -59,8 +60,10 @@ void IN_Move (usercmd_t *cmd)
 	// Right analog support for camera movement
 	int x_cam = abs(right_x) < 10 ? 0 : right_x * sensitivity.value * 0.01;
 	int y_cam = abs(right_y) < 15 ? 0 : right_y * sensitivity.value * 0.01;
-	cl.viewangles[YAW] -= x_cam;
+	if (inverted) cl.viewangles[YAW] += x_cam;
+	else cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
-	cl.viewangles[PITCH] += y_cam;
+	if (inverted) cl.viewangles[PITCH] -= y_cam;
+	else cl.viewangles[PITCH] += y_cam;
 
 }

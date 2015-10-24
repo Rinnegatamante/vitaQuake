@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "winquake.h"
 #endif
 
+extern int inverted;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1135,7 +1136,9 @@ void M_AdjustSliders (int dir)
 		break;
 
 	case 9:	// invert mouse
-		Cvar_SetValue ("m_pitch", -m_pitch.value);
+		//Cvar_SetValue ("m_pitch", -m_pitch.value); Hotfix for PSVITA
+		if (inverted) inverted = false;
+		else inverted = true;
 		break;
 
 	case 10:	// lookspring
@@ -1205,7 +1208,7 @@ void M_Options_Draw (void)
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 64, r);
 
-	M_Print (16, 72, "           Mouse Speed");
+	M_Print (16, 72, "    Right Analog Sens.");
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
@@ -1220,8 +1223,8 @@ void M_Options_Draw (void)
 	M_Print (16, 96,  "            Always Run");
 	M_DrawCheckbox (220, 96, cl_forwardspeed.value > 200);
 
-	M_Print (16, 104, "          Invert Mouse");
-	M_DrawCheckbox (220, 104, m_pitch.value < 0);
+	M_Print (16, 104, "         Invert Camera");
+	M_DrawCheckbox (220, 104, inverted);
 
 	M_Print (16, 112, "            Lookspring");
 	M_DrawCheckbox (220, 112, lookspring.value);
@@ -1416,7 +1419,7 @@ void M_Keys_Draw (void)
 	if (bind_grab)
 		M_Print (12, 32, "Press a key or button for this action");
 	else
-		M_Print (18, 32, "Enter to change, backspace to clear");
+		M_Print (18, 32, "Cross to change, Select to clear");
 
 // search for known bindings
 	for (i=0 ; i<NUMCOMMANDS ; i++)
@@ -1506,7 +1509,6 @@ void M_Keys_Key (int k)
 		bind_grab = true;
 		break;
 
-	case K_BACKSPACE:		// delete bindings
 	case K_ESCAPE:				// delete bindings
 		S_LocalSound ("misc/menu2.wav");
 		M_UnbindCommand (bindnames[keys_cursor][0]);
