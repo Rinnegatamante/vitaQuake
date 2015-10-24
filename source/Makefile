@@ -3,7 +3,7 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lSceAudio_stub -lSceKernel_stub \
+LIBS = -lvita2d -lSceAudio_stub -lSceKernel_stub \
 	-lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub \

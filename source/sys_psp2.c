@@ -167,8 +167,10 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 void Sys_Quit (void)
 {
 	Host_Shutdown();
-	console_fini();
-	end_video();
+	if (!hostInitialized){
+		console_fini();
+		end_video();
+	}
 	sceKernelExitProcess(0);
 }
 
@@ -302,6 +304,7 @@ void Sys_LowFPPrecision (void)
 int main (int argc, char **argv)
 {
 	scePowerSetArmClockFrequency(444);
+	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	init_video();
 	
@@ -332,6 +335,7 @@ int main (int argc, char **argv)
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;	
+	
 	Host_Init (&parms);
 	hostInitialized = 1;
 	//Sys_Init();
@@ -360,13 +364,10 @@ int main (int argc, char **argv)
 		sceRtcGetCurrentTick(&tick);
 		const unsigned int deltaTick  = tick - lastTick;
 		const float   deltaSecond = deltaTick * tickRate;
-		
 		Host_Frame(deltaSecond);
-		
 		lastTick = tick;
 	}
-	console_fini();
-	end_video();
+
 	sceKernelExitProcess(0);
 	return 0;
 }

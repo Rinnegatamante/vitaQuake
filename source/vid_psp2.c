@@ -19,72 +19,90 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <psp2/display.h>
+#include <vita2d.h>
 #include "quakedef.h"
 #include "d_local.h"
 #include "draw_psp2.h"
 #define u16 uint16_t
 #define u8 uint8_t
-#define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
-#define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 viddef_t	vid;				// global video state
 
 #define	BASEWIDTH	960
 #define	BASEHEIGHT	544
 
-byte	vid_buffer[BASEWIDTH*BASEHEIGHT];
 short	zbuffer[BASEWIDTH*BASEHEIGHT];
 byte	surfcache[1024*1024];
-
+vita2d_texture* tex_buffer;
 u16	d_8to16table[256];
-uint32_t palette_tbl[256];
 
 void	VID_SetPalette (unsigned char *palette)
 {
 	int i;
-	u8 *pal = palette;
-	u16 *table = d_8to16table;
+	uint32_t* palette_tbl = vita2d_texture_get_palette(tex_buffer);
+	u8* pal = palette;
 	unsigned r, g, b;
+	
 	for(i=0; i<256; i++){
 		r = pal[0];
 		g = pal[1];
 		b = pal[2];
-		palette_tbl[i] = r | (g << 8) | (b << 16);
+		palette_tbl[i] = r | (g << 8) | (b << 16) | (0xFF << 24);
 		pal += 3;
 	}
 }
 
 void	VID_ShiftPalette (unsigned char *palette)
 {
+	VID_SetPalette(palette);
 }
 
 void	VID_Init (unsigned char *palette)
 {
+	
+	// Term debug console used to handle engine startup errors
+	console_fini();
+	end_video();
+	
+	// Init GPU
+	vita2d_init();
+	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
+	vita2d_set_vblank_wait(0);
+	
+	// Init GPU texture
+	tex_buffer = vita2d_create_empty_texture_format(BASEWIDTH, BASEHEIGHT, SCE_GXM_TEXTURE_BASE_FORMAT_P8);
+	
+	// Set Quake Engine parameters
 	vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
 	vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
 	vid.aspect = 1.0;
 	vid.numpages = 1;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
-	vid.buffer = vid.conbuffer = vid_buffer;
+	vid.buffer = vid.conbuffer = vita2d_texture_get_datap(tex_buffer);
 	vid.rowbytes = vid.conrowbytes = BASEWIDTH;
+	
+	// Set correct palette for the texture
 	VID_SetPalette(palette);
+	
+	// Init Quake Cache
 	d_pzbuffer = zbuffer;
 	D_InitCaches (surfcache, sizeof(surfcache));
+	
 }
 
 void	VID_Shutdown (void)
 {
+	vita2d_fini();
 }
 
 void	VID_Update (vrect_t *rects)
 {
-	int x,y;
-	for(x=0; x<BASEWIDTH; x++){
-		for(y=0; y<BASEHEIGHT;y++){
-			draw_pixel(x, y, palette_tbl[vid.buffer[y*BASEWIDTH + x]]);
-		}
-	}
+	vita2d_start_drawing();
+	vita2d_draw_texture(tex_buffer, 0, 0);
+	vita2d_end_drawing();
+	vita2d_swap_buffers();
+	sceDisplayWaitVblankStart();
 }
 
 /*
