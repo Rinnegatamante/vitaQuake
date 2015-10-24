@@ -1270,6 +1270,21 @@ void M_Options_Key (int k)
 			break;
 		case 2:
 			Cbuf_AddText ("exec default.cfg\n");
+			
+			// Set default PSVITA controls
+			Cbuf_AddText ("unbindall\n");
+			Cbuf_AddText ("bind CROSS +jump\n"); // Cross
+			Cbuf_AddText ("bind SQUARE +attack\n"); // Square
+			Cbuf_AddText ("bind CIRCLE +jump\n"); // Circle
+			Cbuf_AddText ("bind TRIANGLE \"impulse 10\"\n"); // Triangle
+			Cbuf_AddText ("bind LTRIGGER +speed\n"); // Left Trigger
+			Cbuf_AddText ("bind RTRIGGER +attack\n"); // Right Trigger
+			Cbuf_AddText ("bind UPARROW +moveup\n"); // Up
+			Cbuf_AddText ("bind DOWNARROW +movedown\n"); // Down
+			Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
+			Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
+			Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
+			
 			break;
 		case 12:
 			M_Menu_Video_f ();
