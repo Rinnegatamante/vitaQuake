@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 extern int inverted;
+extern int retro_touch;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1148,6 +1149,11 @@ void M_AdjustSliders (int dir)
 	case 11:	// lookstrafe
 		Cvar_SetValue ("lookstrafe", !lookstrafe.value);
 		break;
+		
+	case 12:	// retrotouch
+		if (retro_touch) retro_touch = false;
+		else retro_touch = true;
+		break;
 
 #ifdef _WIN32
 	case 13:	// _windowed_mouse
@@ -1208,7 +1214,7 @@ void M_Options_Draw (void)
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 64, r);
 
-	M_Print (16, 72, "    Right Analog Sens.");
+	M_Print (16, 72, "    Camera Sensibility");
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
@@ -1232,9 +1238,10 @@ void M_Options_Draw (void)
 	M_Print (16, 120, "            Lookstrafe");
 	M_DrawCheckbox (220, 120, lookstrafe.value);
 
-	if (vid_menudrawfn)
-		M_Print (16, 128, "         Video Options");
-
+	//if (vid_menudrawfn)
+	M_Print (16, 128, "        Use Retrotouch");
+	M_DrawCheckbox (220, 128, retro_touch);
+	
 #ifdef _WIN32
 	if (modestate == MS_WINDOWED)
 	{
@@ -1286,9 +1293,9 @@ void M_Options_Key (int k)
 			Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
 			
 			break;
-		case 12:
-			M_Menu_Video_f ();
-			break;
+		//case 12:
+		//	M_Menu_Video_f ();
+		//	break;
 		default:
 			M_AdjustSliders (1);
 			break;
@@ -1318,10 +1325,10 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 12 && vid_menudrawfn == NULL)
+	if (options_cursor == 13)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 11;
+			options_cursor = 12;
 		else
 			options_cursor = 0;
 	}
