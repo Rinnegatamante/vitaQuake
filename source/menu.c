@@ -1272,6 +1272,7 @@ void M_Options_Key (int k)
 			M_Menu_Keys_f ();
 			break;
 		case 1:
+			danzeff_load();
 			m_state = m_none;
 			Con_ToggleConsole_f ();
 			break;

@@ -23,10 +23,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "d_local.h"
 #include "draw_psp2.h"
+#include "danzeff.h"
 #define u16 uint16_t
 #define u8 uint8_t
 
 viddef_t	vid;				// global video state
+int isDanzeff = false;
+int old_char = 0;
 
 #define	BASEWIDTH	960
 #define	BASEHEIGHT	544
@@ -101,6 +104,7 @@ void	VID_Update (vrect_t *rects)
 {
 	vita2d_start_drawing();
 	vita2d_draw_texture(tex_buffer, 0, 0);
+	if (isDanzeff) danzeff_render();
 	vita2d_end_drawing();
 	vita2d_swap_buffers();
 	sceDisplayWaitVblankStart();

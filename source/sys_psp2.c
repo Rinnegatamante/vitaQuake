@@ -25,12 +25,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/types.h>
 #include <psp2/rtc.h>
 #include "draw_psp2.h"
+#include "danzeff.h"
 #include "console_psp2.h"
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #define u64 uint64_t
 
 extern uint8_t* decodeJpg(unsigned char* in,u64 size);
+extern int old_char;
+extern int isDanzeff;
 
 qboolean		isDedicated;
 
@@ -225,70 +228,76 @@ double Sys_FloatTime (void)
 }
 
 void PSP2_KeyDown(int keys){
-	if( keys & PSP2_CTRL_SELECT)
-		Key_Event(K_ESCAPE, true);
-	if( keys & PSP2_CTRL_START)
-		Key_Event(K_ENTER, true);
-	if( keys & PSP2_CTRL_UP)
-		Key_Event(K_UPARROW, true);
-	if( keys & PSP2_CTRL_DOWN)
-		Key_Event(K_DOWNARROW, true);
-	if( keys & PSP2_CTRL_LEFT)
-		Key_Event(K_LEFTARROW, true);
-	if( keys & PSP2_CTRL_RIGHT)
-		Key_Event(K_RIGHTARROW, true);
-	if( keys & PSP2_CTRL_SQUARE)
-		Key_Event(K_AUX2, true);
-	if( keys & PSP2_CTRL_TRIANGLE)
-		Key_Event(K_AUX3, true);
-	if( keys & PSP2_CTRL_CROSS)
-		Key_Event(K_AUX1, true);
-	if( keys & PSP2_CTRL_CIRCLE)
-		Key_Event(K_AUX4, true);
-	if( keys & PSP2_CTRL_LTRIGGER)
-		Key_Event(K_AUX5, true);
-	if( keys & PSP2_CTRL_RTRIGGER)
-		Key_Event(K_AUX6, true);
+	if (key_dest != key_console){
+		if( keys & PSP2_CTRL_SELECT)
+			Key_Event(K_ESCAPE, true);
+		if( keys & PSP2_CTRL_START)
+			Key_Event(K_ENTER, true);
+		if( keys & PSP2_CTRL_UP)
+			Key_Event(K_UPARROW, true);
+		if( keys & PSP2_CTRL_DOWN)
+			Key_Event(K_DOWNARROW, true);
+		if( keys & PSP2_CTRL_LEFT)
+			Key_Event(K_LEFTARROW, true);
+		if( keys & PSP2_CTRL_RIGHT)
+			Key_Event(K_RIGHTARROW, true);
+		if( keys & PSP2_CTRL_SQUARE)
+			Key_Event(K_AUX2, true);
+		if( keys & PSP2_CTRL_TRIANGLE)
+			Key_Event(K_AUX3, true);
+		if( keys & PSP2_CTRL_CROSS)
+			Key_Event(K_AUX1, true);
+		if( keys & PSP2_CTRL_CIRCLE)
+			Key_Event(K_AUX4, true);
+		if( keys & PSP2_CTRL_LTRIGGER)
+			Key_Event(K_AUX5, true);
+		if( keys & PSP2_CTRL_RTRIGGER)
+			Key_Event(K_AUX6, true);
+	}
 }
 
 void PSP2_KeyUp(int keys, int oldkeys){
-	if ((!(keys & PSP2_CTRL_SELECT)) && (oldkeys & PSP2_CTRL_SELECT))
-		Key_Event(K_ESCAPE, false);
-	if ((!(keys & PSP2_CTRL_START)) && (oldkeys & PSP2_CTRL_START))
-		Key_Event(K_ENTER, false);
-	if ((!(keys & PSP2_CTRL_UP)) && (oldkeys & PSP2_CTRL_UP))
-		Key_Event(K_UPARROW, false);
-	if ((!(keys & PSP2_CTRL_DOWN)) && (oldkeys & PSP2_CTRL_DOWN))
-		Key_Event(K_DOWNARROW, false);
-	if ((!(keys & PSP2_CTRL_LEFT)) && (oldkeys & PSP2_CTRL_LEFT))
-		Key_Event(K_LEFTARROW, false);
-	if ((!(keys & PSP2_CTRL_RIGHT)) && (oldkeys & PSP2_CTRL_RIGHT))
-		Key_Event(K_RIGHTARROW, false);
-	if ((!(keys & PSP2_CTRL_SQUARE)) && (oldkeys & PSP2_CTRL_SQUARE))
-		Key_Event(K_AUX2, false);
-	if ((!(keys & PSP2_CTRL_TRIANGLE)) && (oldkeys & PSP2_CTRL_TRIANGLE))
-		Key_Event(K_AUX3, false);
-	if ((!(keys & PSP2_CTRL_CROSS)) && (oldkeys & PSP2_CTRL_CROSS))
-		Key_Event(K_AUX1, false);
-	if ((!(keys & PSP2_CTRL_CIRCLE)) && (oldkeys & PSP2_CTRL_CIRCLE))
-		Key_Event(K_AUX4, false);
-	if ((!(keys & PSP2_CTRL_LTRIGGER)) && (oldkeys & PSP2_CTRL_LTRIGGER))
-		Key_Event(K_AUX5, false);
-	if ((!(keys & PSP2_CTRL_RTRIGGER)) && (oldkeys & PSP2_CTRL_RTRIGGER))
-		Key_Event(K_AUX6, false);
+	if (key_dest != key_console){
+		if ((!(keys & PSP2_CTRL_SELECT)) && (oldkeys & PSP2_CTRL_SELECT))
+			Key_Event(K_ESCAPE, false);
+		if ((!(keys & PSP2_CTRL_START)) && (oldkeys & PSP2_CTRL_START))
+			Key_Event(K_ENTER, false);
+		if ((!(keys & PSP2_CTRL_UP)) && (oldkeys & PSP2_CTRL_UP))
+			Key_Event(K_UPARROW, false);
+		if ((!(keys & PSP2_CTRL_DOWN)) && (oldkeys & PSP2_CTRL_DOWN))
+			Key_Event(K_DOWNARROW, false);
+		if ((!(keys & PSP2_CTRL_LEFT)) && (oldkeys & PSP2_CTRL_LEFT))
+			Key_Event(K_LEFTARROW, false);
+		if ((!(keys & PSP2_CTRL_RIGHT)) && (oldkeys & PSP2_CTRL_RIGHT))
+			Key_Event(K_RIGHTARROW, false);
+		if ((!(keys & PSP2_CTRL_SQUARE)) && (oldkeys & PSP2_CTRL_SQUARE))
+			Key_Event(K_AUX2, false);
+		if ((!(keys & PSP2_CTRL_TRIANGLE)) && (oldkeys & PSP2_CTRL_TRIANGLE))
+			Key_Event(K_AUX3, false);
+		if ((!(keys & PSP2_CTRL_CROSS)) && (oldkeys & PSP2_CTRL_CROSS))
+			Key_Event(K_AUX1, false);
+		if ((!(keys & PSP2_CTRL_CIRCLE)) && (oldkeys & PSP2_CTRL_CIRCLE))
+			Key_Event(K_AUX4, false);
+		if ((!(keys & PSP2_CTRL_LTRIGGER)) && (oldkeys & PSP2_CTRL_LTRIGGER))
+			Key_Event(K_AUX5, false);
+		if ((!(keys & PSP2_CTRL_RTRIGGER)) && (oldkeys & PSP2_CTRL_RTRIGGER))
+			Key_Event(K_AUX6, false);
+	}
 }
 
 void Sys_SendKeyEvents (void)
 {
-	sceCtrlPeekBufferPositive(0, &pad, 1);
-	int kDown = pad.buttons;
-	int kUp = oldpad.buttons;
-	if(kDown)
-		PSP2_KeyDown(kDown);
-	if(kUp != kDown)
-		PSP2_KeyUp(kDown, kUp);
+	if (key_dest != key_console){
+		sceCtrlPeekBufferPositive(0, &pad, 1);
+		int kDown = pad.buttons;
+		int kUp = oldpad.buttons;
+		if(kDown)
+			PSP2_KeyDown(kDown);
+		if(kUp != kDown)
+			PSP2_KeyUp(kDown, kUp);
 		
-	oldpad = pad;
+		oldpad = pad;
+	}
 }
 
 void Sys_HighFPPrecision (void)
@@ -359,13 +368,53 @@ int main (int argc, char **argv)
 	
 	while (1)
 	{
+		// Prevent screen power-off
 		sceKernelPowerTick(0);
+		
+		// Danzeff keyboard manage for Console
+		if (key_dest == key_console){
+			if (old_char != 0) Key_Event(old_char, false);
+			SceCtrlData danzeff_pad, oldpad;
+			sceCtrlPeekBufferPositive(0, &danzeff_pad, 1);
+			if (isDanzeff){
+				int new_char = danzeff_readInput(danzeff_pad);
+				if (new_char != 0){
+					if (new_char > 4){
+						Key_Event(new_char, true);
+						old_char = new_char;
+					}else if (new_char == DANZEFF_START){
+						Key_Console(K_END);
+					}else if (new_char == 8){
+						Key_Event(K_UPARROW, true);
+						old_char = K_UPARROW;
+					}else if (new_char == '\n'){
+						Key_Event(K_DOWNARROW, true);
+						old_char = K_DOWNARROW;
+					}else if (new_char == DANZEFF_LEFT || new_char == '\010'){
+						Key_Event(K_BACKSPACE, true);
+						old_char = K_BACKSPACE;
+					}else if (new_char == DANZEFF_RIGHT){
+						Key_Event(K_TAB, true);
+						old_char = K_TAB;
+					}else if (new_char == DANZEFF_SELECT) isDanzeff = false;
+				}
+			}else if ((danzeff_pad.buttons & PSP2_CTRL_START) && (!(oldpad.buttons & PSP2_CTRL_START))){
+				danzeff_free();
+				Con_ToggleConsole_f ();
+			}else if ((danzeff_pad.buttons & PSP2_CTRL_SELECT) && (!(oldpad.buttons & PSP2_CTRL_SELECT))) isDanzeff = true;
+			oldpad = danzeff_pad;
+		}
+		
+		// Get current frame
 		u64 tick;
 		sceRtcGetCurrentTick(&tick);
 		const unsigned int deltaTick  = tick - lastTick;
 		const float   deltaSecond = deltaTick * tickRate;
+		
+		// Show frame
 		Host_Frame(deltaSecond);
 		lastTick = tick;
+		
 	}
 
 	sceKernelExitProcess(0);

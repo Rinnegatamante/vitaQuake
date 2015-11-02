@@ -161,7 +161,7 @@ void Key_Console (int key)
 {
 	char	*cmd;
 
-	if (key == K_ENTER)
+	if (key == K_END)
 	{
 		Cbuf_AddText (key_lines[edit_line]+1);	// skip the >
 		Cbuf_AddText ("\n");
@@ -257,7 +257,7 @@ void Key_Console (int key)
 		return;
 	}
 
-	if (key == K_END)
+	if (key == K_ENTER)
 	{
 		con_backscroll = 0;
 		return;

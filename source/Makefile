@@ -4,7 +4,7 @@ DATA		:=	data
 INCLUDES	:=	include
 
 LIBS = -lvita2d -lSceAudio_stub -lSceKernel_stub \
-	-lSceDisplay_stub -lSceGxm_stub \
+	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub \
 
@@ -15,6 +15,7 @@ COMMON_OBJS =	chase.o \
 	cl_parse.o \
 	cl_tent.o \
 	cmd.o \
+	danzeff.o \
 	console_psp2.o \
 	draw_psp2.o \
 	font_data.o \
