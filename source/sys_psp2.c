@@ -379,24 +379,25 @@ int main (int argc, char **argv)
 			if (isDanzeff){
 				int new_char = danzeff_readInput(danzeff_pad);
 				if (new_char != 0){
-					if (new_char > 4){
-						Key_Event(new_char, true);
-						old_char = new_char;
-					}else if (new_char == DANZEFF_START){
+					if (new_char == DANZEFF_START){
 						Key_Console(K_END);
-					}else if (new_char == 8){
+					}else if (new_char == DANZEFF_LEFT){
 						Key_Event(K_UPARROW, true);
 						old_char = K_UPARROW;
 					}else if (new_char == '\n'){
 						Key_Event(K_DOWNARROW, true);
 						old_char = K_DOWNARROW;
-					}else if (new_char == DANZEFF_LEFT || new_char == '\010'){
+					}else if (new_char == 8){
 						Key_Event(K_BACKSPACE, true);
 						old_char = K_BACKSPACE;
 					}else if (new_char == DANZEFF_RIGHT){
 						Key_Event(K_TAB, true);
 						old_char = K_TAB;
-					}else if (new_char == DANZEFF_SELECT) isDanzeff = false;
+					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & PSP2_CTRL_SELECT))) isDanzeff = false;
+					else{
+						Key_Event(new_char, true);
+						old_char = new_char;
+					}
 				}
 			}else if ((danzeff_pad.buttons & PSP2_CTRL_START) && (!(oldpad.buttons & PSP2_CTRL_START))){
 				danzeff_free();

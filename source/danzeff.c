@@ -117,11 +117,11 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
       }
       else if (pspctrl.buttons & PSP2_CTRL_UP)
       {
-         pressed = 8; //backspace
+         pressed = DANZEFF_LEFT;
       }
       else if (pspctrl.buttons & PSP2_CTRL_LEFT)
       {
-         pressed = DANZEFF_LEFT; //LEFT
+         pressed = 8; //LEFT
       }
       else if (pspctrl.buttons & PSP2_CTRL_RIGHT)
       {
