@@ -17,12 +17,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+#include <vita2d.h>
 #include "quakedef.h"
 
 #ifdef _WIN32
 #include "winquake.h"
 #endif
 
+extern vita2d_texture* tex_buffer;
+extern cvar_t	scr_fov;
+extern cvar_t	crosshair;
+extern cvar_t	d_mipscale;
 extern int inverted;
 extern int retro_touch;
 void (*vid_menudrawfn)(void);
@@ -1102,17 +1107,11 @@ void M_AdjustSliders (int dir)
 			sensitivity.value = 11;
 		Cvar_SetValue ("sensitivity", sensitivity.value);
 		break;
-	case 6:	// music volume
-#ifdef _WIN32
-		bgmvolume.value += dir * 1.0;
-#else
-		bgmvolume.value += dir * 0.1;
-#endif
-		if (bgmvolume.value < 0)
-			bgmvolume.value = 0;
-		if (bgmvolume.value > 1)
-			bgmvolume.value = 1;
-		Cvar_SetValue ("bgmvolume", bgmvolume.value);
+	case 6:	// depth of field
+		d_mipscale.value -= dir;
+		if (d_mipscale.value > 40) d_mipscale.value = 40;
+		else if (d_mipscale.value < 0) d_mipscale.value = 0;
+		Cvar_SetValue ("d_mipscale", d_mipscale.value);
 		break;
 	case 7:	// sfx volume
 		volume.value += dir * 0.1;
@@ -1142,12 +1141,15 @@ void M_AdjustSliders (int dir)
 		else inverted = true;
 		break;
 
-	case 10:	// lookspring
-		Cvar_SetValue ("lookspring", !lookspring.value);
+	case 10:	// field of view
+		scr_fov.value += dir * 5;
+		if (scr_fov.value > 130) scr_fov.value = 130;
+		if (scr_fov.value < 75) scr_fov.value = 75;
+		Cvar_SetValue ("fov",scr_fov.value);
 		break;
 
-	case 11:	// lookstrafe
-		Cvar_SetValue ("lookstrafe", !lookstrafe.value);
+	case 11:	// crosshair		
+		Cvar_SetValue ("crosshair", !crosshair.value);
 		break;
 		
 	case 12:	// retrotouch
@@ -1218,8 +1220,8 @@ void M_Options_Draw (void)
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
-	M_Print (16, 80, "       CD Music Volume");
-	r = bgmvolume.value;
+	M_Print (16, 80, "        Depth of Field");
+	r = (40 - d_mipscale.value) / 40;
 	M_DrawSlider (220, 80, r);
 
 	M_Print (16, 88, "          Sound Volume");
@@ -1232,11 +1234,12 @@ void M_Options_Draw (void)
 	M_Print (16, 104, "         Invert Camera");
 	M_DrawCheckbox (220, 104, inverted);
 
-	M_Print (16, 112, "            Lookspring");
-	M_DrawCheckbox (220, 112, lookspring.value);
+	M_Print (16, 112, "         Field of View");
+	r = (scr_fov.value - 75) / 55;
+	M_DrawSlider (220, 112, r);
 
-	M_Print (16, 120, "            Lookstrafe");
-	M_DrawCheckbox (220, 120, lookstrafe.value);
+	M_Print (16, 120, "        Show Crosshair");
+	M_DrawCheckbox (220, 120, crosshair.value);
 
 	//if (vid_menudrawfn)
 	M_Print (16, 128, "        Use Retrotouch");
@@ -1292,7 +1295,10 @@ void M_Options_Key (int k)
 			Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
 			Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
 			Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
-			
+			d_mipscale.value = 1;
+			Cvar_SetValue ("d_mipscale", d_mipscale.value);
+			scr_fov.value = 90;
+			Cvar_SetValue ("fov", scr_fov.value);
 			break;
 		//case 12:
 		//	M_Menu_Video_f ();
