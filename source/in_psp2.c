@@ -66,8 +66,7 @@ void IN_Move (usercmd_t *cmd)
 	// Right analog support for camera movement
 	int x_cam = abs(right_x) < 10 ? 0 : right_x * sensitivity.value * 0.01;
 	int y_cam = abs(right_y) < 15 ? 0 : right_y * sensitivity.value * 0.01;
-	if (inverted) cl.viewangles[YAW] += x_cam;
-	else cl.viewangles[YAW] -= x_cam;
+	cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
 	if (inverted) cl.viewangles[PITCH] -= y_cam;
 	else cl.viewangles[PITCH] += y_cam;
@@ -84,8 +83,7 @@ void IN_Move (usercmd_t *cmd)
 		int touch_y = raw_y - 272;
 		x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.01;
 		y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.01;
-		if (inverted) cl.viewangles[YAW] += x_cam;
-		else cl.viewangles[YAW] -= x_cam;
+		cl.viewangles[YAW] -= x_cam;
 		V_StopPitchDrift();
 		if (inverted) cl.viewangles[PITCH] -= y_cam;
 		else cl.viewangles[PITCH] += y_cam;
@@ -101,8 +99,7 @@ void IN_Move (usercmd_t *cmd)
 			int touch_y = raw_y - 272;
 			x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.01;
 			y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.01;
-			if (inverted) cl.viewangles[YAW] += x_cam;
-			else cl.viewangles[YAW] -= x_cam;
+			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
 			if (inverted) cl.viewangles[PITCH] -= y_cam;
 			else cl.viewangles[PITCH] += y_cam;
