@@ -336,7 +336,7 @@ int main (int argc, char **argv)
 	console_set_color(WHITE);
 	static quakeparms_t    parms;
 
-	parms.memsize = 16*1024*1024;
+	parms.memsize = 20*1024*1024;
 	parms.membase = malloc (parms.memsize);
 	parms.basedir = ".";
 

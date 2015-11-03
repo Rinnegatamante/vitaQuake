@@ -33,9 +33,10 @@ int old_char = 0;
 
 #define	BASEWIDTH	960
 #define	BASEHEIGHT	544
+#define SURFCACHE_SIZE 4194304
 
 short	zbuffer[BASEWIDTH*BASEHEIGHT];
-byte	surfcache[1024*1024];
+byte*	surfcache;
 vita2d_texture* tex_buffer;
 u16	d_8to16table[256];
 
@@ -90,7 +91,8 @@ void	VID_Init (unsigned char *palette)
 	
 	// Init Quake Cache
 	d_pzbuffer = zbuffer;
-	D_InitCaches (surfcache, sizeof(surfcache));
+	surfcache = malloc(SURFCACHE_SIZE);
+	D_InitCaches (surfcache, SURFCACHE_SIZE);
 	
 }
 
@@ -98,6 +100,7 @@ void	VID_Shutdown (void)
 {
 	vita2d_free_texture(tex_buffer);
 	vita2d_fini();
+	free(surfcache);
 }
 
 void	VID_Update (vrect_t *rects)
