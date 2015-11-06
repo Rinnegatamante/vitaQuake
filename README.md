@@ -12,9 +12,8 @@ vitaQuake is a porting of Quake Engine for PSVITA based on winQuake.
 #TODO List
 - Switch to Hardware GPU rendering
 - Improve sound quality
-- Add support to gyroscope, touchscreen and retrotouch
+- Add support to gyroscope
 - Add multiplayer support
-- Add a keyboard for console usage
 
 #Credits
 - idSoftware for winQuake sourcecode
