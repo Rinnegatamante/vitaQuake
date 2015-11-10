@@ -174,7 +174,8 @@ void Sys_Quit (void)
 		console_fini();
 		end_video();
 	}
-	sceKernelExitProcess(0);
+	exit(0);
+	//sceKernelExitProcess(0);
 }
 
 void Sys_Error (char *error, ...)
@@ -418,6 +419,6 @@ int main (int argc, char **argv)
 		
 	}
 
-	sceKernelExitProcess(0);
+	//sceKernelExitProcess(0);
 	return 0;
 }
