@@ -82,22 +82,22 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
       selected_y = y;
    }
    //if they are changing shift then that makes it dirty too
-   if ((!shifted && (pspctrl.buttons & PSP2_CTRL_RTRIGGER)) || (shifted && !(pspctrl.buttons & PSP2_CTRL_RTRIGGER)))
+   if ((!shifted && (pspctrl.buttons & SCE_CTRL_RTRIGGER)) || (shifted && !(pspctrl.buttons & SCE_CTRL_RTRIGGER)))
       dirty = true;
 
    unsigned int pressed = 0; //character they have entered, 0 as that means 'nothing'
-   shifted = (pspctrl.buttons & PSP2_CTRL_RTRIGGER)?true:false;
+   shifted = (pspctrl.buttons & SCE_CTRL_RTRIGGER)?true:false;
 
    if (!holding)
    {
-      if (pspctrl.buttons& (PSP2_CTRL_CROSS|PSP2_CTRL_CIRCLE|PSP2_CTRL_TRIANGLE|PSP2_CTRL_SQUARE)) //pressing a char select button
+      if (pspctrl.buttons& (SCE_CTRL_CROSS|SCE_CTRL_CIRCLE|SCE_CTRL_TRIANGLE|SCE_CTRL_SQUARE)) //pressing a char select button
       {
          int innerChoice = 0;
-         if      (pspctrl.buttons & PSP2_CTRL_TRIANGLE)
+         if      (pspctrl.buttons & SCE_CTRL_TRIANGLE)
             innerChoice = 0;
-         else if (pspctrl.buttons & PSP2_CTRL_SQUARE)
+         else if (pspctrl.buttons & SCE_CTRL_SQUARE)
             innerChoice = 1;
-         else if (pspctrl.buttons & PSP2_CTRL_CROSS)
+         else if (pspctrl.buttons & SCE_CTRL_CROSS)
             innerChoice = 2;
          else //if (pspctrl.Buttons & PSP_CTRL_CIRCLE)
             innerChoice = 3;
@@ -105,39 +105,39 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
          //Now grab the value out of the array
          pressed = modeChar[ mode*2 + shifted][y][x][innerChoice];
       }
-      else if (pspctrl.buttons & PSP2_CTRL_LTRIGGER) //toggle mode
+      else if (pspctrl.buttons & SCE_CTRL_LTRIGGER) //toggle mode
       {
          dirty = true;
          mode++;
          mode %= MODE_COUNT;
       }
-      else if (pspctrl.buttons & PSP2_CTRL_DOWN)
+      else if (pspctrl.buttons & SCE_CTRL_DOWN)
       {
          pressed = '\n';
       }
-      else if (pspctrl.buttons & PSP2_CTRL_UP)
+      else if (pspctrl.buttons & SCE_CTRL_UP)
       {
          pressed = DANZEFF_LEFT;
       }
-      else if (pspctrl.buttons & PSP2_CTRL_LEFT)
+      else if (pspctrl.buttons & SCE_CTRL_LEFT)
       {
          pressed = 8; //LEFT
       }
-      else if (pspctrl.buttons & PSP2_CTRL_RIGHT)
+      else if (pspctrl.buttons & SCE_CTRL_RIGHT)
       {
          pressed = DANZEFF_RIGHT; //RIGHT
       }
-      else if (pspctrl.buttons & PSP2_CTRL_SELECT)
+      else if (pspctrl.buttons & SCE_CTRL_SELECT)
       {
          pressed = DANZEFF_SELECT; //SELECT
       }
-      else if (pspctrl.buttons & PSP2_CTRL_START)
+      else if (pspctrl.buttons & SCE_CTRL_START)
       {
          pressed = DANZEFF_START; //START
       }
    }
 
-   holding = pspctrl.buttons & ~PSP2_CTRL_RTRIGGER; //RTRIGGER doesn't set holding
+   holding = pspctrl.buttons & ~SCE_CTRL_RTRIGGER; //RTRIGGER doesn't set holding
 
    return pressed;
 }
