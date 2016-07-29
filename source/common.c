@@ -1692,7 +1692,7 @@ void COM_AddGameDirectory (char *dir)
 	char                    pakfile[MAX_OSPATH];
 
 	//strcpy (com_gamedir, dir);
-	strcpy (com_gamedir, "cache0:/id1");
+	strcpy (com_gamedir, "ux0:/data/Quake/id1");
 //
 // add the directory to the search path
 //

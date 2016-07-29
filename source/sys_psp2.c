@@ -195,7 +195,7 @@ void Sys_Error (char *error, ...)
 		SceCtrlData pad;
 		sceCtrlPeekBufferPositive(0, &pad, 1);
 		int kDown = pad.buttons;
-		if (kDown & PSP2_CTRL_START)
+		if (kDown & SCE_CTRL_START)
 			break;
 	}
 	Sys_Quit();
@@ -230,58 +230,58 @@ double Sys_FloatTime (void)
 
 void PSP2_KeyDown(int keys){
 	if (key_dest != key_console){
-		if( keys & PSP2_CTRL_SELECT)
+		if( keys & SCE_CTRL_SELECT)
 			Key_Event(K_ESCAPE, true);
-		if( keys & PSP2_CTRL_START)
+		if( keys & SCE_CTRL_START)
 			Key_Event(K_ENTER, true);
-		if( keys & PSP2_CTRL_UP)
+		if( keys & SCE_CTRL_UP)
 			Key_Event(K_UPARROW, true);
-		if( keys & PSP2_CTRL_DOWN)
+		if( keys & SCE_CTRL_DOWN)
 			Key_Event(K_DOWNARROW, true);
-		if( keys & PSP2_CTRL_LEFT)
+		if( keys & SCE_CTRL_LEFT)
 			Key_Event(K_LEFTARROW, true);
-		if( keys & PSP2_CTRL_RIGHT)
+		if( keys & SCE_CTRL_RIGHT)
 			Key_Event(K_RIGHTARROW, true);
-		if( keys & PSP2_CTRL_SQUARE)
+		if( keys & SCE_CTRL_SQUARE)
 			Key_Event(K_AUX2, true);
-		if( keys & PSP2_CTRL_TRIANGLE)
+		if( keys & SCE_CTRL_TRIANGLE)
 			Key_Event(K_AUX3, true);
-		if( keys & PSP2_CTRL_CROSS)
+		if( keys & SCE_CTRL_CROSS)
 			Key_Event(K_AUX1, true);
-		if( keys & PSP2_CTRL_CIRCLE)
+		if( keys & SCE_CTRL_CIRCLE)
 			Key_Event(K_AUX4, true);
-		if( keys & PSP2_CTRL_LTRIGGER)
+		if( keys & SCE_CTRL_LTRIGGER)
 			Key_Event(K_AUX5, true);
-		if( keys & PSP2_CTRL_RTRIGGER)
+		if( keys & SCE_CTRL_RTRIGGER)
 			Key_Event(K_AUX6, true);
 	}
 }
 
 void PSP2_KeyUp(int keys, int oldkeys){
 	if (key_dest != key_console){
-		if ((!(keys & PSP2_CTRL_SELECT)) && (oldkeys & PSP2_CTRL_SELECT))
+		if ((!(keys & SCE_CTRL_SELECT)) && (oldkeys & SCE_CTRL_SELECT))
 			Key_Event(K_ESCAPE, false);
-		if ((!(keys & PSP2_CTRL_START)) && (oldkeys & PSP2_CTRL_START))
+		if ((!(keys & SCE_CTRL_START)) && (oldkeys & SCE_CTRL_START))
 			Key_Event(K_ENTER, false);
-		if ((!(keys & PSP2_CTRL_UP)) && (oldkeys & PSP2_CTRL_UP))
+		if ((!(keys & SCE_CTRL_UP)) && (oldkeys & SCE_CTRL_UP))
 			Key_Event(K_UPARROW, false);
-		if ((!(keys & PSP2_CTRL_DOWN)) && (oldkeys & PSP2_CTRL_DOWN))
+		if ((!(keys & SCE_CTRL_DOWN)) && (oldkeys & SCE_CTRL_DOWN))
 			Key_Event(K_DOWNARROW, false);
-		if ((!(keys & PSP2_CTRL_LEFT)) && (oldkeys & PSP2_CTRL_LEFT))
+		if ((!(keys & SCE_CTRL_LEFT)) && (oldkeys & SCE_CTRL_LEFT))
 			Key_Event(K_LEFTARROW, false);
-		if ((!(keys & PSP2_CTRL_RIGHT)) && (oldkeys & PSP2_CTRL_RIGHT))
+		if ((!(keys & SCE_CTRL_RIGHT)) && (oldkeys & SCE_CTRL_RIGHT))
 			Key_Event(K_RIGHTARROW, false);
-		if ((!(keys & PSP2_CTRL_SQUARE)) && (oldkeys & PSP2_CTRL_SQUARE))
+		if ((!(keys & SCE_CTRL_SQUARE)) && (oldkeys & SCE_CTRL_SQUARE))
 			Key_Event(K_AUX2, false);
-		if ((!(keys & PSP2_CTRL_TRIANGLE)) && (oldkeys & PSP2_CTRL_TRIANGLE))
+		if ((!(keys & SCE_CTRL_TRIANGLE)) && (oldkeys & SCE_CTRL_TRIANGLE))
 			Key_Event(K_AUX3, false);
-		if ((!(keys & PSP2_CTRL_CROSS)) && (oldkeys & PSP2_CTRL_CROSS))
+		if ((!(keys & SCE_CTRL_CROSS)) && (oldkeys & SCE_CTRL_CROSS))
 			Key_Event(K_AUX1, false);
-		if ((!(keys & PSP2_CTRL_CIRCLE)) && (oldkeys & PSP2_CTRL_CIRCLE))
+		if ((!(keys & SCE_CTRL_CIRCLE)) && (oldkeys & SCE_CTRL_CIRCLE))
 			Key_Event(K_AUX4, false);
-		if ((!(keys & PSP2_CTRL_LTRIGGER)) && (oldkeys & PSP2_CTRL_LTRIGGER))
+		if ((!(keys & SCE_CTRL_LTRIGGER)) && (oldkeys & SCE_CTRL_LTRIGGER))
 			Key_Event(K_AUX5, false);
-		if ((!(keys & PSP2_CTRL_RTRIGGER)) && (oldkeys & PSP2_CTRL_RTRIGGER))
+		if ((!(keys & SCE_CTRL_RTRIGGER)) && (oldkeys & SCE_CTRL_RTRIGGER))
 			Key_Event(K_AUX6, false);
 	}
 }
@@ -314,6 +314,8 @@ void Sys_LowFPPrecision (void)
 int main (int argc, char **argv)
 {
 	scePowerSetArmClockFrequency(444);
+
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	init_video();
@@ -394,16 +396,16 @@ int main (int argc, char **argv)
 					}else if (new_char == DANZEFF_RIGHT){
 						Key_Event(K_TAB, true);
 						old_char = K_TAB;
-					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & PSP2_CTRL_SELECT))) isDanzeff = false;
+					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & SCE_CTRL_SELECT))) isDanzeff = false;
 					else{
 						Key_Event(new_char, true);
 						old_char = new_char;
 					}
 				}
-			}else if ((danzeff_pad.buttons & PSP2_CTRL_START) && (!(oldpad.buttons & PSP2_CTRL_START))){
+			}else if ((danzeff_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
 				danzeff_free();
 				Con_ToggleConsole_f ();
-			}else if ((danzeff_pad.buttons & PSP2_CTRL_SELECT) && (!(oldpad.buttons & PSP2_CTRL_SELECT))) isDanzeff = true;
+			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))) isDanzeff = true;
 			oldpad = danzeff_pad;
 		}
 		

@@ -37,9 +37,9 @@ float tickRate;
 
 static int audio_thread(int args, void *argp)
 {
-	chn = sceAudioOutOpenPort(PSP2_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, SAMPLE_RATE, PSP2_AUDIO_OUT_MODE_MONO);
+	chn = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, SAMPLE_RATE, SCE_AUDIO_OUT_MODE_MONO);
 	sceAudioOutSetConfig(chn, -1, -1, -1);
-    sceAudioOutSetVolume(chn, PSP2_AUDIO_VOLUME_FLAG_L_CH | PSP2_AUDIO_VOLUME_FLAG_R_CH, 32767);
+    sceAudioOutSetVolume(chn, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, 32767);
 	
     while (!stop_audio)
     {

@@ -6,7 +6,7 @@ INCLUDES	:=	include
 LIBS = -lvita2d -lSceAudio_stub -lSceKernel_stub \
 	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
-	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub \
+	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub -lSceCommonDialog_stub \
 
 COMMON_OBJS =	chase.o \
 	cl_demo.o \
@@ -100,7 +100,7 @@ all: $(TARGET).velf
 
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
-	vita-elf-create $< $@ $(VITASDK)/bin/db.json
+	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
