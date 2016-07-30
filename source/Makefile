@@ -1,12 +1,13 @@
 TARGET		:= vitaQuake
+TITLE		:= QUAK000001
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lvita2d -lSceAudio_stub -lSceKernel_stub \
+LIBS = -lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
 	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
-	-lScePgf_stub -ljpeg -lSceRtc_stub -lc -lScePower_stub -lSceCommonDialog_stub \
+	-lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
 
 COMMON_OBJS =	chase.o \
 	cl_demo.o \
@@ -96,8 +97,15 @@ CFLAGS  = -Wl,-q -Wall -O3
 CXXFLAGS  = $(CFLAGS) -fno-exceptions
 ASFLAGS = $(CFLAGS)
 
-all: $(TARGET).velf
 
+	vita-make-fself $< ..\build\eboot.bin
+	vita-mksfoex -s TITLE_ID=$(TITLE) "$(TARGET)" param.sfo
+	cp -f param.sfo ../build/sce_sys/param.sfo
+	
+	#------------ Comment this if you don't have 7zip ------------------
+	7z a -tzip ../$(TARGET).vpk -r ..\build\sce_sys\* ..\build\eboot.bin 
+	#-------------------------------------------------------------------
+	
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
 	vita-elf-create $< $@
