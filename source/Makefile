@@ -1,5 +1,5 @@
 TARGET		:= vitaQuake
-TITLE		:= QUAK000001
+TITLE		:= QUAK00001
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
