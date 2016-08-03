@@ -109,6 +109,7 @@ void	VID_Update (vrect_t *rects)
 	vita2d_draw_texture(tex_buffer, 0, 0);
 	if (isDanzeff) danzeff_render();
 	vita2d_end_drawing();
+	vita2d_wait_rendering_done();
 	vita2d_swap_buffers();
 	sceDisplayWaitVblankStart();
 }
