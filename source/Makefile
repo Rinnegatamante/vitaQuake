@@ -83,12 +83,12 @@ COMMON_OBJS =	chase.o \
 	vid_psp2.o \
 	net_none.o \
 	in_psp2.o \
-	cd_null.o	
-	
+	cd_null.o
+
 CFILES		:=	$(COMMON_OBJS)
 CPPFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp))
 BINFILES := $(foreach dir,$(DATA), $(wildcard $(dir)/*.bin))
-OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) 
+OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
@@ -100,14 +100,14 @@ ASFLAGS = $(CFLAGS)
 all: $(TARGET).vpk
 
 $(TARGET).vpk: $(TARGET).velf
-	vita-make-fself $< ..\build\eboot.bin
+	vita-make-fself $< ../build/eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLE) "$(TARGET)" param.sfo
 	cp -f param.sfo ../build/sce_sys/param.sfo
-	
+
 	#------------ Comment this if you don't have 7zip ------------------
-	7z a -tzip ../$(TARGET).vpk -r ..\build\sce_sys\* ..\build\eboot.bin 
+	7z a -tzip ../$(TARGET).vpk -r ../build/sce_sys/ ../build/eboot.bin
 	#-------------------------------------------------------------------
-	
+
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
 	vita-elf-create $< $@
