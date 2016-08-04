@@ -20,13 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
-#include "splash.h"
 #include <psp2/ctrl.h>
 #include <psp2/types.h>
 #include <psp2/rtc.h>
-#include "draw_psp2.h"
 #include "danzeff.h"
-#include "console_psp2.h"
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #define u64 uint64_t
@@ -170,18 +167,14 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 void Sys_Quit (void)
 {
 	Host_Shutdown();
-	if (!hostInitialized){
-		console_fini();
-		end_video();
-	}
 	exit(0);
-	//sceKernelExitProcess(0);
+	sceKernelExitProcess(0);
 }
 
 void Sys_Error (char *error, ...)
 {
 
-	va_list         argptr;
+	/*va_list         argptr;
 	
 	INFO("Sys_Error: ");
 	
@@ -197,21 +190,21 @@ void Sys_Error (char *error, ...)
 		int kDown = pad.buttons;
 		if (kDown & SCE_CTRL_START)
 			break;
-	}
+	}*/
 	Sys_Quit();
 }
 
 void Sys_Printf (char *fmt, ...)
 {
-	if(hostInitialized)
+	//if(hostInitialized)
 		return;
 
-	va_list argptr;
+	/*va_list argptr;
 	char buf[256];
 	va_start (argptr,fmt);
 	vsnprintf (buf, sizeof(buf), fmt,argptr);
 	va_end (argptr);
-	INFO(buf);
+	INFO(buf);*/
 	
 }
 
@@ -318,25 +311,7 @@ int main (int argc, char **argv)
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
-	init_video();
 	
-	// Revitalize splashscreen
-	uint8_t* buffer = decodeJpg(splash, size_splash);
-	int x;
-	int y;
-	for(x=0; x<960; x++){
-		for(y=0; y<544;y++){
-			int idx = (y*960 + x) * 3;
-			uint32_t color = (buffer[idx]) | (buffer[idx + 1] << 8) | (buffer[idx + 2] << 16);
-			draw_pixel(x, y, color);
-		}
-	}
-	sceKernelDelayThread(4000000);
-	free(buffer);
-	clear_screen();
-	
-	console_init();
-	console_set_color(WHITE);
 	static quakeparms_t    parms;
 
 	parms.memsize = 20*1024*1024;

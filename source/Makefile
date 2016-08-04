@@ -17,9 +17,6 @@ COMMON_OBJS =	chase.o \
 	cl_tent.o \
 	cmd.o \
 	danzeff.o \
-	console_psp2.o \
-	draw_psp2.o \
-	font_data.o \
 	common.o \
 	console.o \
 	crc.o \

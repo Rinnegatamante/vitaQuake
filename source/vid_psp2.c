@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vita2d.h>
 #include "quakedef.h"
 #include "d_local.h"
-#include "draw_psp2.h"
 #include "danzeff.h"
 #define u16 uint16_t
 #define u8 uint8_t
@@ -63,10 +62,6 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	
-	// Term debug console used to handle engine startup errors
-	console_fini();
-	end_video();
 	
 	// Init GPU
 	vita2d_init();
