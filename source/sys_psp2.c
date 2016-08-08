@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "danzeff.h"
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
+#include <psp2/touch.h>
+#include <psp2/ctrl.h>
 #define u64 uint64_t
 
 extern int old_char;
@@ -307,6 +309,8 @@ int main (int argc, char **argv)
 	scePowerSetArmClockFrequency(444);
 
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
+	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
 	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
