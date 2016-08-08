@@ -30,6 +30,7 @@ extern cvar_t	crosshair;
 extern cvar_t	d_mipscale;
 extern int inverted;
 extern int retro_touch;
+int native_resolution = 1;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1053,9 +1054,9 @@ again:
 /* OPTIONS MENU */
 
 #ifdef _WIN32
-#define	OPTIONS_ITEMS	14
+#define	OPTIONS_ITEMS	15
 #else
-#define	OPTIONS_ITEMS	13
+#define	OPTIONS_ITEMS	14
 #endif
 
 #define	SLIDER_RANGE	10
@@ -1156,6 +1157,11 @@ void M_AdjustSliders (int dir)
 		if (retro_touch) retro_touch = false;
 		else retro_touch = true;
 		break;
+		
+	case 13:	// retrotouch
+		if (native_resolution) native_resolution = false;
+		else native_resolution = true;
+		break;
 
 #ifdef _WIN32
 	case 13:	// _windowed_mouse
@@ -1245,6 +1251,10 @@ void M_Options_Draw (void)
 	M_Print (16, 128, "        Use Retrotouch");
 	M_DrawCheckbox (220, 128, retro_touch);
 	
+	//if (vid_menudrawfn)
+	M_Print (16, 135, " Use Native Resolution");
+	M_DrawCheckbox (220, 136, native_resolution);
+	
 #ifdef _WIN32
 	if (modestate == MS_WINDOWED)
 	{
@@ -1332,10 +1342,10 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 13)
+	if (options_cursor == 14)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 12;
+			options_cursor = 13;
 		else
 			options_cursor = 0;
 	}

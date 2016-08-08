@@ -29,6 +29,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 viddef_t	vid;				// global video state
 int isDanzeff = false;
 int old_char = 0;
+extern native_resolution;
+int old_resolution = 1;
+int firststart = 1;
 
 #define	BASEWIDTH	960
 #define	BASEHEIGHT	544
@@ -63,31 +66,45 @@ void	VID_ShiftPalette (unsigned char *palette)
 void	VID_Init (unsigned char *palette)
 {
 	
-	// Init GPU
-	vita2d_init();
-	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
-	vita2d_set_vblank_wait(0);
+	if (firststart){
 	
-	// Init GPU texture
-	tex_buffer = vita2d_create_empty_texture_format(BASEWIDTH, BASEHEIGHT, SCE_GXM_TEXTURE_BASE_FORMAT_P8);
+		// Init GPU
+		vita2d_init();
+		vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
+		vita2d_set_vblank_wait(0);
+		
+	}
 	
-	// Set Quake Engine parameters
-	vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
-	vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
+	if (native_resolution){
+		tex_buffer = vita2d_create_empty_texture_format(BASEWIDTH, BASEHEIGHT, SCE_GXM_TEXTURE_BASE_FORMAT_P8);
+		vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
+		vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
+		vid.rowbytes = vid.conrowbytes = BASEWIDTH;
+	}else{
+		tex_buffer = vita2d_create_empty_texture_format(BASEWIDTH/2, BASEHEIGHT/2, SCE_GXM_TEXTURE_BASE_FORMAT_P8);
+		vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH/2;
+		vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT/2;
+		vid.rowbytes = vid.conrowbytes = BASEWIDTH/2;	
+	}
+	
 	vid.aspect = 1.0;
 	vid.numpages = 1;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 	vid.buffer = vid.conbuffer = vita2d_texture_get_datap(tex_buffer);
-	vid.rowbytes = vid.conrowbytes = BASEWIDTH;
 	
-	// Set correct palette for the texture
-	VID_SetPalette(palette);
+	if (firststart){
 	
-	// Init Quake Cache
-	d_pzbuffer = zbuffer;
-	surfcache = malloc(SURFCACHE_SIZE);
-	D_InitCaches (surfcache, SURFCACHE_SIZE);
+		// Set correct palette for the texture
+		VID_SetPalette(palette);
+		
+		// Init Quake Cache
+		d_pzbuffer = zbuffer;
+		surfcache = malloc(SURFCACHE_SIZE);
+		D_InitCaches (surfcache, SURFCACHE_SIZE);
+		firststart = 0;
+		
+	}else Cvar_SetValue ("gamma", v_gamma.value); // calls a palette reloading
 	
 }
 
@@ -100,13 +117,18 @@ void	VID_Shutdown (void)
 
 void	VID_Update (vrect_t *rects)
 {
+	
+	if (native_resolution != old_resolution) VID_Init(NULL);
+	old_resolution = native_resolution;
 	vita2d_start_drawing();
-	vita2d_draw_texture(tex_buffer, 0, 0);
+	if (native_resolution) vita2d_draw_texture(tex_buffer, 0, 0);
+	else vita2d_draw_texture_scale(tex_buffer, 0, 0, 2.0, 2.0);
 	if (isDanzeff) danzeff_render();
 	vita2d_end_drawing();
 	vita2d_wait_rendering_done();
 	vita2d_swap_buffers();
 	sceDisplayWaitVblankStart();
+	
 }
 
 /*
