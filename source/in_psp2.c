@@ -58,8 +58,8 @@ void IN_Move (usercmd_t *cmd)
 	int right_y = analogs.ry - 127;
 	
 	// Left analog support for player movement
-	int x_mov = abs(left_x) < 10 ? 0 : left_x * m_forward.value * 2;
-	int y_mov = abs(left_y) < 15 ? 0 : left_y * m_side.value * 2;
+	int x_mov = abs(left_x) < 10 ? 0 : (left_x * cl_sidespeed.value) / 100;
+	int y_mov = abs(left_y) < 15 ? 0 : (left_y * (left_x > 0 ? cl_forwardspeed.value : cl_backspeed.value)) / 100;
 	cmd->forwardmove -= y_mov;
 	cmd->sidemove += x_mov;
 	
