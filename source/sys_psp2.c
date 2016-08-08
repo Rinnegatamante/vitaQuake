@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/io/stat.h>
 #define u64 uint64_t
 
-extern uint8_t* decodeJpg(unsigned char* in,u64 size);
 extern int old_char;
 extern int isDanzeff;
 
@@ -167,7 +166,6 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 void Sys_Quit (void)
 {
 	Host_Shutdown();
-	exit(0);
 	sceKernelExitProcess(0);
 }
 
@@ -311,7 +309,6 @@ int main (int argc, char **argv)
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
-	
 	static quakeparms_t    parms;
 
 	parms.memsize = 20*1024*1024;

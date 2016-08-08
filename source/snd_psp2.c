@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <stdio.h>
 #include <psp2/audioout.h>
+#include <psp2/rtc.h>
+#include <psp2/kernel/threadmgr.h>
 #include <psp2/types.h>
 #include "quakedef.h"
 
@@ -25,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u8 uint8_t
 
 #define SAMPLE_RATE   22050
-#define AUDIOSIZE 4096
+#define AUDIOSIZE   4096
 
 u8 *audiobuffer;
 u64 initial_tick;
@@ -39,7 +41,8 @@ static int audio_thread(int args, void *argp)
 {
 	chn = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, SAMPLE_RATE, SCE_AUDIO_OUT_MODE_MONO);
 	sceAudioOutSetConfig(chn, -1, -1, -1);
-    sceAudioOutSetVolume(chn, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, 32767);
+	int vol[] = {32767, 32767};
+    sceAudioOutSetVolume(chn, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, &vol);
 	
     while (!stop_audio)
     {
@@ -49,6 +52,9 @@ static int audio_thread(int args, void *argp)
 		//}
 		
     }
+	 
+	sceAudioOutReleasePort(chn);
+    free(audiobuffer);
 
     sceKernelExitThread(0);
     return 0;
@@ -104,8 +110,6 @@ void SNDDMA_Shutdown(void)
 {
   if(snd_initialized){
 	stop_audio = true;
-    sceAudioOutReleasePort(chn);
-    free(audiobuffer);
 	chn = -1;
   }
 }
