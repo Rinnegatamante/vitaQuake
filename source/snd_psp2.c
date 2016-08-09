@@ -26,8 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u64 uint64_t
 #define u8 uint8_t
 
-#define SAMPLE_RATE   22050
-#define AUDIOSIZE   4096
+#define SAMPLE_RATE   32000
+#define AUDIOSIZE   8192
 
 u8 *audiobuffer;
 u64 initial_tick;
