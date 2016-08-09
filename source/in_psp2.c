@@ -71,7 +71,7 @@ void IN_Move (usercmd_t *cmd)
 	
 	// Left analog support for player movement
 	int x_mov = abs(left_x) < 30 ? 0 : (left_x * cl_sidespeed.value) * 0.01;
-	int y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_x > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
+	int y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
 	cmd->forwardmove -= y_mov;
 	cmd->sidemove += x_mov;
 	
