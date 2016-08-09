@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/touch.h>
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
+extern int always_run;
+
 // mouse variables
 cvar_t	m_filter = {"m_filter","0"};
 int inverted = false;
@@ -51,6 +53,16 @@ void IN_Move (usercmd_t *cmd)
 
 	// ANALOGS
 	
+	if ((in_speed.state & 1) || always_run){
+		cl_forwardspeed.value = 400;
+		cl_backspeed.value = 400;
+		cl_sidespeed.value = 700;
+	}else{
+		cl_forwardspeed.value = 200;
+		cl_backspeed.value = 200;
+		cl_sidespeed.value = 300;
+	}
+	
 	sceCtrlPeekBufferPositive(0, &analogs, 1);
 	int left_x = analogs.lx - 127;
 	int left_y = analogs.ly - 127;
@@ -58,20 +70,20 @@ void IN_Move (usercmd_t *cmd)
 	int right_y = analogs.ry - 127;
 	
 	// Left analog support for player movement
-	int x_mov = abs(left_x) < 10 ? 0 : (left_x * cl_sidespeed.value) / 100;
-	int y_mov = abs(left_y) < 15 ? 0 : (left_y * (left_x > 0 ? cl_forwardspeed.value : cl_backspeed.value)) / 100;
+	int x_mov = abs(left_x) < 30 ? 0 : (left_x * cl_sidespeed.value) * 0.01;
+	int y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_x > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
 	cmd->forwardmove -= y_mov;
 	cmd->sidemove += x_mov;
 	
 	// Right analog support for camera movement
-	int x_cam = abs(right_x) < 10 ? 0 : right_x * sensitivity.value * 0.01;
-	int y_cam = abs(right_y) < 15 ? 0 : right_y * sensitivity.value * 0.01;
+	int x_cam = abs(right_x) < 50 ? 0 : right_x * sensitivity.value * 0.008;
+	int y_cam = abs(right_y) < 50 ? 0 : right_y * sensitivity.value * 0.008;
 	cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
 	if (inverted) cl.viewangles[PITCH] -= y_cam;
 	else cl.viewangles[PITCH] += y_cam;
 	
-	// TOUCHSCREENS
+	// TOUCH SUPPORT
 	
 	// Touchscreen support for camera movement
 	SceTouchData touch;
@@ -81,8 +93,8 @@ void IN_Move (usercmd_t *cmd)
 		int raw_y = lerp(touch.report[0].y, 1087, 544);
 		int touch_x = raw_x - 480;
 		int touch_y = raw_y - 272;
-		x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.01;
-		y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.01;
+		x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.008;
+		y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.008;
 		cl.viewangles[YAW] -= x_cam;
 		V_StopPitchDrift();
 		if (inverted) cl.viewangles[PITCH] -= y_cam;
@@ -97,8 +109,8 @@ void IN_Move (usercmd_t *cmd)
 			int raw_y = lerp(touch.report[0].y, 1087, 544);
 			int touch_x = raw_x - 480;
 			int touch_y = raw_y - 272;
-			x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.01;
-			y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.01;
+			x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.008;
+			y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.008;
 			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
 			if (inverted) cl.viewangles[PITCH] -= y_cam;
