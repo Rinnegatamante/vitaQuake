@@ -30,6 +30,7 @@ extern cvar_t	crosshair;
 extern cvar_t	d_mipscale;
 extern int inverted;
 extern int retro_touch;
+int always_run = 0;
 int native_resolution = 1;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
@@ -1124,16 +1125,8 @@ void M_AdjustSliders (int dir)
 		break;
 
 	case 8:	// allways run
-		if (cl_forwardspeed.value > 200)
-		{
-			Cvar_SetValue ("cl_forwardspeed", 200);
-			Cvar_SetValue ("cl_backspeed", 200);
-		}
-		else
-		{
-			Cvar_SetValue ("cl_forwardspeed", 400);
-			Cvar_SetValue ("cl_backspeed", 400);
-		}
+		if (always_run) always_run = false;
+		else always_run = true;
 		break;
 
 	case 9:	// invert mouse
