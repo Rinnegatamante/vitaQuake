@@ -32,7 +32,7 @@ int old_char = 0;
 extern native_resolution;
 int old_resolution = 1;
 int firststart = 1;
-
+float fixpalette = 0;
 #define	BASEWIDTH	960
 #define	BASEHEIGHT	544
 #define SURFCACHE_SIZE 4194304
@@ -73,6 +73,11 @@ void	VID_Init (unsigned char *palette)
 		vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
 		vita2d_set_vblank_wait(0);
 		
+	}else{
+		
+		// Freeing texture
+		vita2d_free_texture(tex_buffer);
+		
 	}
 	
 	if (native_resolution){
@@ -104,7 +109,12 @@ void	VID_Init (unsigned char *palette)
 		D_InitCaches (surfcache, SURFCACHE_SIZE);
 		firststart = 0;
 		
-	}else Cvar_SetValue ("gamma", v_gamma.value); // calls a palette reloading
+	}else{
+		
+		fixpalette = v_gamma.value;
+		Cvar_SetValue ("gamma", 0.1);
+		
+	}
 	
 }
 
@@ -119,6 +129,10 @@ void	VID_Update (vrect_t *rects)
 {
 	
 	if (native_resolution != old_resolution) VID_Init(NULL);
+	else if (fixpalette > 0){
+		Cvar_SetValue ("gamma", fixpalette);
+		fixpalette = 0;
+	}
 	old_resolution = native_resolution;
 	vita2d_start_drawing();
 	if (native_resolution) vita2d_draw_texture(tex_buffer, 0, 0);
