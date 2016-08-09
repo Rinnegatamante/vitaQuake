@@ -25,13 +25,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 extern vita2d_texture* tex_buffer;
+extern char res_string[256];
 extern cvar_t	scr_fov;
 extern cvar_t	crosshair;
 extern cvar_t	d_mipscale;
+extern void VID_ChangeRes(float);
 extern int inverted;
 extern int retro_touch;
 int always_run = 0;
-int native_resolution = 1;
+float res_val = 1.0;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1151,9 +1153,13 @@ void M_AdjustSliders (int dir)
 		else retro_touch = true;
 		break;
 		
-	case 13:	// retrotouch
-		if (native_resolution) native_resolution = false;
-		else native_resolution = true;
+	case 13:	// change res
+		res_val += dir * 0.333;
+		if (res_val < 0)
+			res_val = 0;
+		if (res_val > 1)
+			res_val = 1;
+		VID_ChangeRes(res_val);
 		break;
 
 #ifdef _WIN32
@@ -1245,8 +1251,11 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 128, retro_touch);
 	
 	//if (vid_menudrawfn)
-	M_Print (16, 135, " Use Native Resolution");
-	M_DrawCheckbox (220, 136, native_resolution);
+	M_Print (16, 136, "       Game Resolution");
+	M_DrawSlider (220, 136, res_val);
+	
+	M_Print (50, 150, res_string);
+	
 	
 #ifdef _WIN32
 	if (modestate == MS_WINDOWED)
