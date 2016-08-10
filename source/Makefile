@@ -4,7 +4,8 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
-LIBS = -lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
+LIBS = -lvorbisfile -logg -lvorbis -lspeexdsp -lmpg123 \
+	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
 	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
@@ -79,19 +80,20 @@ COMMON_OBJS =	chase.o \
 	snd_psp2.o \
 	vid_psp2.o \
 	net_none.o \
-	in_psp2.o \
-	cd_null.o	
+	in_psp2.o
 	
-CFILES		:=	$(COMMON_OBJS)
-CPPFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp))
+CPPSOURCES	:= audiodec
+
+CFILES	:= $(COMMON_OBJS)
+CPPFILES   := $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
 BINFILES := $(foreach dir,$(DATA), $(wildcard $(dir)/*.bin))
 OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) 
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -Wl,-q -Wall -O3
-CXXFLAGS  = $(CFLAGS) -fno-exceptions
+CFLAGS  = -Wl,-q -O3 -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER
+CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET).vpk

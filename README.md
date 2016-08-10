@@ -8,10 +8,11 @@ vitaQuake is a porting of Quake Engine for PSVITA based on winQuake.
 - Analogs support for camera and movement
 - Right analogs sensibility interchangeable in Options menu
 - Savestates support
+- Resolution rescaler in options menu
+- CDAudio (Soundtracks) support
 
 #TODO List
 - Switch to Hardware GPU rendering
-- Improve sound quality
 - Add support to gyroscope
 - Add multiplayer support
 
@@ -19,3 +20,4 @@ vitaQuake is a porting of Quake Engine for PSVITA based on winQuake.
 - idSoftware for winQuake sourcecode
 - MasterFeizz for ctrQuakle sourcecode i studied to understand how winQuake works
 - xerpi for vita2dlib
+- EasyRPG Team for the audio decoder used for CDAudio support

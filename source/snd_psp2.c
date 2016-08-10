@@ -26,8 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u64 uint64_t
 #define u8 uint8_t
 
-#define SAMPLE_RATE   32000
-#define AUDIOSIZE   8192
+#define SAMPLE_RATE   48000
+#define AUDIOSIZE   16384
 
 u8 *audiobuffer;
 u64 initial_tick;
@@ -39,10 +39,10 @@ float tickRate;
 
 static int audio_thread(int args, void *argp)
 {
-	chn = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_VOICE, AUDIOSIZE / 2, SAMPLE_RATE, SCE_AUDIO_OUT_MODE_MONO);
+	chn = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_MAIN, AUDIOSIZE / 2, SAMPLE_RATE, SCE_AUDIO_OUT_MODE_MONO);
 	sceAudioOutSetConfig(chn, -1, -1, -1);
 	int vol[] = {32767, 32767};
-    sceAudioOutSetVolume(chn, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, &vol);
+    sceAudioOutSetVolume(chn, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, vol);
 	
     while (!stop_audio)
     {
