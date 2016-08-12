@@ -33,6 +33,7 @@ extern void VID_ChangeRes(float);
 extern int inverted;
 extern int retro_touch;
 int always_run = 0;
+int rumble = 1;
 float res_val = 1.0;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
@@ -1059,7 +1060,7 @@ again:
 #ifdef _WIN32
 #define	OPTIONS_ITEMS	15
 #else
-#define	OPTIONS_ITEMS	15
+#define	OPTIONS_ITEMS	16
 #endif
 
 #define	SLIDER_RANGE	10
@@ -1161,7 +1162,12 @@ void M_AdjustSliders (int dir)
 		else retro_touch = true;
 		break;
 		
-	case 14:	// change res
+	case 14:	// rumble
+		if (rumble) rumble = false;
+		else rumble = true;
+		break;
+		
+	case 15:	// change res
 		res_val += dir * 0.333;
 		if (res_val < 0)
 			res_val = 0;
@@ -1262,11 +1268,14 @@ void M_Options_Draw (void)
 	M_Print (16, 136, "        Use Retrotouch");
 	M_DrawCheckbox (220, 136, retro_touch);
 	
-	//if (vid_menudrawfn)
-	M_Print (16, 144, "       Game Resolution");
-	M_DrawSlider (220, 144, res_val);
+	M_Print (16, 136, "         Rumble Effect");
+	M_DrawCheckbox (220, 144, rumble);
 	
-	M_Print (50, 158, res_string);
+	//if (vid_menudrawfn)
+	M_Print (16, 152, "       Game Resolution");
+	M_DrawSlider (220, 152, res_val);
+	
+	M_Print (50, 166, res_string);
 	
 	
 #ifdef _WIN32
@@ -1356,10 +1365,10 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 15)
+	if (options_cursor == 16)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 14;
+			options_cursor = 15;
 		else
 			options_cursor = 0;
 	}
@@ -1667,22 +1676,22 @@ char *quitMessage [] =
 
   " Man, I oughta smack you",
   "   for trying to quit!  ",
-  "     Press Y to get     ",
+  "     Press X to get     ",
   "      smacked out.      ",
  
-  " Press Y to quit like a ",
+  " Press X to quit like a ",
   "   big loser in life.   ",
-  "  Press N to stay proud ",
-  "    and successful!     ",
+  "  Return back to stay   ",
+  "  proud and successful! ",
  
-  "   If you press Y to    ",
+  "   If you press X to    ",
   "  quit, I will summon   ",
   "  Satan all over your   ",
-  "      hard drive!       ",
+  "      memory card!      ",
  
   "  Um, Asmodeus dislikes ",
   " his children trying to ",
-  " quit. Press Y to return",
+  " quit. Press X to return",
   "   to your Tinkertoys.  ",
  
   "  If you quit now, I'll ",

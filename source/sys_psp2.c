@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern int old_char;
 extern int isDanzeff;
+extern uint64_t rumble_tick;
 
 qboolean		isDedicated;
 
@@ -303,6 +304,7 @@ void Sys_LowFPPrecision (void)
 }
 
 //=============================================================================
+int _newlib_heap_size_user = 192 * 1024 * 1024;
 
 int main (int argc, char **argv)
 {
@@ -350,6 +352,11 @@ int main (int argc, char **argv)
 		// Prevent screen power-off
 		sceKernelPowerTick(0);
 		
+		// Rumble effect managing (PSTV only)
+		if (rumble_tick != 0){
+			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
+		}
+		
 		// Danzeff keyboard manage for Console
 		if (key_dest == key_console){
 			if (old_char != 0) Key_Event(old_char, false);
@@ -396,7 +403,8 @@ int main (int argc, char **argv)
 		lastTick = tick;
 		
 	}
-
+	
+	free(parms.membase);
 	sceKernelExitProcess(0);
 	return 0;
 }

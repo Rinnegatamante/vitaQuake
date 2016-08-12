@@ -592,6 +592,7 @@ void CL_ParseClientdata (int bits)
 	i = MSG_ReadShort ();
 	if (cl.stats[STAT_HEALTH] != i)
 	{
+		if (i < cl.stats[STAT_HEALTH]) IN_StartRumble();
 		cl.stats[STAT_HEALTH] = i;
 		Sbar_Changed ();
 	}

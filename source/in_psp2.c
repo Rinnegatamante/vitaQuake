@@ -23,7 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/touch.h>
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
-extern int always_run;
+extern int always_run, rumble;
+uint64_t rumble_tick = 0;
 
 // mouse variables
 cvar_t	m_filter = {"m_filter","0"};
@@ -46,6 +47,25 @@ void IN_Shutdown (void)
 
 void IN_Commands (void)
 {
+}
+
+void IN_StartRumble (void)
+{
+	if (!rumble) return;
+	SceCtrlActuator handle;
+	handle.enable = 100;
+	handle.unk = 0;
+	sceCtrlSetActuator(1, &handle);
+	rumble_tick = sceKernelGetProcessTimeWide();
+}
+
+void IN_StopRumble (void)
+{
+	SceCtrlActuator handle;
+	handle.enable = 0;
+	handle.unk = 0;
+	sceCtrlSetActuator(1, &handle);
+	rumble_tick = 0;
 }
 
 void IN_Move (usercmd_t *cmd)
