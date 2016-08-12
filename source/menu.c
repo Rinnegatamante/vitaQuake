@@ -1059,7 +1059,7 @@ again:
 #ifdef _WIN32
 #define	OPTIONS_ITEMS	15
 #else
-#define	OPTIONS_ITEMS	14
+#define	OPTIONS_ITEMS	15
 #endif
 
 #define	SLIDER_RANGE	10
@@ -1117,7 +1117,15 @@ void M_AdjustSliders (int dir)
 		else if (d_mipscale.value < 0) d_mipscale.value = 0;
 		Cvar_SetValue ("d_mipscale", d_mipscale.value);
 		break;
-	case 7:	// sfx volume
+	case 7:	// music volume
+		bgmvolume.value += dir * 0.1;
+		if (bgmvolume.value < 0)
+			bgmvolume.value = 0;
+		if (bgmvolume.value > 1)
+			bgmvolume.value = 1;
+		Cvar_SetValue ("bgmvolume", bgmvolume.value);
+		break;
+	case 8:	// sfx volume
 		volume.value += dir * 0.1;
 		if (volume.value < 0)
 			volume.value = 0;
@@ -1126,34 +1134,34 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("volume", volume.value);
 		break;
 
-	case 8:	// allways run
+	case 9:	// allways run
 		if (always_run) always_run = false;
 		else always_run = true;
 		break;
 
-	case 9:	// invert mouse
+	case 10:	// invert mouse
 		//Cvar_SetValue ("m_pitch", -m_pitch.value); Hotfix for PSVITA
 		if (inverted) inverted = false;
 		else inverted = true;
 		break;
 
-	case 10:	// field of view
+	case 11:	// field of view
 		scr_fov.value += dir * 5;
 		if (scr_fov.value > 130) scr_fov.value = 130;
 		if (scr_fov.value < 75) scr_fov.value = 75;
 		Cvar_SetValue ("fov",scr_fov.value);
 		break;
 
-	case 11:	// crosshair		
+	case 12:	// crosshair		
 		Cvar_SetValue ("crosshair", !crosshair.value);
 		break;
 		
-	case 12:	// retrotouch
+	case 13:	// retrotouch
 		if (retro_touch) retro_touch = false;
 		else retro_touch = true;
 		break;
 		
-	case 13:	// change res
+	case 14:	// change res
 		res_val += dir * 0.333;
 		if (res_val < 0)
 			res_val = 0;
@@ -1229,32 +1237,36 @@ void M_Options_Draw (void)
 	r = (40 - d_mipscale.value) / 40;
 	M_DrawSlider (220, 80, r);
 
-	M_Print (16, 88, "          Sound Volume");
-	r = volume.value;
+	M_Print (16, 88, "          Music Volume");
+	r = bgmvolume.value;
 	M_DrawSlider (220, 88, r);
+	
+	M_Print (16, 96, "          Sound Volume");
+	r = volume.value;
+	M_DrawSlider (220, 96, r);
 
-	M_Print (16, 96,  "            Always Run");
-	M_DrawCheckbox (220, 96, cl_forwardspeed.value > 200);
+	M_Print (16, 104,  "           Always Run");
+	M_DrawCheckbox (220, 104, cl_forwardspeed.value > 200);
 
-	M_Print (16, 104, "         Invert Camera");
-	M_DrawCheckbox (220, 104, inverted);
+	M_Print (16, 112, "         Invert Camera");
+	M_DrawCheckbox (220, 112, inverted);
 
-	M_Print (16, 112, "         Field of View");
+	M_Print (16, 120, "         Field of View");
 	r = (scr_fov.value - 75) / 55;
-	M_DrawSlider (220, 112, r);
+	M_DrawSlider (220, 120, r);
 
-	M_Print (16, 120, "        Show Crosshair");
-	M_DrawCheckbox (220, 120, crosshair.value);
+	M_Print (16, 128, "        Show Crosshair");
+	M_DrawCheckbox (220, 128, crosshair.value);
 
 	//if (vid_menudrawfn)
-	M_Print (16, 128, "        Use Retrotouch");
-	M_DrawCheckbox (220, 128, retro_touch);
+	M_Print (16, 136, "        Use Retrotouch");
+	M_DrawCheckbox (220, 136, retro_touch);
 	
 	//if (vid_menudrawfn)
-	M_Print (16, 136, "       Game Resolution");
-	M_DrawSlider (220, 136, res_val);
+	M_Print (16, 144, "       Game Resolution");
+	M_DrawSlider (220, 144, res_val);
 	
-	M_Print (50, 150, res_string);
+	M_Print (50, 158, res_string);
 	
 	
 #ifdef _WIN32
@@ -1344,10 +1356,10 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 14)
+	if (options_cursor == 15)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 13;
+			options_cursor = 14;
 		else
 			options_cursor = 0;
 	}

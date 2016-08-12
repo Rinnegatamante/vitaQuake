@@ -40,6 +40,7 @@ struct DecodedMusic{
 	bool loop;
 	volatile bool pauseTrigger;
 	volatile bool closeTrigger;
+	volatile bool changeVol;
 };
 
 // Internal stuffs
@@ -47,6 +48,7 @@ DecodedMusic* BGM = NULL;
 std::unique_ptr<AudioDecoder> audio_decoder;
 SceUID thread, Audio_Mutex, Talk_Mutex;
 volatile bool mustExit = false;
+float old_vol = 1.0;
 
 // Audio thread code
 static int bgmThread(unsigned int args, void* arg){
@@ -54,7 +56,9 @@ static int bgmThread(unsigned int args, void* arg){
 	// Initializing audio port
 	int ch = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_MAIN, NSAMPLES, 48000, SCE_AUDIO_OUT_MODE_STEREO);
 	sceAudioOutSetConfig(ch, -1, -1, -1);
-	int vol_stereo[] = {32767, 32767};
+	old_vol = bgmvolume.value;
+	int vol = 32767 * bgmvolume.value;
+	int vol_stereo[] = {vol, vol};
 	sceAudioOutSetVolume(ch, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, vol_stereo);
 	
 	DecodedMusic* mus;
@@ -126,6 +130,15 @@ static int bgmThread(unsigned int args, void* arg){
 			
 				mus->isPlaying = !mus->isPlaying;
 				mus->pauseTrigger = false;
+			}
+			
+			// Check if a volume change is required
+			if (mus->changeVol){
+				old_vol = bgmvolume.value;
+				int vol = 32767 * bgmvolume.value;
+				int vol_stereo[] = {vol, vol};
+				sceAudioOutSetVolume(ch, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, vol_stereo);
+				mus->changeVol = false;
 			}
 			
 			if (mus->isPlaying){
@@ -209,6 +222,9 @@ void CDAudio_Resume(void)
 
 void CDAudio_Update(void)
 {
+	if (BGM != NULL){
+		if (old_vol != bgmvolume.value) BGM->changeVol = true;
+	}
 }
 
 
