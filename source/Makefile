@@ -6,9 +6,9 @@ INCLUDES	:=	include
 
 LIBS = -lvorbisfile -logg -lvorbis -lspeexdsp -lmpg123 \
 	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
-	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
+	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
-	-lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
 
 COMMON_OBJS =	chase.o \
 	cl_demo.o \
@@ -79,7 +79,8 @@ COMMON_OBJS =	chase.o \
 	snd_mem.o \
 	snd_psp2.o \
 	vid_psp2.o \
-	net_none.o \
+	net_bsd.o \
+	net_udp_psp2.o \
 	in_psp2.o
 	
 CPPSOURCES	:= audiodec

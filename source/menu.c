@@ -38,8 +38,6 @@ float res_val = 1.0;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
-enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_serialconfig, m_modemconfig, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
-
 void M_Menu_Main_f (void);
 	void M_Menu_SinglePlayer_f (void);
 		void M_Menu_Load_f (void);
@@ -1268,7 +1266,7 @@ void M_Options_Draw (void)
 	M_Print (16, 136, "        Use Retrotouch");
 	M_DrawCheckbox (220, 136, retro_touch);
 	
-	M_Print (16, 136, "         Rumble Effect");
+	M_Print (16, 144, "         Rumble Effect");
 	M_DrawCheckbox (220, 144, rumble);
 	
 	//if (vid_menudrawfn)
@@ -2365,7 +2363,8 @@ void M_LanConfig_Key (int key)
 			lanConfig_cursor = 0;
 		break;
 
-	case K_ENTER:
+	case K_AUX4:
+	case K_AUX1:
 		if (lanConfig_cursor == 0)
 			break;
 
@@ -2883,7 +2882,8 @@ void M_GameOptions_Key (int key)
 		M_NetStart_Change (1);
 		break;
 
-	case K_ENTER:
+	case K_AUX4:
+	case K_AUX1:
 		S_LocalSound ("misc/menu2.wav");
 		if (gameoptions_cursor == 0)
 		{
@@ -3055,7 +3055,8 @@ void M_ServerList_Key (int k)
 			slist_cursor = 0;
 		break;
 
-	case K_ENTER:
+	case K_AUX4:
+	case K_AUX1:
 		S_LocalSound ("misc/menu2.wav");
 		m_return_state = m_state;
 		m_return_onerror = true;

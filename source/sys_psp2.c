@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/types.h>
 #include <psp2/rtc.h>
 #include "danzeff.h"
+#include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/touch.h>
@@ -33,7 +34,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int old_char;
 extern int isDanzeff;
 extern uint64_t rumble_tick;
-
 qboolean		isDedicated;
 
 uint64_t initialTime = 0;
@@ -175,23 +175,16 @@ void Sys_Quit (void)
 void Sys_Error (char *error, ...)
 {
 
-	/*va_list         argptr;
-	
-	INFO("Sys_Error: ");
+	va_list         argptr;
 	
 	char buf[256];
 	va_start (argptr, error);
 	vsnprintf (buf, sizeof(buf), error,argptr);
 	va_end (argptr);
-	INFO("%s\n", buf);
-	INFO("Press START to exit");
-	while(1){
-		SceCtrlData pad;
-		sceCtrlPeekBufferPositive(0, &pad, 1);
-		int kDown = pad.buttons;
-		if (kDown & SCE_CTRL_START)
-			break;
-	}*/
+	sprintf(buf,"%s\n",buf);
+	FILE* f = fopen("ux0:/data/Quake/log.txt","a+");
+	fwrite(buf,1,strlen(buf),f);
+	fclose(f);
 	Sys_Quit();
 }
 
@@ -223,7 +216,7 @@ double Sys_FloatTime (void)
 }
 
 void PSP2_KeyDown(int keys){
-	if (key_dest != key_console){
+	if (!isDanzeff){
 		if( keys & SCE_CTRL_SELECT)
 			Key_Event(K_ESCAPE, true);
 		if( keys & SCE_CTRL_START)
@@ -252,7 +245,7 @@ void PSP2_KeyDown(int keys){
 }
 
 void PSP2_KeyUp(int keys, int oldkeys){
-	if (key_dest != key_console){
+	if (!isDanzeff){
 		if ((!(keys & SCE_CTRL_SELECT)) && (oldkeys & SCE_CTRL_SELECT))
 			Key_Event(K_ESCAPE, false);
 		if ((!(keys & SCE_CTRL_START)) && (oldkeys & SCE_CTRL_START))
@@ -308,8 +301,10 @@ int _newlib_heap_size_user = 192 * 1024 * 1024;
 
 int main (int argc, char **argv)
 {
-	scePowerSetArmClockFrequency(444);
 
+	// Initializing stuffs
+	scePowerSetArmClockFrequency(444);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
@@ -358,7 +353,7 @@ int main (int argc, char **argv)
 		}
 		
 		// Danzeff keyboard manage for Console
-		if (key_dest == key_console){
+		if (key_dest == key_console || m_state == m_lanconfig){
 			if (old_char != 0) Key_Event(old_char, false);
 			SceCtrlData danzeff_pad, oldpad;
 			sceCtrlPeekBufferPositive(0, &danzeff_pad, 1);
@@ -388,7 +383,10 @@ int main (int argc, char **argv)
 			}else if ((danzeff_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
 				danzeff_free();
 				Con_ToggleConsole_f ();
-			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))) isDanzeff = true;
+			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
+				if (m_state == m_lanconfig) danzeff_load();
+				isDanzeff = true;
+			}
 			oldpad = danzeff_pad;
 		}
 		

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // net_dgrm.c
 
 // This is enables a simple IP banning mechanism
-#define BAN_TEST
+//#define BAN_TEST
 
 #ifdef BAN_TEST
 #if defined(_WIN32)
@@ -81,7 +81,7 @@ struct
 } packetBuffer;
 
 extern int m_return_state;
-extern int m_state;
+//extern int m_state;
 extern qboolean m_return_onerror;
 extern char m_return_reason[32];
 
@@ -1211,7 +1211,6 @@ void Datagram_SearchForHosts (qboolean xmit)
 			_Datagram_SearchForHosts (xmit);
 	}
 }
-
 
 static qsocket_t *_Datagram_Connect (char *host)
 {
