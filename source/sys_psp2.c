@@ -68,6 +68,7 @@ filelength
 */
 
 void Log (const char *format, ...){
+	#ifdef DEBUG
 	__gnuc_va_list arg;
 	int done;
 	va_start (arg, format);
@@ -81,6 +82,7 @@ void Log (const char *format, ...){
 		fwrite(msg,1,strlen(msg),log);
 		fclose(log);
 	}
+	#endif
 }
 
 int filelength (FILE *f)
@@ -207,15 +209,17 @@ void Sys_Error (char *error, ...)
 
 void Sys_Printf (char *fmt, ...)
 {
-	//if(hostInitialized)
+	#ifdef DEBUG
+	if(hostInitialized)
 		return;
 
-	/*va_list argptr;
+	va_list argptr;
 	char buf[256];
 	va_start (argptr,fmt);
 	vsnprintf (buf, sizeof(buf), fmt,argptr);
 	va_end (argptr);
-	INFO(buf);*/
+	Log(buf);
+	#endif
 	
 }
 
@@ -230,6 +234,10 @@ void Sys_Sleep (void)
 
 double Sys_FloatTime (void)
 {
+	u64 ticks;
+	sceRtcGetCurrentTick(&ticks);
+	return ticks * 0.000001;
+
 }
 
 void PSP2_KeyDown(int keys){

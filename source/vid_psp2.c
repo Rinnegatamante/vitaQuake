@@ -33,9 +33,9 @@ float fixpalette = 0;
 float rend_scale = 1.0;
 char res_string[256];
 
-int widths[] = {480, 640, 720, 960};
-int heights[] = {272, 362, 408, 544};
-float scales[] = {2.0, 1.5, 1.3333, 1.0};
+const int widths[4] = {480, 640, 720, 960};
+const int heights[4] = {272, 362, 408, 544};
+const float scales[4] = {2.0, 1.5, 1.3333, 1.0};
 #define SURFCACHE_SIZE 10485760
 
 short	zbuffer[960*544];
@@ -91,7 +91,7 @@ void	VID_Init (unsigned char *palette)
 	surfcache = malloc(SURFCACHE_SIZE);
 	D_InitCaches (surfcache, SURFCACHE_SIZE);
 	
-	sprintf(res_string,"Current Resolution: %ld x %ld", widths[4], heights[4]);
+	sprintf(res_string,"Current Resolution: %ld x %ld", widths[3], heights[3]);
 	
 }
 

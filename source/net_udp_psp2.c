@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/types.h>
 #include <psp2/net/net.h>
 #include <psp2/net/netctl.h>
+#include <psp2/kernel/threadmgr.h>
 #include <sys/param.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
@@ -53,13 +54,109 @@ struct hostent{
 };
 #define h_addr h_addr_list[0]
 
+// Since using standard sceNet structs seems to cause problems, let's re-implement linux-like interface
+#define AF_INET SCE_NET_AF_INET
+#define SOCK_DGRAM SCE_NET_SOCK_DGRAM
+#define IPPROTO_UDP SCE_NET_IPPROTO_UDP
+#define SOL_SOCKET SCE_NET_SOL_SOCKET
+#define MSG_PEEK SCE_NET_MSG_PEEK
+#define INADDR_BROADCAST SCE_NET_INADDR_BROADCAST
+#define SO_BROADCAST SCE_NET_SO_BROADCAST
+#define INADDR_ANY SCE_NET_INADDR_ANY
+#define SO_NBIO SCE_NET_SO_NBIO
+
+struct in_addr {
+    unsigned long s_addr;  // load with inet_aton()
+};
+
+struct sockaddr_in {
+    short            sin_family;   // e.g. AF_INET
+    unsigned short   sin_port;     // e.g. htons(3490)
+    struct in_addr   sin_addr;     // see struct in_addr, below
+    char             sin_zero[8];  // zero this if you want to
+};
+
+struct sockaddr {
+    unsigned short    sa_family;    // address family, AF_xxx
+    char              sa_data[14];  // 14 bytes of protocol address
+};
+
+int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* dst){
+	if (dst == NULL || src == NULL) return -1;
+	dst->sin_family = src->sin_family;
+	dst->sin_port = src->sin_port;
+	dst->sin_addr.s_addr = src->sin_addr.s_addr;
+	return 0;
+}
+
+int convertSockaddrIn(struct SceNetSockaddrIn* dst, struct sockaddr_in* src){
+	if (dst == NULL || src == NULL) return -1;
+	dst->sin_family = src->sin_family;
+	dst->sin_port = src->sin_port;
+	dst->sin_addr.s_addr = src->sin_addr.s_addr;
+	return 0;
+}
+
+int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* dst){
+	if (dst == NULL || src == NULL) return -1;
+	dst->sa_family = src->sa_family;
+	memcpy(dst->sa_data,src->sa_data,14);
+	return 0;
+}
+
+int convertSockaddr(struct SceNetSockaddr* dst, struct sockaddr* src){
+	if (dst == NULL || src == NULL) return -1;
+	dst->sa_family = src->sa_family;
+	memcpy(dst->sa_data,src->sa_data,14);
+	return 0;
+}
+
+int socket(int domain, int type, int protocol){
+	return sceNetSocket("Socket", domain, type, protocol);
+}
+
+int recvfrom(int sockfd, void* buf, long len, int flags, struct sockaddr* src_addr, unsigned int* addrlen){
+	struct SceNetSockaddr tmp;
+	if (convertSockaddr(&tmp,src_addr) < 0) return sceNetRecvfrom(sockfd, buf, len, flags, NULL, addrlen);
+	else return sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
+}
+
+int getsockname(int sockfd, struct sockaddr *addr, unsigned int *addrlen){
+	struct SceNetSockaddr tmp;
+	convertSockaddr(&tmp, addr);
+	int res = sceNetGetsockname(sockfd, &tmp, addrlen);
+	convertSceNetSockaddr(&tmp, addr);
+	return res;
+}
+
+int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen){
+	struct SceNetSockaddr tmp;
+	convertSockaddr(&tmp, addr);
+	return sceNetBind(sockfd, &tmp, addrlen);
+}
+
+int close(int sockfd){
+	return sceNetSocketClose(sockfd);
+}
+
+int setsockopt(int sockfd, int level, int optname, const void *optval, unsigned int optlen){
+	return sceNetSetsockopt(sockfd, level, optname, optval, optlen);
+}
+
+unsigned int sendto(int sockfd, const void *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, unsigned int addrlen){
+	struct SceNetSockaddr tmp;
+	convertSockaddr(&tmp, dest_addr);
+	return sceNetSendto(sockfd, buf, len, flags, &tmp, addrlen);
+}
+
 struct hostent *gethostbyname(const char *name)   
 {   
 	Log("gethostbyname (%s)...",name);
     static struct hostent ent;   
     char buf[1024];   
     static char sname[MAX_NAME] = "";   
-    static struct SceNetInAddr saddr = { 0 };   
+    static struct SceNetInAddr saddr = { 0 };
+	
     static char *addrlist[2] = { (char *) &saddr, NULL };   
     int rid = -1;   
    
@@ -81,7 +178,7 @@ struct hostent *gethostbyname(const char *name)
     snprintf(sname, MAX_NAME, "%s", name);   
     ent.h_name = sname;   
     ent.h_aliases = 0;   
-    ent.h_length = sizeof(struct SceNetInAddr);   
+    ent.h_length = sizeof(struct sockaddr_in);   
     ent.h_addrtype = SCE_NET_AF_INET;   
     ent.h_addr_list = addrlist;   
     ent.h_addr = (char *) &saddr;   
@@ -124,7 +221,7 @@ struct hostent *gethostbyaddr(const void *addr, int len, int type)
     ent.h_name = sname;   
     ent.h_aliases = aliases;   
     ent.h_addrtype = SCE_NET_AF_INET;   
-    ent.h_length = sizeof(struct SceNetInAddr);   
+    ent.h_length = sizeof(struct sockaddr_in);   
     ent.h_addr_list = addrlist;   
     ent.h_addr = (char *) &saddr;   
    
@@ -197,9 +294,9 @@ int UDP_Init (void)
 	if ((net_controlsocket = UDP_OpenSocket (0)) == -1)
 		Sys_Error("UDP_Init: Unable to open control socket\n");
 
-	((struct SceNetSockaddrIn *)&broadcastaddr)->sin_family = SCE_NET_AF_INET;
-	((struct SceNetSockaddrIn *)&broadcastaddr)->sin_addr.s_addr = SCE_NET_INADDR_BROADCAST;
-	((struct SceNetSockaddrIn *)&broadcastaddr)->sin_port = sceNetHtons(net_hostport);
+	((struct sockaddr_in *)&broadcastaddr)->sin_family = AF_INET;
+	((struct sockaddr_in *)&broadcastaddr)->sin_addr.s_addr = INADDR_BROADCAST;
+	((struct sockaddr_in *)&broadcastaddr)->sin_port = sceNetHtons(net_hostport);
 
 	UDP_GetSocketAddr (net_controlsocket, &addr);
 	Q_strcpy(my_tcpip_address,  UDP_AddrToString (&addr));
@@ -254,25 +351,25 @@ int UDP_OpenSocket (int port)
 {
 	Log("UDP_OpenSocket(%ld)",port);
 	int newsocket;
-	struct SceNetSockaddrIn address;
+	struct sockaddr_in address;
 	uint32_t _true = true;
 
-	if ((newsocket = sceNetSocket("UDP Socket",SCE_NET_AF_INET, SCE_NET_SOCK_DGRAM, SCE_NET_IPPROTO_UDP)) == -1)
+	if ((newsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 		return -1;
 
-	if (sceNetSetsockopt(newsocket, SCE_NET_SOL_SOCKET, SCE_NET_SO_NBIO, (char *)&_true, sizeof(uint32_t)) == -1)
+	if (setsockopt(newsocket, SOL_SOCKET, SO_NBIO, (char *)&_true, sizeof(uint32_t)) == -1)
 		goto ErrorReturn;
 
-	address.sin_family = SCE_NET_AF_INET;
-	address.sin_addr.s_addr = SCE_NET_INADDR_ANY;
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = sceNetHtons(port);
-	if( sceNetBind(newsocket, (const SceNetSockaddr*)&address, sizeof(address)) == -1)
+	if( bind(newsocket, (void*)&address, sizeof(address)) == -1)
 		goto ErrorReturn;
 
 	return newsocket;
 
 ErrorReturn:
-	sceNetSocketClose(newsocket);
+	close(newsocket);
 	return -1;
 }
 
@@ -283,7 +380,7 @@ int UDP_CloseSocket (int socket)
 	Log("UDP_CloseSocket");
 	if (socket == net_broadcastsocket)
 		net_broadcastsocket = 0;
-	return sceNetSocketClose(socket);
+	return close(socket);
 }
 
 
@@ -298,7 +395,6 @@ the local network components to fill in the rest
 */
 static int PartialIPAddress (char *in, struct qsockaddr *hostaddr)
 {
-	Log("PartialIPAddress(%s)",in);
 	char buff[256];
 	char *b;
 	int addr;
@@ -338,10 +434,11 @@ static int PartialIPAddress (char *in, struct qsockaddr *hostaddr)
 		port = Q_atoi(b);
 	else
 		port = net_hostport;
-
+	
+	Log("PartialIPAddress(%s): port: %ld",in,port);
 	hostaddr->sa_family = SCE_NET_AF_INET;
-	((struct SceNetSockaddrIn *)hostaddr)->sin_port = sceNetHtons((short)port);
-	((struct SceNetSockaddrIn *)hostaddr)->sin_addr.s_addr = (myAddr & sceNetHtonl(mask)) | sceNetHtonl(addr);
+	((struct sockaddr_in *)hostaddr)->sin_port = sceNetHtons((short)port);
+	((struct sockaddr_in *)hostaddr)->sin_addr.s_addr = (myAddr & sceNetHtonl(mask)) | sceNetHtonl(addr);
 
 	return 0;
 }
@@ -358,13 +455,12 @@ int UDP_Connect (int socket, struct qsockaddr *addr)
 int UDP_CheckNewConnections (void)
 {
 	Log("UDP_CheckNewConnections");
-	unsigned long	available;
-	char buf[4];
+	char buf[4096];
 	
 	if (net_acceptsocket == -1)
 		return -1;
 
-	if (sceNetRecv(net_acceptsocket, buf, 4, SCE_NET_MSG_PEEK) > 0)
+	if (recvfrom(net_acceptsocket, buf, 4096, MSG_PEEK, NULL, NULL) > 0)
 		return net_acceptsocket;
 		
 	return -1;
@@ -377,7 +473,7 @@ int UDP_Read (int socket, byte *buf, int len, struct qsockaddr *addr)
 	int addrlen = sizeof (struct qsockaddr);
 	int ret;
 
-	ret = sceNetRecvfrom(socket, buf, len, 0, (struct SceNetSockaddr *)addr, &addrlen);
+	ret = recvfrom(socket, buf, len, 0, (struct sockaddr *)addr, &addrlen);
 	Log("UDP_Read returned %ld",ret);
 	if (ret == SCE_NET_ERROR_EAGAIN || ret == SCE_NET_ERROR_ECONNREFUSED)
 		return 0;
@@ -393,7 +489,7 @@ int UDP_MakeSocketBroadcastCapable (int socket)
 	int				i = 1;
 	Log("UDP_MakeSocketBroadcastCapable");
 	// make this socket broadcast capable
-	if (sceNetSetsockopt(socket, SCE_NET_SOL_SOCKET, SCE_NET_SO_BROADCAST, (char *)&i, sizeof(i)) < 0)
+	if (setsockopt(socket, SOL_SOCKET, SO_BROADCAST, (char *)&i, sizeof(i)) < 0)
 		return -1;
 	net_broadcastsocket = socket;
 
@@ -428,7 +524,7 @@ int UDP_Write (int socket, byte *buf, int len, struct qsockaddr *addr)
 {
 	int ret;
 
-	ret = sceNetSendto(socket, buf, len, 0, (struct SceNetSockaddr *)addr, sizeof(struct qsockaddr));
+	ret = sendto(socket, buf, len, 0, (struct sockaddr *)addr, sizeof(struct qsockaddr));
 	Log("UDP_Write returned %ld",ret);
 	if (ret == SCE_NET_ERROR_EAGAIN)
 		return 0;
@@ -444,8 +540,8 @@ char *UDP_AddrToString (struct qsockaddr *addr)
 	static char buffer[22];
 	int haddr;
 
-	haddr = sceNetNtohl(((struct SceNetSockaddrIn *)addr)->sin_addr.s_addr);
-	sprintf(buffer, "%d.%d.%d.%d:%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff, (haddr >> 8) & 0xff, haddr & 0xff, sceNetNtohs(((struct SceNetSockaddrIn *)addr)->sin_port));
+	haddr = sceNetNtohl(((struct sockaddr_in *)addr)->sin_addr.s_addr);
+	sprintf(buffer, "%d.%d.%d.%d:%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff, (haddr >> 8) & 0xff, haddr & 0xff, sceNetNtohs(((struct sockaddr_in *)addr)->sin_port));
 	Log("UDP_AddrToString returned %s",buffer);
 	return buffer;
 }
@@ -461,9 +557,9 @@ int UDP_StringToAddr (char *string, struct qsockaddr *addr)
 	sscanf(string, "%d.%d.%d.%d:%d", &ha1, &ha2, &ha3, &ha4, &hp);
 	ipaddr = (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
 
-	addr->sa_family = SCE_NET_AF_INET;
-	((struct SceNetSockaddrIn *)addr)->sin_addr.s_addr = sceNetHtonl(ipaddr);
-	((struct SceNetSockaddrIn *)addr)->sin_port = sceNetHtons(hp);
+	addr->sa_family = AF_INET;
+	((struct sockaddr_in *)addr)->sin_addr.s_addr = sceNetHtonl(ipaddr);
+	((struct sockaddr_in *)addr)->sin_port = sceNetHtons(hp);
 	return 0;
 }
 
@@ -476,11 +572,12 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 	unsigned int a, tmp;
 
 	Q_memset(addr, 0, sizeof(struct qsockaddr));
-	sceNetGetsockname(socket, (struct SceNetSockaddr *)addr, &addrlen);
-	a = ((struct SceNetSockaddrIn *)addr)->sin_addr.s_addr;
+	int ret = getsockname(socket, (struct sockaddr *)addr, &addrlen);
+	Log("getsockname returned %ld", ret);
+	a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
 	sceNetInetPton(SCE_NET_AF_INET, "127.0.0.1", &tmp);
 	if (a == 0 || a == tmp)
-		((struct SceNetSockaddrIn *)addr)->sin_addr.s_addr = myAddr;
+		((struct sockaddr_in *)addr)->sin_addr.s_addr = myAddr;
 
 	return 0;
 }
@@ -491,7 +588,7 @@ int UDP_GetNameFromAddr (struct qsockaddr *addr, char *name)
 {
 	struct hostent *hostentry;
 
-	hostentry = gethostbyaddr ((char *)&((struct SceNetSockaddrIn *)addr)->sin_addr, sizeof(struct SceNetInAddr), SCE_NET_AF_INET);
+	hostentry = gethostbyaddr ((char *)&((struct sockaddr_in *)addr)->sin_addr, sizeof(struct in_addr), AF_INET);
 	Log("UDP_GetNameFromAddr returned %s",name);
 	if (hostentry)
 	{
@@ -518,8 +615,8 @@ int UDP_GetAddrFromName(char *name, struct qsockaddr *addr)
 		return -1;
 
 	addr->sa_family = SCE_NET_AF_INET;
-	((struct SceNetSockaddrIn *)addr)->sin_port = sceNetHtons(net_hostport);
-	((struct SceNetSockaddrIn *)addr)->sin_addr.s_addr = *(int *)hostentry->h_addr_list[0];
+	((struct sockaddr_in *)addr)->sin_port = sceNetHtons(net_hostport);
+	((struct sockaddr_in *)addr)->sin_addr.s_addr = *(int *)hostentry->h_addr_list[0];
 
 	return 0;
 }
@@ -528,16 +625,22 @@ int UDP_GetAddrFromName(char *name, struct qsockaddr *addr)
 
 int UDP_AddrCompare (struct qsockaddr *addr1, struct qsockaddr *addr2)
 {
-	Log("UDP_AddrCompare");
-	if (addr1->sa_family != addr2->sa_family)
+	if (addr1->sa_family != addr2->sa_family){
+		Log("UDP_AddrCompare returned -1 (1st case)");
 		return -1;
-
-	if (((struct SceNetSockaddrIn *)addr1)->sin_addr.s_addr != ((struct SceNetSockaddrIn *)addr2)->sin_addr.s_addr)
+	}
+	
+	if (((struct sockaddr_in *)addr1)->sin_addr.s_addr != ((struct sockaddr_in *)addr2)->sin_addr.s_addr){
+		Log("UDP_AddrCompare returned -1 (2nd case)");
 		return -1;
-
-	if (((struct SceNetSockaddrIn *)addr1)->sin_port != ((struct SceNetSockaddrIn *)addr2)->sin_port)
+	}
+	
+	if (((struct sockaddr_in *)addr1)->sin_port != ((struct sockaddr_in *)addr2)->sin_port){
+		Log("UDP_AddrCompare returned 1");
 		return 1;
-
+	}
+	
+	Log("UDP_AddrCompare returned 0");
 	return 0;
 }
 
@@ -546,14 +649,14 @@ int UDP_AddrCompare (struct qsockaddr *addr1, struct qsockaddr *addr2)
 int UDP_GetSocketPort (struct qsockaddr *addr)
 {
 	Log("UDP_GetSocketPort");
-	return sceNetNtohs(((struct SceNetSockaddrIn *)addr)->sin_port);
+	return sceNetNtohs(((struct sockaddr_in *)addr)->sin_port);
 }
 
 
 int UDP_SetSocketPort (struct qsockaddr *addr, int port)
 {
 	Log("UDP_SetSocketPort");
-	((struct SceNetSockaddrIn *)addr)->sin_port = sceNetHtons(port);
+	((struct sockaddr_in *)addr)->sin_port = sceNetHtons(port);
 	return 0;
 }
 
