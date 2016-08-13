@@ -117,8 +117,11 @@ int socket(int domain, int type, int protocol){
 
 int recvfrom(int sockfd, void* buf, long len, int flags, struct sockaddr* src_addr, unsigned int* addrlen){
 	struct SceNetSockaddr tmp;
-	if (convertSockaddr(&tmp,src_addr) < 0) return sceNetRecvfrom(sockfd, buf, len, flags, NULL, addrlen);
-	else return sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
+	int res;
+	if (convertSockaddr(&tmp,src_addr) < 0) res = sceNetRecvfrom(sockfd, buf, len, flags, NULL, addrlen);
+	else res = sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
+	convertSceNetSockaddr(&tmp, src_addr);
+	return res;
 }
 
 int getsockname(int sockfd, struct sockaddr *addr, unsigned int *addrlen){
@@ -472,7 +475,7 @@ int UDP_Read (int socket, byte *buf, int len, struct qsockaddr *addr)
 {
 	int addrlen = sizeof (struct qsockaddr);
 	int ret;
-
+	
 	ret = recvfrom(socket, buf, len, 0, (struct sockaddr *)addr, &addrlen);
 	Log("UDP_Read returned %ld",ret);
 	if (ret == SCE_NET_ERROR_EAGAIN || ret == SCE_NET_ERROR_ECONNREFUSED)
