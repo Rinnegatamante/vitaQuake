@@ -66,6 +66,23 @@ int             findhandle (void)
 filelength
 ================
 */
+
+void Log (const char *format, ...){
+	__gnuc_va_list arg;
+	int done;
+	va_start (arg, format);
+	char msg[512];
+	done = vsprintf (msg, format, arg);
+	va_end (arg);
+	int i;
+	sprintf(msg,"%s\n",msg);
+	FILE* log = fopen("ux0:/data/Quake/log.txt","a+");
+	if (log != NULL){
+		fwrite(msg,1,strlen(msg),log);
+		fclose(log);
+	}
+}
+
 int filelength (FILE *f)
 {
 	int             pos;
