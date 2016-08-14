@@ -339,7 +339,7 @@ int main (int argc, char **argv)
 
 	parms.memsize = 20*1024*1024;
 	parms.membase = malloc (parms.memsize);
-	parms.basedir = ".";
+	parms.basedir = "ux0:/data/Quake";
 
 	COM_InitArgv (argc, argv);
 
@@ -363,6 +363,9 @@ int main (int argc, char **argv)
 	Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
 	Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
 	Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
+	
+	// Loading default config file
+	Cbuf_AddText ("exec config.cfg\n");
 	
 	u64 lastTick;
 	sceRtcGetCurrentTick(&lastTick);

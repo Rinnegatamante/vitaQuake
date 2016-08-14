@@ -1309,6 +1309,7 @@ void    COM_CreatePath (char *path)
 {
 	char    *ofs;
 
+
 	for (ofs = path+1 ; *ofs ; ofs++)
 	{
 		if (*ofs == '/')
@@ -1691,8 +1692,7 @@ void COM_AddGameDirectory (char *dir)
 	pack_t                  *pak;
 	char                    pakfile[MAX_OSPATH];
 
-	//strcpy (com_gamedir, dir);
-	strcpy (com_gamedir, "ux0:/data/Quake/id1");
+	strcpy (com_gamedir, dir);
 //
 // add the directory to the search path
 //
