@@ -2251,7 +2251,7 @@ void M_ModemConfig_Key (int key)
 /* LAN CONFIG MENU */
 
 int		lanConfig_cursor = -1;
-int		lanConfig_cursor_table [] = {72, 92, 124};
+int		lanConfig_cursor_table [] = {72, 92, 124,138};
 #define NUM_LANCONFIG_CMDS	3
 
 int 	lanConfig_port;
@@ -2266,7 +2266,7 @@ void M_Menu_LanConfig_f (void)
 	if (lanConfig_cursor == -1)
 	{
 		if (JoiningGame && TCPIPConfig)
-			lanConfig_cursor = 2;
+			lanConfig_cursor = 3;
 		else
 			lanConfig_cursor = 1;
 	}
@@ -2319,6 +2319,7 @@ void M_LanConfig_Draw (void)
 		M_Print (basex, 108, "Join game at:");
 		M_DrawTextBox (basex+8, lanConfig_cursor_table[2]-8, 22, 1);
 		M_Print (basex+16, lanConfig_cursor_table[2], lanConfig_joinname);
+		M_Print (basex, 138, "Join official vitaQuake server");
 	}
 	else
 	{
@@ -2333,7 +2334,7 @@ void M_LanConfig_Draw (void)
 
 	if (lanConfig_cursor == 2)
 		M_DrawCharacter (basex+16 + 8*strlen(lanConfig_joinname), lanConfig_cursor_table [2], 10+((int)(realtime*4)&1));
-
+		
 	if (*m_return_reason)
 		M_PrintWhite (basex, 148, m_return_reason);
 }
@@ -2353,13 +2354,13 @@ void M_LanConfig_Key (int key)
 		S_LocalSound ("misc/menu1.wav");
 		lanConfig_cursor--;
 		if (lanConfig_cursor < 0)
-			lanConfig_cursor = NUM_LANCONFIG_CMDS-1;
+			lanConfig_cursor = NUM_LANCONFIG_CMDS;
 		break;
 
 	case K_DOWNARROW:
 		S_LocalSound ("misc/menu1.wav");
 		lanConfig_cursor++;
-		if (lanConfig_cursor >= NUM_LANCONFIG_CMDS)
+		if (lanConfig_cursor > NUM_LANCONFIG_CMDS)
 			lanConfig_cursor = 0;
 		break;
 
@@ -2390,6 +2391,16 @@ void M_LanConfig_Key (int key)
 			key_dest = key_game;
 			m_state = m_none;
 			Cbuf_AddText ( va ("connect \"%s\"\n", lanConfig_joinname) );
+			break;
+		}
+		
+		if (lanConfig_cursor == 3)
+		{
+			m_return_state = m_state;
+			m_return_onerror = true;
+			key_dest = key_game;
+			m_state = m_none;
+			Cbuf_AddText ("connect 212.24.100.151\n");
 			break;
 		}
 
