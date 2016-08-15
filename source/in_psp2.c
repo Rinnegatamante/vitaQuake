@@ -105,23 +105,8 @@ void IN_Move (usercmd_t *cmd)
 	
 	// TOUCH SUPPORT
 	
-	// Touchscreen support for camera movement
-	SceTouchData touch;
-	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
-    if (touch.reportNum > 0) {
-		int raw_x = lerp(touch.report[0].x, 1919, 960);
-		int raw_y = lerp(touch.report[0].y, 1087, 544);
-		int touch_x = raw_x - 480;
-		int touch_y = raw_y - 272;
-		x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.008;
-		y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.008;
-		cl.viewangles[YAW] -= x_cam;
-		V_StopPitchDrift();
-		if (inverted) cl.viewangles[PITCH] -= y_cam;
-		else cl.viewangles[PITCH] += y_cam;
-	}
-	
 	// Retrotouch support for camera movement
+	SceTouchData touch;
 	if (retro_touch){
 		sceTouchPeek(SCE_TOUCH_PORT_BACK, &touch, 1);
 		if (touch.reportNum > 0) {

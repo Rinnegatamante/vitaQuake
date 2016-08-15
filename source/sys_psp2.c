@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/touch.h>
+#include <psp2/system_param.h>
+#include <psp2/apputil.h>
 #include <psp2/ctrl.h>
 #define u64 uint64_t
 
@@ -308,6 +310,12 @@ void Sys_SendKeyEvents (void)
 			PSP2_KeyDown(kDown);
 		if(kUp != kDown)
 			PSP2_KeyUp(kDown, kUp);
+			
+		// Touchscreen support for game status showing
+		SceTouchData touch;
+		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
+		if (touch.reportNum > 0) Key_Event(K_TOUCH, true);
+		else Key_Event(K_TOUCH, false);
 		
 		oldpad = pad;
 	}
@@ -340,15 +348,31 @@ int main (int argc, char **argv)
 	parms.memsize = 20*1024*1024;
 	parms.membase = malloc (parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
-
-	COM_InitArgv (argc, argv);
-
+	
+	// Mods support
+	/*int int_argc = 3;
+	char* int_argv[] = {"", "-game", "tf"};
+	COM_InitArgv (int_argc, int_argv);*/
+	COM_InitArgv(argc,argv);
+	
 	parms.argc = com_argc;
 	parms.argv = com_argv;	
 	
 	Host_Init (&parms);
 	hostInitialized = 1;
 	//Sys_Init();
+	
+	// Setting player name to PSVITA nickname
+	char nickname[32];
+	SceAppUtilInitParam init_param;
+	SceAppUtilBootParam boot_param;
+	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
+	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
+	sceAppUtilInit(&init_param, &boot_param);
+	sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, nickname, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
+	static char cmd[256];
+	sprintf(cmd,"_cl_name \"%s\"\n",nickname);
+	Cbuf_AddText (cmd);
 	
 	// Set default PSVITA controls
 	Cbuf_AddText ("unbindall\n");
@@ -362,6 +386,7 @@ int main (int argc, char **argv)
 	Cbuf_AddText ("bind DOWNARROW +movedown\n"); // Down
 	Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
 	Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
+	Cbuf_AddText ("bind TOUCH +showscores\n"); // Touchscreen
 	Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
 	
 	// Loading default config file
