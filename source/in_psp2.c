@@ -23,14 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/touch.h>
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
-extern int always_run, rumble;
+extern cvar_t always_run, rumble, inverted, retrotouch;
 uint64_t rumble_tick = 0;
-
-// mouse variables
 cvar_t	m_filter = {"m_filter","0"};
-int inverted = false;
-int retro_touch = true;
-
 SceCtrlData oldanalogs, analogs;
 
 void IN_Init (void)
@@ -39,6 +34,10 @@ void IN_Init (void)
     return;
 
   Cvar_RegisterVariable (&m_filter);
+  Cvar_RegisterVariable (&retrotouch);
+  Cvar_RegisterVariable (&always_run);
+  Cvar_RegisterVariable (&inverted);
+  Cvar_RegisterVariable (&rumble);
 }
 
 void IN_Shutdown (void)
@@ -51,7 +50,7 @@ void IN_Commands (void)
 
 void IN_StartRumble (void)
 {
-	if (!rumble) return;
+	if (!rumble.value) return;
 	SceCtrlActuator handle;
 	handle.enable = 100;
 	handle.unk = 0;
@@ -73,7 +72,7 @@ void IN_Move (usercmd_t *cmd)
 
 	// ANALOGS
 	
-	if ((in_speed.state & 1) || always_run){
+	if ((in_speed.state & 1) || always_run.value){
 		cl_forwardspeed.value = 400;
 		cl_backspeed.value = 400;
 		cl_sidespeed.value = 700;
@@ -100,14 +99,14 @@ void IN_Move (usercmd_t *cmd)
 	int y_cam = abs(right_y) < 50 ? 0 : right_y * sensitivity.value * 0.008;
 	cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
-	if (inverted) cl.viewangles[PITCH] -= y_cam;
+	if (inverted.value) cl.viewangles[PITCH] -= y_cam;
 	else cl.viewangles[PITCH] += y_cam;
 	
 	// TOUCH SUPPORT
 	
 	// Retrotouch support for camera movement
 	SceTouchData touch;
-	if (retro_touch){
+	if (retrotouch.value){
 		sceTouchPeek(SCE_TOUCH_PORT_BACK, &touch, 1);
 		if (touch.reportNum > 0) {
 			int raw_x = lerp(touch.report[0].x, 1919, 960);
@@ -118,7 +117,7 @@ void IN_Move (usercmd_t *cmd)
 			y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.008;
 			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
-			if (inverted) cl.viewangles[PITCH] -= y_cam;
+			if (inverted.value) cl.viewangles[PITCH] -= y_cam;
 			else cl.viewangles[PITCH] += y_cam;
 		}
 	}

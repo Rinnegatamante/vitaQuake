@@ -206,14 +206,9 @@ void CL_ParseServerInfo (void)
 	char	*str;
 	int		i, maxlen;
 	int		nummodels, numsounds;
-	char	**model_precache=malloc(sizeof(char*)*MAX_MODELS);
-	for(i=0; i<MAX_MODELS; i++){
-		model_precache[i] = malloc(sizeof(char)*MAX_QPATH);
-	}
-	char	**sound_precache=malloc(sizeof(char*)*MAX_SOUNDS);
-	for(i=0; i<MAX_SOUNDS; i++){
-		sound_precache[i] = malloc(sizeof(char)*MAX_QPATH);
-	}
+	char	model_precache[MAX_MODELS][MAX_QPATH];
+	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
+	char	tempname[MAX_QPATH];
 	Con_DPrintf ("Serverinfo packet received.\n");
 //
 // wipe the client_state_t struct
@@ -315,15 +310,6 @@ void CL_ParseServerInfo (void)
 	Hunk_Check ();		// make sure nothing is hurt
 
 	noclip_anglehack = false;		// noclip is turned off at start
-
-	for(i=0; i<MAX_MODELS; i++){
-		free(model_precache[i]);
-	}
-	free(model_precache);
-	for(i=0; i<MAX_SOUNDS; i++){
-		free(sound_precache[i]);
-	}
-	free(sound_precache);
 }
 
 

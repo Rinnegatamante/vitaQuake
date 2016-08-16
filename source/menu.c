@@ -30,11 +30,11 @@ extern cvar_t	scr_fov;
 extern cvar_t	crosshair;
 extern cvar_t	d_mipscale;
 extern void VID_ChangeRes(float);
-extern int inverted;
-extern int retro_touch;
-int always_run = 0;
-int rumble = 1;
-float res_val = 1.0;
+extern cvar_t	inverted;
+extern cvar_t	rumble;
+extern cvar_t	res_val;
+extern cvar_t	retrotouch;
+extern cvar_t	always_run;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1134,14 +1134,12 @@ void M_AdjustSliders (int dir)
 		break;
 
 	case 9:	// allways run
-		if (always_run) always_run = false;
-		else always_run = true;
+		Cvar_SetValue ("always_run", !always_run.value);
 		break;
 
 	case 10:	// invert mouse
 		//Cvar_SetValue ("m_pitch", -m_pitch.value); Hotfix for PSVITA
-		if (inverted) inverted = false;
-		else inverted = true;
+		Cvar_SetValue ("invert_camera", !inverted.value);
 		break;
 
 	case 11:	// field of view
@@ -1156,22 +1154,21 @@ void M_AdjustSliders (int dir)
 		break;
 		
 	case 13:	// retrotouch
-		if (retro_touch) retro_touch = false;
-		else retro_touch = true;
+		Cvar_SetValue ("retrotouch", !retrotouch.value);
 		break;
 		
 	case 14:	// rumble
-		if (rumble) rumble = false;
-		else rumble = true;
+		Cvar_SetValue ("pstv_rumble", !rumble.value);
 		break;
 		
 	case 15:	// change res
-		res_val += dir * 0.333;
-		if (res_val < 0)
-			res_val = 0;
-		if (res_val > 1)
-			res_val = 1;
-		VID_ChangeRes(res_val);
+		res_val.value += dir * 0.333;
+		if (res_val.value < 0)
+			res_val.value = 0;
+		if (res_val.value > 1)
+			res_val.value = 1;
+		Cvar_SetValue ("render_res",res_val.value);
+		VID_ChangeRes(res_val.value);
 		break;
 
 #ifdef _WIN32
@@ -1250,10 +1247,10 @@ void M_Options_Draw (void)
 	M_DrawSlider (220, 96, r);
 
 	M_Print (16, 104,  "           Always Run");
-	M_DrawCheckbox (220, 104, cl_forwardspeed.value > 200);
+	M_DrawCheckbox (220, 104, always_run.value);
 
 	M_Print (16, 112, "         Invert Camera");
-	M_DrawCheckbox (220, 112, inverted);
+	M_DrawCheckbox (220, 112, inverted.value);
 
 	M_Print (16, 120, "         Field of View");
 	r = (scr_fov.value - 75) / 55;
@@ -1264,14 +1261,14 @@ void M_Options_Draw (void)
 
 	//if (vid_menudrawfn)
 	M_Print (16, 136, "        Use Retrotouch");
-	M_DrawCheckbox (220, 136, retro_touch);
+	M_DrawCheckbox (220, 136, retrotouch.value);
 	
 	M_Print (16, 144, "         Rumble Effect");
-	M_DrawCheckbox (220, 144, rumble);
+	M_DrawCheckbox (220, 144, rumble.value);
 	
 	//if (vid_menudrawfn)
 	M_Print (16, 152, "       Game Resolution");
-	M_DrawSlider (220, 152, res_val);
+	M_DrawSlider (220, 152, res_val.value);
 	
 	M_Print (50, 166, res_string);
 	

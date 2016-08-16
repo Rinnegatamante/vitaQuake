@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int old_char;
 extern int isDanzeff;
 extern uint64_t rumble_tick;
+extern cvar_t res_val;
 qboolean		isDedicated;
 
 uint64_t initialTime = 0;
@@ -391,6 +392,9 @@ int main (int argc, char **argv)
 	
 	// Loading default config file
 	Cbuf_AddText ("exec config.cfg\n");
+	
+	// Just to be sure to use the correct resolution in config.cfg
+	VID_ChangeRes(res_val.value);
 	
 	u64 lastTick;
 	sceRtcGetCurrentTick(&lastTick);

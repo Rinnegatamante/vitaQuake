@@ -40,6 +40,12 @@ cvar_t	m_yaw = {"m_yaw","0.022", true};
 cvar_t	m_forward = {"m_forward","1", true};
 cvar_t	m_side = {"m_side","0.8", true};
 
+// PSVITA extra Cvars
+cvar_t rumble = {"pstv_rumble", "1", true};
+cvar_t inverted = {"invert_camera", "0", true};
+cvar_t res_val = {"render_res", "1.0", true};
+cvar_t retrotouch = {"retrotouch", "0", true};
+cvar_t always_run = {"always_run", "0", true};
 
 client_static_t	cls;
 client_state_t	cl;
@@ -163,6 +169,8 @@ void CL_EstablishConnection (char *host)
 	cls.demonum = -1;			// not in the demo loop now
 	cls.state = ca_connected;
 	cls.signon = 0;				// need all the signon messages before playing
+	
+	MSG_WriteByte(&cls.message, clc_nop);	// JPG 3.40 - fix for NAT
 }
 
 /*

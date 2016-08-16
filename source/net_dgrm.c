@@ -1354,8 +1354,6 @@ static qsocket_t *_Datagram_Connect (char *host)
 	Con_Printf ("Connection accepted\n");
 	sock->lastMessageTime = SetNetTime();
 	
-	if (strcmp(sock->address,"212.24.100.151:26000")) Cbuf_AddText("PING\n");
-	
 	// switch the connection to the specified address
 	if (dfunc.Connect (newsock, &sock->addr) == -1)
 	{
