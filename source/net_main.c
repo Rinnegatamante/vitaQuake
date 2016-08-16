@@ -99,6 +99,11 @@ double SetNetTime(void)
 }
 
 
+qboolean NET_QSocketIsProQuakeServer (qsocket_t *s)
+{
+   return s->proquake_connection;
+}
+
 /*
 ===================
 NET_NewQSocket

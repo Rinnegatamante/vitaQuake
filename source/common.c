@@ -351,6 +351,15 @@ void MSG_WriteAngle (sizebuf_t *sb, float f)
 	MSG_WriteByte (sb, ((int)f*256/360) & 255);
 }
 
+// JPG - precise aim for ProQuake!
+void MSG_WritePreciseAngle(sizebuf_t *sb, float f)
+{
+
+	int val = (int) f * 65536 / 360;
+	MSG_WriteShort(sb, val & 65535);
+
+}
+
 //
 // reading functions
 //
@@ -484,7 +493,11 @@ float MSG_ReadAngle (void)
 	return MSG_ReadChar() * (360.0/256);
 }
 
-
+// JPG - exact aim for proquake!
+float MSG_ReadPreciseAngle(void)
+{
+	return MSG_ReadShort() * (360.0 / 65536);
+}
 
 //===========================================================================
 
