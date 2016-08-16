@@ -350,6 +350,10 @@ void CL_SendMove (usercmd_t *cmd)
 	MSG_WriteFloat (&buf, cl.mtime[0]);	// so server can get ping times
 
 	for (i=0 ; i<3 ; i++)
+		
+	if (!cls.demoplayback && NET_QSocketIsProQuakeServer(cls.netcon))
+		MSG_WritePreciseAngle (&buf, cl.viewangles[i]);
+	else
 		MSG_WriteAngle (&buf, cl.viewangles[i]);
 
   	MSG_WriteShort (&buf, cmd->forwardmove);
