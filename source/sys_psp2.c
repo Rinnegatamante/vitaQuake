@@ -50,6 +50,8 @@ FILE IO
 ===============================================================================
 */
 
+#define PLATFORM_PSVITA	0x00010000
+
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
@@ -330,6 +332,7 @@ void Sys_LowFPPrecision (void)
 {
 }
 
+extern cvar_t platform;
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 
@@ -396,15 +399,21 @@ int main (int argc, char **argv)
 	Cbuf_AddText ("bind TOUCH +showscores\n"); // Touchscreen
 	Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
 	
-	// Loading default config file
 	Cbuf_AddText ("exec config.cfg\n");
-	
+
+#if 0
+	if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
+	{
+		Cvar_ForceSet("platform", "2");
+	}
+#endif
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
 	
 	u64 lastTick;
 	sceRtcGetCurrentTick(&lastTick);
-	
+
+		// Check the current system	
 	while (1)
 	{
 		// Prevent screen power-off
@@ -463,6 +472,10 @@ int main (int argc, char **argv)
 		Host_Frame(deltaSecond);
 		lastTick = tick;
 		
+#if 0	
+		if (platform.value == 2)
+			Con_Printf("HOLD ON, YOU'RE ON A VITA?\n");
+#endif
 	}
 	
 	free(parms.membase);

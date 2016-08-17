@@ -30,14 +30,16 @@ float		scr_con_current;
 float		scr_conlines;		// lines of console to display
 
 float		oldscreensize, oldfov;
-cvar_t		scr_viewsize = {"viewsize","100", true};
-cvar_t		scr_fov = {"fov","90"};	// 10 - 170
-cvar_t		scr_conspeed = {"scr_conspeed","300"};
-cvar_t		scr_centertime = {"scr_centertime","2"};
-cvar_t		scr_showram = {"showram","1"};
-cvar_t		scr_showturtle = {"showturtle","0"};
+cvar_t		scr_viewsize = {"viewsize","100", CVAR_ARCHIVE};
+cvar_t		scr_fov = {"fov","90", CVAR_ARCHIVE};	// 10 - 170
+cvar_t		scr_conspeed = {"scr_conspeed","300", CVAR_ARCHIVE};
+cvar_t		scr_centertime = {"scr_centertime","2", CVAR_ARCHIVE};
 cvar_t		scr_showpause = {"showpause","1"};
 cvar_t		scr_printspeed = {"scr_printspeed","8"};
+
+// Ch0wW -- Those CVARs could be great for debugging
+cvar_t		scr_showram = {"showram","0"};
+cvar_t		scr_showturtle = {"showturtle","0"};
 
 qboolean	scr_initialized;		// ready to draw
 
