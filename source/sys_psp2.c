@@ -20,17 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
-#include <psp2/ctrl.h>
+#include "danzeff.h"
+
 #include <psp2/types.h>
 #include <psp2/rtc.h>
-#include "danzeff.h"
 #include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
-#include <psp2/ctrl.h>
+
 #define u64 uint64_t
 
 extern int old_char;
@@ -351,10 +351,16 @@ int main (int argc, char **argv)
 	parms.basedir = "ux0:/data/Quake";
 	
 	// Mods support
-	/*int int_argc = 3;
-	char* int_argv[] = {"", "-game", "tf"};
-	COM_InitArgv (int_argc, int_argv);*/
-	COM_InitArgv(argc,argv);
+	char* mod_path = NULL;
+	FILE* f;
+	if ((f = fopen("ux0:/data/Quake/mods.txt","r")) != NULL){
+		int int_argc = 3;
+		char* mod_path = malloc(256);
+		fread(mod_path, 1, 256, f);
+		fclose(f);
+		char* int_argv[] = {"", "-game", mod_path};
+		COM_InitArgv(3,int_argv);
+	}else COM_InitArgv(argc,argv);
 	
 	parms.argc = com_argc;
 	parms.argv = com_argv;	
@@ -460,6 +466,7 @@ int main (int argc, char **argv)
 	}
 	
 	free(parms.membase);
+	if (mod_path != NULL) free(mod_path);
 	sceKernelExitProcess(0);
 	return 0;
 }

@@ -30,8 +30,8 @@ static char     *argvdummy = " ";
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
-cvar_t  registered = {"registered","0"};
-cvar_t  cmdline = {"cmdline","0", false, true};
+cvar_t  registered = {"registered","0", CVAR_NONE};
+cvar_t  cmdline = {"cmdline","0", CVAR_SERVERINFO};
 
 qboolean        com_modified;   // set true if using non-id files
 

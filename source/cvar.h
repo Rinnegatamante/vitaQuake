@@ -53,12 +53,16 @@ Cvars are restricted from having the same names as commands to keep this
 interface from being ambiguous.
 */
 
+#define CVAR_NONE 		0
+#define CVAR_ARCHIVE 	1
+#define CVAR_SERVERINFO 2
+#define CVAR_LOCKED 	3
+
 typedef struct cvar_s
 {
 	char	*name;
 	char	*string;
-	qboolean archive;		// set to true to cause it to be saved to vars.rc
-	qboolean server;		// notifies players when changed
+	unsigned int flags;
 	float	value;
 	struct cvar_s *next;
 } cvar_t;
