@@ -30,8 +30,10 @@ static char     *argvdummy = " ";
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
-cvar_t  registered = {"registered","0", CVAR_NONE};
+cvar_t  registered = {"registered","0", CVAR_ROM};
 cvar_t  cmdline = {"cmdline","0", CVAR_SERVERINFO};
+cvar_t	platform = {"com_platform", "0", CVAR_ROM};
+
 
 qboolean        com_modified;   // set true if using non-id files
 
@@ -800,7 +802,7 @@ void COM_CheckRegistered (void)
 			Sys_Error ("Corrupted data file.");
 
 	Cvar_Set ("cmdline", com_cmdline);
-	Cvar_Set ("registered", "1");
+	Cvar_ForceSet ("registered", "1");
 	static_registered = 1;
 	Con_Printf ("Playing registered version.\n");
 }
@@ -910,6 +912,7 @@ void COM_Init (char *basedir)
 
 	Cvar_RegisterVariable (&registered);
 	Cvar_RegisterVariable (&cmdline);
+	Cvar_RegisterVariable (&platform);
 	Cmd_AddCommand ("path", COM_Path_f);
 	COM_InitFilesystem ();
 	COM_CheckRegistered ();
