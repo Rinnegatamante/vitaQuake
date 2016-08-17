@@ -1684,7 +1684,7 @@ void M_Menu_LanConfig_f (void)
 		if (JoiningGame && TCPIPConfig)
 			lanConfig_cursor = 3;
 	}
-	if (StartingGame && lanConfig_cursor == 2)
+	if (StartingGame && lanConfig_cursor >= 2)
 		lanConfig_cursor = 1;
 	lanConfig_port = DEFAULTnet_hostport;
 	sprintf(lanConfig_portname, "%u", lanConfig_port);

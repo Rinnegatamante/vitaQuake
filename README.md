@@ -23,6 +23,7 @@ Priority: LOW
 - Enable multiplayer if the user is on WiFi.
 - Add "Performances" submenu.
 - Make a more complete joystick configuration menu.
+- Fullpitch doesn't seem complete with the joystick?
 
 #Credits
 - idSoftware for winQuake sourcecode

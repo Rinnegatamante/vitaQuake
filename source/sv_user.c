@@ -41,6 +41,8 @@ qboolean	onground;
 
 usercmd_t	cmd;
 
+cvar_t	pq_fullpitch = {"pq_fullpitch", "0", true}; // JPG 2.01
+
 cvar_t	sv_idealpitchscale = {"sv_idealpitchscale","0.8"};
 
 
@@ -450,6 +452,23 @@ void SV_ReadClientMove (usercmd_t *move)
 	for (i=0 ; i<3 ; i++)
 		angle[i] = MSG_ReadAngle ();
 
+	
+// JPG 2.01 - server-side fullpitch fix
+	if (!pq_fullpitch.value)
+	{
+		if (angle[PITCH] > 80 || angle[PITCH] < -70)
+		{
+			if (angle[PITCH] > 80)
+				angle[PITCH] = 80;
+			if (angle[PITCH] < -70)
+				angle[PITCH] = -70;
+
+			MSG_WriteByte (&host_client->message, svc_setangle);
+			for (i=0 ; i < 3 ; i++)
+				MSG_WriteAngle (&host_client->message, angle[i] );
+		}
+}
+	
 	VectorCopy (angle, host_client->edict->v.v_angle);
 
 // read movement
