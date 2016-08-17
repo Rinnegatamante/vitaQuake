@@ -55,7 +55,7 @@ FILE IO
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
-int             findhandle (void)
+int	SYS_FindHandle (void)
 {
 	int             i;
 
@@ -108,7 +108,7 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = SYS_FindHandle ();
 
 	f = fopen(path, "rb");
 	if (!f)
@@ -127,7 +127,7 @@ int Sys_FileOpenWrite (char *path)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = SYS_FindHandle ();
 
 	f = fopen(path, "wb");
 	if (!f)
