@@ -21,10 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "errno.h"
 #include "danzeff.h"
-<<<<<<< HEAD
-=======
-
->>>>>>> 17eb0fb05d2bb8ef10c0ec5024fc943f3aeab794
 #include <psp2/types.h>
 #include <psp2/rtc.h>
 #include <psp2/sysmodule.h>
@@ -33,10 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
-<<<<<<< HEAD
-=======
 
->>>>>>> 17eb0fb05d2bb8ef10c0ec5024fc943f3aeab794
 #define u64 uint64_t
 
 extern int old_char;
