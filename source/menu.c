@@ -35,6 +35,7 @@ extern cvar_t	rumble;
 extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
+extern cvar_t	show_fps;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -677,12 +678,12 @@ void M_MultiPlayer_Key (int key)
 		switch (m_multiplayer_cursor)
 		{
 		case 0:
-			if (serialAvailable || ipxAvailable || tcpipAvailable)
+			if (tcpipAvailable)
 				M_Menu_Net_f ();
 			break;
 
 		case 1:
-			if (serialAvailable || ipxAvailable || tcpipAvailable)
+			if (tcpipAvailable)
 				M_Menu_Net_f ();
 			break;
 
@@ -934,13 +935,9 @@ void M_Net_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#ifdef _WIN32
-#define	OPTIONS_ITEMS	15
-#else
-#define	OPTIONS_ITEMS	16
-#endif
+#define	OPTIONS_ITEMS 17
 
-#define	SLIDER_RANGE	10
+#define	SLIDER_RANGE 10
 
 int		options_cursor;
 
@@ -1040,7 +1037,11 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("pstv_rumble", !rumble.value);
 		break;
 		
-	case 15:	// change res
+	case 15:	// show fps
+		Cvar_SetValue ("show_fps", !show_fps.value);
+		break;
+		
+	case 16:	// change res
 		res_val.value += dir * 0.333;
 		if (res_val.value < 0)
 			res_val.value = 0;
@@ -1050,11 +1051,6 @@ void M_AdjustSliders (int dir)
 		VID_ChangeRes(res_val.value);
 		break;
 
-#ifdef _WIN32
-	case 13:	// _windowed_mouse
-		Cvar_SetValue ("_windowed_mouse", !_windowed_mouse.value);
-		break;
-#endif
 	}
 }
 
@@ -1145,20 +1141,14 @@ void M_Options_Draw (void)
 	M_Print (16, 144, "         Rumble Effect");
 	M_DrawCheckbox (220, 144, rumble.value);
 	
+	M_Print (16, 152, "        Show Framerate");
+	M_DrawCheckbox (220, 152, show_fps.value);
+	
 	//if (vid_menudrawfn)
-	M_Print (16, 152, "       Game Resolution");
-	M_DrawSlider (220, 152, res_val.value);
+	M_Print (16, 160, "       Game Resolution");
+	M_DrawSlider (220, 160, res_val.value);
 	
-	M_Print (50, 166, res_string);
-	
-	
-#ifdef _WIN32
-	if (modestate == MS_WINDOWED)
-	{
-		M_Print (16, 136, "             Use Mouse");
-		M_DrawCheckbox (220, 136, _windowed_mouse.value);
-	}
-#endif
+	M_Print (50, 174, res_string);
 
 // cursor
 	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
@@ -1207,9 +1197,7 @@ void M_Options_Key (int k)
 			scr_fov.value = 90;
 			Cvar_SetValue ("fov", scr_fov.value);
 			break;
-		//case 12:
-		//	M_Menu_Video_f ();
-		//	break;
+
 		default:
 			M_AdjustSliders (1);
 			break;
@@ -1239,23 +1227,14 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 16)
+	if (options_cursor == 17)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 15;
+			options_cursor = 16;
 		else
 			options_cursor = 0;
 	}
 
-#ifdef _WIN32
-	if ((options_cursor == 13) && (modestate != MS_WINDOWED))
-	{
-		if (k == K_UPARROW)
-			options_cursor = 12;
-		else
-			options_cursor = 0;
-	}
-#endif
 }
 
 //=============================================================================
@@ -1755,8 +1734,8 @@ void M_LanConfig_Key (int key)
 
 	switch (key)
 	{
-	case K_ESCAPE:
-		M_Menu_Net_f ();
+	case K_ENTER:
+		M_Menu_MultiPlayer_f ();
 		break;
 
 	case K_UPARROW:
@@ -2276,7 +2255,7 @@ void M_GameOptions_Key (int key)
 {
 	switch (key)
 	{
-	case K_ESCAPE:
+	case K_ENTER:
 		M_Menu_Net_f ();
 		break;
 
@@ -2457,7 +2436,7 @@ void M_ServerList_Key (int k)
 {
 	switch (k)
 	{
-	case K_ESCAPE:
+	case K_ENTER:
 		M_Menu_LanConfig_f ();
 		break;
 

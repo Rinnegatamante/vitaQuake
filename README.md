@@ -20,10 +20,10 @@ Priority: HIGH:
 
 Priority: LOW
 - Add support to gyroscope.
-- Enable multiplayer if the user is on WiFi.
+- Enable multiplayer menu only if the user has WiFi on.
 - Add "Performances" submenu.
 - Make a more complete joystick configuration menu.
-- Fullpitch doesn't seem complete with the joystick?
+- Fullpitch doesn't seem complete with the joystick (?)
 - Rewrite CVAR support (partially done ATM)
 
 #Credits
@@ -31,3 +31,4 @@ Priority: LOW
 - MasterFeizz for ctrQuake sourcecode i studied to understand how winQuake works
 - xerpi for vita2dlib
 - EasyRPG Team for the audio decoder used for CDAudio support
+- Ch0wW for various improvements and code cleanup
