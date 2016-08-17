@@ -52,7 +52,7 @@ FILE IO
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
-int             findhandle (void)
+int             Sys_FindHandle (void)
 {
 	int             i;
 
@@ -62,12 +62,6 @@ int             findhandle (void)
 	Sys_Error ("out of handles");
 	return -1;
 }
-
-/*
-================
-filelength
-================
-*/
 
 void Log (const char *format, ...){
 	#ifdef DEBUG
@@ -87,7 +81,7 @@ void Log (const char *format, ...){
 	#endif
 }
 
-int filelength (FILE *f)
+int Sys_FileLength (FILE *f)
 {
 	int             pos;
 	int             end;
@@ -105,7 +99,7 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = Sys_FindHandle ();
 
 	f = fopen(path, "rb");
 	if (!f)
@@ -116,7 +110,7 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	sys_handles[i] = f;
 	*hndl = i;
 
-	return filelength(f);
+	return Sys_FileLength(f);
 }
 
 int Sys_FileOpenWrite (char *path)
@@ -124,7 +118,7 @@ int Sys_FileOpenWrite (char *path)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = Sys_FindHandle ();
 
 	f = fopen(path, "wb");
 	if (!f)
@@ -414,7 +408,7 @@ int main (int argc, char **argv)
 			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
 		}
 		
-		// Danzeff keyboard manage for Console
+		// Danzeff keyboard manage for Console / Input
 		if (key_dest == key_console || m_state == m_lanconfig){
 			if (old_char != 0) Key_Event(old_char, false);
 			SceCtrlData danzeff_pad, oldpad;
@@ -436,15 +430,19 @@ int main (int argc, char **argv)
 					}else if (new_char == DANZEFF_RIGHT){
 						Key_Event(K_TAB, true);
 						old_char = K_TAB;
-					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & SCE_CTRL_SELECT))) isDanzeff = false;
-					else{
+					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & SCE_CTRL_SELECT))){
+						if (m_state == m_lanconfig) danzeff_free();
+						isDanzeff = false;
+					}else{
 						Key_Event(new_char, true);
 						old_char = new_char;
 					}
 				}
 			}else if ((danzeff_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
-				danzeff_free();
-				Con_ToggleConsole_f ();
+				if (key_dest == key_console){
+					danzeff_free();
+					Con_ToggleConsole_f ();
+				}
 			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
 				if (m_state == m_lanconfig) danzeff_load();
 				isDanzeff = true;
