@@ -13,9 +13,16 @@ vitaQuake is a porting of Quake Engine for PSVITA based on winQuake.
 - Multiplayer support for both online and locale lobbies
 
 #TODO List
+
+Priority: HIGH:
 - Switch to Hardware GPU rendering
-- Add support to gyroscope
 - Add different servers type support (DarkPlaces, Cheatfree, etc)
+
+Priority: LOW
+- Add support to gyroscope.
+- Enable multiplayer if the user is on WiFi.
+- Add "Performances" submenu.
+- Make a more complete joystick configuration menu.
 
 #Credits
 - idSoftware for winQuake sourcecode
