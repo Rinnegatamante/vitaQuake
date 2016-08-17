@@ -241,6 +241,7 @@ void Cvar_WriteVariables (FILE *f)
 {
 	cvar_t	*var;
 	
+	fprintf(f, "// CVARs\n");
 	for (var = cvar_vars ; var ; var = var->next)
 		if (var->flags & CVAR_ARCHIVE)
 			fprintf (f, "%s \"%s\"\n", var->name, var->string);
