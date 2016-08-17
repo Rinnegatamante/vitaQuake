@@ -46,6 +46,7 @@ int			host_framecount;
 int			host_hunklevel;
 
 int			minimum_memory;
+int			fps_count;
 
 client_t	*host_client;			// current client
 
@@ -57,29 +58,25 @@ byte		*host_colormap;
 cvar_t	host_framerate = {"host_framerate","0"};	// set for slow motion
 cvar_t	host_speeds = {"host_speeds","0"};			// set for running times
 
-cvar_t	sys_ticrate = {"sys_ticrate","0.05"};
+cvar_t	sys_ticrate = {"sys_ticrate", "0.05"};
 cvar_t	serverprofile = {"serverprofile","0"};
 
-cvar_t	fraglimit = {"fraglimit","0",false,true};
-cvar_t	timelimit = {"timelimit","0",false,true};
-cvar_t	teamplay = {"teamplay","0",false,true};
+cvar_t	fraglimit = {"fraglimit","0", CVAR_SERVERINFO};
+cvar_t	timelimit = {"timelimit","0", CVAR_SERVERINFO};
+cvar_t	teamplay = {"teamplay","0", CVAR_SERVERINFO};
 
 cvar_t	samelevel = {"samelevel","0"};
-cvar_t	noexit = {"noexit","0",false,true};
+cvar_t	noexit = {"noexit","0", CVAR_SERVERINFO};
 
-#ifdef QUAKE2
-cvar_t	developer = {"developer","1"};	// should be 0 for release!
-#else
-cvar_t	developer = {"developer","0"};
-#endif
+cvar_t	developer = {"developer","1", CVAR_DEBUG};
 
 cvar_t	skill = {"skill","1"};						// 0 - 3
 cvar_t	deathmatch = {"deathmatch","0"};			// 0, 1, or 2
 cvar_t	coop = {"coop","0"};			// 0 or 1
 
-cvar_t	pausable = {"pausable","1"};
+cvar_t	pausable = {"pausable","1", CVAR_SERVERINFO};
 
-cvar_t	temp1 = {"temp1","0"};
+cvar_t	temp1 = {"temp1","0", CVAR_DEBUG};
 
 
 /*
@@ -725,6 +722,7 @@ void _Host_Frame (float time)
 	}
 
 	host_framecount++;
+	fps_count++;
 }
 
 void Host_Frame (float time)

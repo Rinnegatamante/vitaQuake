@@ -122,4 +122,19 @@ void IN_Move (usercmd_t *cmd)
 		}
 	}
 	
+	if (pq_fullpitch.value)
+	{
+		if (cl.viewangles[PITCH] > 90)
+			cl.viewangles[PITCH] = 90;
+		if (cl.viewangles[PITCH] < -90)
+			cl.viewangles[PITCH] = -90;
+	}
+	else
+	{
+		if (cl.viewangles[PITCH] > 80)
+			cl.viewangles[PITCH] = 80;
+		if (cl.viewangles[PITCH] < -70)
+			cl.viewangles[PITCH] = -70;
+	}
+	
 }

@@ -101,7 +101,7 @@ char *Cvar_CompleteVariable (char *partial)
 Cvar_Set
 ============
 */
-void Cvar_Set (char *var_name, char *value)
+void Cvar_SetFull (char *var_name, char *value, qboolean forced)
 {
 	cvar_t	*var;
 	qboolean changed;
@@ -113,6 +113,12 @@ void Cvar_Set (char *var_name, char *value)
 		return;
 	}
 
+	if (var->flags & CVAR_ROM && !forced)
+	{
+		Con_Printf ("%s is read-only.\n", var_name);
+		return;
+	}
+	
 	changed = Q_strcmp(var->string, value);
 	
 	Z_Free (var->string);	// free the old value string
@@ -120,11 +126,21 @@ void Cvar_Set (char *var_name, char *value)
 	var->string = Z_Malloc (Q_strlen(value)+1);
 	Q_strcpy (var->string, value);
 	var->value = Q_atof (var->string);
-	if (var->server && changed)
+	if (var->flags & CVAR_SERVERINFO && changed)
 	{
 		if (sv.active)
 			SV_BroadcastPrintf ("\"%s\" changed to \"%s\"\n", var->name, var->string);
 	}
+}
+
+void Cvar_Set (char *var_name, char *value)
+{
+	Cvar_SetFull (var_name, value, false);
+}
+
+void Cvar_ForceSet (char *var_name, char *value)
+{
+	Cvar_SetFull (var_name, value, true);
 }
 
 /*
@@ -155,8 +171,16 @@ void Cvar_RegisterVariable (cvar_t *variable)
 // first check to see if it has allready been defined
 	if (Cvar_FindVar (variable->name))
 	{
-		Con_Printf ("Can't register variable %s, allready defined\n", variable->name);
+		Con_Printf ("Can't register variable %s, already defined\n", variable->name);
 		return;
+	}
+	
+// Check for DEBUG-only CVARs.
+	if (variable->flags & CVAR_DEBUG)
+	{
+#ifndef DEBUG
+		return;
+#endif
 	}
 	
 // check for overlap with a command
@@ -218,7 +242,7 @@ void Cvar_WriteVariables (FILE *f)
 	cvar_t	*var;
 	
 	for (var = cvar_vars ; var ; var = var->next)
-		if (var->archive)
+		if (var->flags & CVAR_ARCHIVE)
 			fprintf (f, "%s \"%s\"\n", var->name, var->string);
 }
 

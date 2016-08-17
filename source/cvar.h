@@ -25,11 +25,11 @@ cvar_t variables are used to hold scalar or string variables that can be changed
 in C code.
 
 it is sufficient to initialize a cvar_t with just the first two fields, or
-you can add a ,true flag for variables that you want saved to the configuration
+you can add a CVAR_ARCHIVE flag for variables that you want saved to the configuration
 file when the game is quit:
 
 cvar_t	r_draworder = {"r_draworder","1"};
-cvar_t	scr_screensize = {"screensize","1",true};
+cvar_t	scr_screensize = {"screensize","1",CVAR_ARCHIVE};
 
 Cvars must be registered before use, or they will have a 0 value instead of the float interpretation of the string.  Generally, all cvar_t declarations should be registered in the apropriate init function before any console commands are executed:
 Cvar_RegisterVariable (&host_framerate);
@@ -53,12 +53,21 @@ Cvars are restricted from having the same names as commands to keep this
 interface from being ambiguous.
 */
 
+#define CVAR_NONE 		BIT(0) 	// No property (can be omitted)
+#define CVAR_ARCHIVE 	BIT(1)	// CVAR saved on the CFG.
+#define CVAR_SERVERINFO BIT(2)	// Informative CVAR from the server.
+#define CVAR_ROM	 	BIT(3) 	// Only set by the engine.
+#define CVAR_DEBUG		BIT(4)	// CVARs only enabled if the DEBUG flag is set.
+
+// Specific platform CVARs. (ToDo)
+#define CVAR_PSVITA		BIT(5)
+#define CVAR_PSTV		BIT(6)
+
 typedef struct cvar_s
 {
 	char	*name;
 	char	*string;
-	qboolean archive;		// set to true to cause it to be saved to vars.rc
-	qboolean server;		// notifies players when changed
+	unsigned int flags;
 	float	value;
 	struct cvar_s *next;
 } cvar_t;
@@ -68,6 +77,7 @@ void 	Cvar_RegisterVariable (cvar_t *variable);
 // archive elements set.
 
 void 	Cvar_Set (char *var_name, char *value);
+void 	Cvar_ForceSet (char *var_name, char *value);
 // equivelant to "<name> <variable>" typed at the console
 
 void	Cvar_SetValue (char *var_name, float value);

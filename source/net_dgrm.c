@@ -944,7 +944,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		// search for the next server cvar
 		while (var)
 		{
-			if (var->server)
+			if (var->flags & CVAR_SERVERINFO)
 				break;
 			var = var->next;
 		}
@@ -1254,6 +1254,14 @@ static qsocket_t *_Datagram_Connect (char *host)
 		MSG_WriteByte(&net_message, CCREQ_CONNECT);
 		MSG_WriteString(&net_message, "QUAKE");
 		MSG_WriteByte(&net_message, NET_PROTOCOL_VERSION);
+		// Tell the server we are ProQuake 3.70
+		// A normal Quake server only looks at the first 12 bytes of the message
+		// above, so only a ProQuake server reads these extra bytes.
+		MSG_WriteByte(&net_message, 1); // JPG - added this
+		MSG_WriteByte(&net_message, 37); // JPG 3.00 - added this
+		MSG_WriteByte(&net_message, 0); // JPG 3.00 - added this (flags)
+		MSG_WriteLong(&net_message, 0); // JPG 3.00 - password protected servers
+		
 		*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
 		dfunc.Write (newsock, net_message.data, net_message.cursize, &sendaddr);
 		SZ_Clear(&net_message);
@@ -1327,6 +1335,8 @@ static qsocket_t *_Datagram_Connect (char *host)
 		goto ErrorReturn;
 	}
 
+	int len = ret;
+	
 	ret = MSG_ReadByte();
 	if (ret == CCREP_REJECT)
 	{
@@ -1340,6 +1350,11 @@ static qsocket_t *_Datagram_Connect (char *host)
 	{
 		Q_memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
 		dfunc.SetSocketPort (&sock->addr, MSG_ReadLong());
+		
+	Con_Printf ("Client port is %s\n", dfunc.AddrToString(&sock->addr));
+	// Client has received CCREP_ACCEPT meaning client may connect
+	// Now find out if this is a ProQuake server ...
+	sock->proquake_connection = (len > 9 && MSG_ReadByte () == 1) ? 1 : 0;
 	}
 	else
 	{
@@ -1353,6 +1368,8 @@ static qsocket_t *_Datagram_Connect (char *host)
 
 	Con_Printf ("Connection accepted\n");
 	sock->lastMessageTime = SetNetTime();
+	
+	//if (strcmp(sock->address,"212.24.100.151:26000")) Cbuf_AddText("PING\n");
 	
 	// switch the connection to the specified address
 	if (dfunc.Connect (newsock, &sock->addr) == -1)

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "r_local.h"
+#include <vita2d.h>
 
 // only the refresh window will be updated unless these variables are flagged
 int			scr_copytop;
@@ -30,14 +31,18 @@ float		scr_con_current;
 float		scr_conlines;		// lines of console to display
 
 float		oldscreensize, oldfov;
-cvar_t		scr_viewsize = {"viewsize","100", true};
-cvar_t		scr_fov = {"fov","90"};	// 10 - 170
-cvar_t		scr_conspeed = {"scr_conspeed","300"};
-cvar_t		scr_centertime = {"scr_centertime","2"};
-cvar_t		scr_showram = {"showram","1"};
-cvar_t		scr_showturtle = {"showturtle","0"};
+cvar_t		scr_viewsize = {"viewsize","100", CVAR_ARCHIVE};
+cvar_t		scr_fov = {"fov","90", CVAR_ARCHIVE};	// 10 - 170
+cvar_t		scr_conspeed = {"scr_conspeed","300", CVAR_ARCHIVE};
+cvar_t		scr_centertime = {"scr_centertime","2", CVAR_ARCHIVE};
 cvar_t		scr_showpause = {"showpause","1"};
 cvar_t		scr_printspeed = {"scr_printspeed","8"};
+cvar_t		show_fps = {"show_fps", "0", CVAR_ARCHIVE};	//  FPS Counter
+
+// Ch0wW -- Those CVARs could be great for debugging
+cvar_t		scr_showram = {"showram","0", CVAR_DEBUG};
+cvar_t		scr_showturtle = {"showturtle","0", CVAR_DEBUG};
+
 
 qboolean	scr_initialized;		// ready to draw
 
@@ -321,6 +326,7 @@ void SCR_Init (void)
 	Cvar_RegisterVariable (&scr_showpause);
 	Cvar_RegisterVariable (&scr_centertime);
 	Cvar_RegisterVariable (&scr_printspeed);
+	Cvar_RegisterVariable (&show_fps); // muff
 
 //
 // register our commands
@@ -392,6 +398,36 @@ void SCR_DrawNet (void)
 		return;
 
 	Draw_Pic (scr_vrect.x+64, scr_vrect.y, scr_net);
+}
+
+
+void SCR_DrawFPS (void)
+
+{
+	extern cvar_t show_fps;
+	static double lastframetime;
+	double t;
+	extern int fps_count;
+	static int lastfps;
+	int x, y;
+	char st[80];
+	
+	if (!show_fps.value)
+		return;
+
+	t = Sys_FloatTime ();
+
+	if ((t - lastframetime) >= 1.0) {
+		lastfps = fps_count;
+		fps_count = 0;
+		lastframetime = t;
+
+	}
+	sprintf(st, "%3d FPS", lastfps);
+
+	x = vid.width - strlen(st) * 16 - 16;
+	y = 0 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
+	Draw_String(x, y, st);
 }
 
 /*
@@ -923,6 +959,7 @@ void SCR_UpdateScreen (void)
 		SCR_DrawRam ();
 		SCR_DrawNet ();
 		SCR_DrawTurtle ();
+		SCR_DrawFPS ();
 		SCR_DrawPause ();
 		SCR_CheckDrawCenterString ();
 		Sbar_Draw ();
