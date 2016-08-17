@@ -58,6 +58,8 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_aim);
 	Cvar_RegisterVariable (&sv_nostep);
 
+	Cvar_RegisterVariable(&pq_fullpitch); // JPG 2.01
+	
 	for (i=0 ; i<MAX_MODELS ; i++)
 		sprintf (localmodels[i], "*%i", i);
 }
@@ -225,6 +227,11 @@ void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_setview);
 	MSG_WriteShort (&client->message, NUM_FOR_EDICT(client->edict));
 
+	if (!pq_fullpitch.value /*&& client->netconnection->mod != MOD_QSMACK*/) {	// Ch0wW: Re-add it 
+		MSG_WriteByte(&client->message, svc_stufftext);
+		MSG_WriteString(&client->message, "pq_fullpitch 0; cl_fullpitch 0\n");
+}
+	
 	MSG_WriteByte (&client->message, svc_signonnum);
 	MSG_WriteByte (&client->message, 1);
 
