@@ -879,21 +879,6 @@ int m_net_saveHeight;
 char *net_helpMessage [] =
 {
 /* .........1.........2.... */
-  "                        ",
-  " Two computers connected",
-  "   through two modems.  ",
-  "                        ",
-
-  "                        ",
-  " Two computers connected",
-  " by a null-modem cable. ",
-  "                        ",
-
-  " Novell network LANs    ",
-  " or Windows 95 DOS-box. ",
-  "                        ",
-  "(LAN=Local Area Network)",
-
   " Commonly used to play  ",
   " over the Internet, but ",
   " also used on a Local   ",
@@ -905,7 +890,7 @@ void M_Menu_Net_f (void)
 	key_dest = key_menu;
 	m_state = m_net;
 	m_entersound = true;
-	m_net_items = 4;
+	m_net_items = 1;
 
 	if (m_net_cursor >= m_net_items)
 		m_net_cursor = 0;
@@ -925,68 +910,16 @@ void M_Net_Draw (void)
 
 	f = 32;
 
-	if (serialAvailable)
-	{
-		p = Draw_CachePic ("gfx/netmen1.lmp");
-	}
-	else
-	{
-#ifdef _WIN32
-		p = NULL;
-#else
-		p = Draw_CachePic ("gfx/dim_modm.lmp");
-#endif
-	}
-
-	if (p)
-		M_DrawTransPic (72, f, p);
-
-	f += 19;
-
-	if (serialAvailable)
-	{
-		p = Draw_CachePic ("gfx/netmen2.lmp");
-	}
-	else
-	{
-#ifdef _WIN32
-		p = NULL;
-#else
-		p = Draw_CachePic ("gfx/dim_drct.lmp");
-#endif
-	}
-
-	if (p)
-		M_DrawTransPic (72, f, p);
-
-	f += 19;
-	if (ipxAvailable)
-		p = Draw_CachePic ("gfx/netmen3.lmp");
-	else
-		p = Draw_CachePic ("gfx/dim_ipx.lmp");
-	M_DrawTransPic (72, f, p);
-
-	f += 19;
 	if (tcpipAvailable)
 		p = Draw_CachePic ("gfx/netmen4.lmp");
 	else
 		p = Draw_CachePic ("gfx/dim_tcp.lmp");
 	M_DrawTransPic (72, f, p);
 
-	if (m_net_items == 5)	// JDC, could just be removed
-	{
-		f += 19;
-		p = Draw_CachePic ("gfx/netmen5.lmp");
-		M_DrawTransPic (72, f, p);
-	}
-
 	f = (320-26*8)/2;
 	M_DrawTextBox (f, 134, 24, 4);
 	f += 8;
-	M_Print (f, 142, net_helpMessage[m_net_cursor*4+0]);
-	M_Print (f, 150, net_helpMessage[m_net_cursor*4+1]);
-	M_Print (f, 158, net_helpMessage[m_net_cursor*4+2]);
-	M_Print (f, 166, net_helpMessage[m_net_cursor*4+3]);
+	M_Print (f, 166, net_helpMessage[m_net_cursor*4+0]);
 
 	f = (int)(host_time * 10)%6;
 	M_DrawTransPic (54, 32 + m_net_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
@@ -995,61 +928,7 @@ void M_Net_Draw (void)
 
 void M_Net_Key (int k)
 {
-again:
-	switch (k)
-	{
-	case K_ENTER:
-		M_Menu_MultiPlayer_f ();
-		break;
-
-	case K_DOWNARROW:
-		S_LocalSound ("misc/menu1.wav");
-		if (++m_net_cursor >= m_net_items)
-			m_net_cursor = 0;
-		break;
-
-	case K_UPARROW:
-		S_LocalSound ("misc/menu1.wav");
-		if (--m_net_cursor < 0)
-			m_net_cursor = m_net_items - 1;
-		break;
-	
-	case K_AUX1: // Cross	
-	case K_AUX4: // Circle
-		m_entersound = true;
-
-		switch (m_net_cursor)
-		{
-		case 0:
-			M_Menu_SerialConfig_f ();
-			break;
-
-		case 1:
-			M_Menu_SerialConfig_f ();
-			break;
-
-		case 2:
-			M_Menu_LanConfig_f ();
-			break;
-
-		case 3:
-			M_Menu_LanConfig_f ();
-			break;
-
-		case 4:
-// multiprotocol
-			break;
-		}
-	}
-
-	if (m_net_cursor == 0 && !serialAvailable)
-		goto again;
-	if (m_net_cursor == 1 && !serialAvailable)
-		goto again;
-	if (m_net_cursor == 2 && !ipxAvailable)
-		goto again;
-	if (m_net_cursor == 3 && !tcpipAvailable)
-		goto again;
+	M_Menu_LanConfig_f();
 }
 
 //=============================================================================
