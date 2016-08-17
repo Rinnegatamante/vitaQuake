@@ -26,6 +26,6 @@ Priority: LOW
 
 #Credits
 - idSoftware for winQuake sourcecode
-- MasterFeizz for ctrQuakle sourcecode i studied to understand how winQuake works
+- MasterFeizz for ctrQuake sourcecode i studied to understand how winQuake works
 - xerpi for vita2dlib
 - EasyRPG Team for the audio decoder used for CDAudio support
