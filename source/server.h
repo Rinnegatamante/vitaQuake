@@ -213,6 +213,8 @@ extern	double		host_time;
 
 extern	edict_t		*sv_player;
 
+extern	cvar_t	pq_fullpitch; // JPG 2.01
+
 //===========================================================
 
 void SV_Init (void);

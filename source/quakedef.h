@@ -23,8 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_serialconfig, m_modemconfig, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
 
+
 #define	QUAKE_GAME			// as opposed to utilities
 
+#define ENGINE_NAME			"VitaQuake"
 #define	VERSION				1.09
 #define	GLQUAKE_VERSION		1.00
 #define	D3DQUAKE_VERSION	0.01
@@ -115,6 +117,8 @@ void	VID_UnlockBuffer (void);
 
 #define	MAX_STYLESTRING	64
 
+#define BIT(x) (1<<x)	// Ch0wW: To ease things slightly
+
 //
 // stats are integers communicated to the client by the server
 //
@@ -137,33 +141,34 @@ void	VID_UnlockBuffer (void);
 
 // stock defines
 
-#define	IT_SHOTGUN				1
-#define	IT_SUPER_SHOTGUN		2
-#define	IT_NAILGUN				4
-#define	IT_SUPER_NAILGUN		8
-#define	IT_GRENADE_LAUNCHER		16
-#define	IT_ROCKET_LAUNCHER		32
-#define	IT_LIGHTNING			64
-#define IT_SUPER_LIGHTNING      128
-#define IT_SHELLS               256
-#define IT_NAILS                512
-#define IT_ROCKETS              1024
-#define IT_CELLS                2048
-#define IT_AXE                  4096
-#define IT_ARMOR1               8192
-#define IT_ARMOR2               16384
-#define IT_ARMOR3               32768
-#define IT_SUPERHEALTH          65536
-#define IT_KEY1                 131072
-#define IT_KEY2                 262144
-#define	IT_INVISIBILITY			524288
-#define	IT_INVULNERABILITY		1048576
-#define	IT_SUIT					2097152
-#define	IT_QUAD					4194304
-#define IT_SIGIL1               (1<<28)
-#define IT_SIGIL2               (1<<29)
-#define IT_SIGIL3               (1<<30)
-#define IT_SIGIL4               (1<<31)
+#define	IT_SHOTGUN				BIT(1)
+#define	IT_SUPER_SHOTGUN		BIT(2)
+#define	IT_NAILGUN				BIT(3)
+#define	IT_SUPER_NAILGUN		BIT(4)
+#define	IT_GRENADE_LAUNCHER		BIT(5)
+#define	IT_ROCKET_LAUNCHER		BIT(6)
+#define	IT_LIGHTNING			BIT(7)
+#define IT_SUPER_LIGHTNING      BIT(8)
+#define IT_SHELLS               BIT(9)
+#define IT_NAILS                BIT(10)
+#define IT_ROCKETS              BIT(11)
+#define IT_CELLS                BIT(12)
+#define IT_AXE                  BIT(13)
+#define IT_ARMOR1               BIT(14)
+#define IT_ARMOR2               BIT(15)
+#define IT_ARMOR3               BIT(16)
+#define IT_SUPERHEALTH          BIT(17)
+#define IT_KEY1                 BIT(18)
+#define IT_KEY2                 BIT(19)
+#define	IT_INVISIBILITY			BIT(20)
+#define	IT_INVULNERABILITY		BIT(21)
+#define	IT_SUIT					BIT(22)
+#define	IT_QUAD					BIT(23)
+// [......]
+#define IT_SIGIL1               BIT(28)
+#define IT_SIGIL2               BIT(29)
+#define IT_SIGIL3               BIT(30)
+#define IT_SIGIL4               BIT(31)
 
 //===========================================
 //rogue changed and added defines

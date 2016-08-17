@@ -20,16 +20,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
+#include "danzeff.h"
 #include <psp2/types.h>
 #include <psp2/rtc.h>
-#include "danzeff.h"
 #include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
-#include <psp2/ctrl.h>
+
 #define u64 uint64_t
 
 extern int old_char;
@@ -49,10 +49,12 @@ FILE IO
 ===============================================================================
 */
 
+#define PLATFORM_PSVITA	0x00010000
+
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
-int             findhandle (void)
+int	SYS_FindHandle (void)
 {
 	int             i;
 
@@ -105,7 +107,7 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = SYS_FindHandle ();
 
 	f = fopen(path, "rb");
 	if (!f)
@@ -124,7 +126,7 @@ int Sys_FileOpenWrite (char *path)
 	FILE    *f;
 	int             i;
 
-	i = findhandle ();
+	i = SYS_FindHandle ();
 
 	f = fopen(path, "wb");
 	if (!f)
@@ -329,6 +331,7 @@ void Sys_LowFPPrecision (void)
 {
 }
 
+extern cvar_t platform;
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 
@@ -395,15 +398,21 @@ int main (int argc, char **argv)
 	Cbuf_AddText ("bind TOUCH +showscores\n"); // Touchscreen
 	Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
 	
-	// Loading default config file
 	Cbuf_AddText ("exec config.cfg\n");
-	
+
+#if 0
+	if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
+	{
+		Cvar_ForceSet("platform", "2");
+	}
+#endif
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
 	
 	u64 lastTick;
 	sceRtcGetCurrentTick(&lastTick);
-	
+
+		// Check the current system	
 	while (1)
 	{
 		// Prevent screen power-off
@@ -462,10 +471,14 @@ int main (int argc, char **argv)
 		Host_Frame(deltaSecond);
 		lastTick = tick;
 		
+#if 0	
+		if (platform.value == 2)
+			Con_Printf("HOLD ON, YOU'RE ON A VITA?\n");
+#endif
 	}
 	
 	free(parms.membase);
 	if (mod_path != NULL) free(mod_path);
 	sceKernelExitProcess(0);
-	return 0;
+	return 0; 
 }

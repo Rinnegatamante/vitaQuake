@@ -30,8 +30,10 @@ static char     *argvdummy = " ";
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
-cvar_t  registered = {"registered","0"};
-cvar_t  cmdline = {"cmdline","0", false, true};
+cvar_t  registered = {"registered","0", CVAR_ROM};
+cvar_t  cmdline = {"cmdline","0", CVAR_SERVERINFO};
+cvar_t	platform = {"com_platform", "0", CVAR_ROM};
+
 
 qboolean        com_modified;   // set true if using non-id files
 
@@ -351,6 +353,15 @@ void MSG_WriteAngle (sizebuf_t *sb, float f)
 	MSG_WriteByte (sb, ((int)f*256/360) & 255);
 }
 
+// JPG - precise aim for ProQuake!
+void MSG_WritePreciseAngle(sizebuf_t *sb, float f)
+{
+
+	int val = (int) f * 65536 / 360;
+	MSG_WriteShort(sb, val & 65535);
+
+}
+
 //
 // reading functions
 //
@@ -484,7 +495,11 @@ float MSG_ReadAngle (void)
 	return MSG_ReadChar() * (360.0/256);
 }
 
-
+// JPG - exact aim for proquake!
+float MSG_ReadPreciseAngle(void)
+{
+	return MSG_ReadShort() * (360.0 / 65536);
+}
 
 //===========================================================================
 
@@ -800,7 +815,7 @@ void COM_CheckRegistered (void)
 			Sys_Error ("Corrupted data file.");
 
 	Cvar_Set ("cmdline", com_cmdline);
-	Cvar_Set ("registered", "1");
+	Cvar_ForceSet ("registered", "1");
 	static_registered = 1;
 	Con_Printf ("Playing registered version.\n");
 }
@@ -910,6 +925,7 @@ void COM_Init (char *basedir)
 
 	Cvar_RegisterVariable (&registered);
 	Cvar_RegisterVariable (&cmdline);
+	Cvar_RegisterVariable (&platform);
 	Cmd_AddCommand ("path", COM_Path_f);
 	COM_InitFilesystem ();
 	COM_CheckRegistered ();
