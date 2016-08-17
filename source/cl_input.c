@@ -209,18 +209,19 @@ float CL_KeyState (kbutton_t *key)
 
 //==========================================================================
 
-cvar_t	cl_upspeed = {"cl_upspeed","200"};
-cvar_t	cl_forwardspeed = {"cl_forwardspeed","200", true};
-cvar_t	cl_backspeed = {"cl_backspeed","200", true};
-cvar_t	cl_sidespeed = {"cl_sidespeed","350"};
+cvar_t	cl_upspeed = {"cl_upspeed","200", CVAR_NONE};
+cvar_t	cl_forwardspeed = {"cl_forwardspeed","200", CVAR_ARCHIVE};
+cvar_t	cl_backspeed = {"cl_backspeed","200", CVAR_ARCHIVE};
+cvar_t	cl_sidespeed = {"cl_sidespeed","350", CVAR_NONE};
 
-cvar_t	cl_movespeedkey = {"cl_movespeedkey","2.0"};
+cvar_t	cl_movespeedkey = {"cl_movespeedkey","2.0", CVAR_NONE};
 
-cvar_t	cl_yawspeed = {"cl_yawspeed","140"};
-cvar_t	cl_pitchspeed = {"cl_pitchspeed","150"};
+cvar_t	cl_yawspeed = {"cl_yawspeed", "140", CVAR_NONE};
+cvar_t	cl_pitchspeed = {"cl_pitchspeed", "150", CVAR_NONE};
 
-cvar_t	cl_anglespeedkey = {"cl_anglespeedkey","1.5"};
+cvar_t	cl_anglespeedkey = {"cl_anglespeedkey", "1.5", CVAR_NONE};
 
+cvar_t	cl_fullpitch = {"cl_fullpitch", "0", CVAR_NONE}; // JPG 2.01 - get rid of the "unknown command" messages
 
 /*
 ================
@@ -261,10 +262,21 @@ void CL_AdjustAngles (void)
 	if (up || down)
 		V_StopPitchDrift ();
 
-	if (cl.viewangles[PITCH] > 80)
-		cl.viewangles[PITCH] = 80;
-	if (cl.viewangles[PITCH] < -70)
-		cl.viewangles[PITCH] = -70;
+// JPG 1.05 - add pq_fullpitch
+	if (pq_fullpitch.value)
+	{
+		if (cl.viewangles[PITCH] > 90)
+			cl.viewangles[PITCH] = 90;
+		if (cl.viewangles[PITCH] < -90)
+			cl.viewangles[PITCH] = -90;
+	}
+	else
+	{
+		if (cl.viewangles[PITCH] > 80)
+			cl.viewangles[PITCH] = 80;
+		if (cl.viewangles[PITCH] < -70)
+			cl.viewangles[PITCH] = -70;
+	}
 
 	if (cl.viewangles[ROLL] > 50)
 		cl.viewangles[ROLL] = 50;
@@ -350,6 +362,10 @@ void CL_SendMove (usercmd_t *cmd)
 	MSG_WriteFloat (&buf, cl.mtime[0]);	// so server can get ping times
 
 	for (i=0 ; i<3 ; i++)
+		
+	if (!cls.demoplayback && NET_QSocketIsProQuakeServer(cls.netcon))
+		MSG_WritePreciseAngle (&buf, cl.viewangles[i]);
+	else
 		MSG_WriteAngle (&buf, cl.viewangles[i]);
 
   	MSG_WriteShort (&buf, cmd->forwardmove);
@@ -444,4 +460,5 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);
 
+	Cvar_RegisterVariable (&cl_fullpitch); // JPG 2.01 - get rid of "unknown command"
 }
