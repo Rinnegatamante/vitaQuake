@@ -24,6 +24,7 @@ Priority: LOW
 - Add "Performances" submenu.
 - Make a more complete joystick configuration menu.
 - Fullpitch doesn't seem complete with the joystick?
+- Rewrite CVAR support (partially done ATM)
 
 #Credits
 - idSoftware for winQuake sourcecode

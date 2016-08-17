@@ -2,7 +2,6 @@
 #include "danzeff_img.h"
 
 #include <malloc.h>
-#include <psp2/ctrl.h>
 #include <vita2d.h>
 
 #define false 0

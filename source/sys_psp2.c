@@ -20,16 +20,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
+#include "danzeff.h"
 #include <psp2/types.h>
 #include <psp2/rtc.h>
-#include "danzeff.h"
 #include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
-#include <psp2/ctrl.h>
 #define u64 uint64_t
 
 extern int old_char;
@@ -467,5 +466,5 @@ int main (int argc, char **argv)
 	free(parms.membase);
 	if (mod_path != NULL) free(mod_path);
 	sceKernelExitProcess(0);
-	return 0;
+	return 0; 
 }
