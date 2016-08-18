@@ -27,6 +27,8 @@ extern "C"{
 }
 #include "audio_decoder.h"
 
+extern char* mod_path;
+
 #define BUFSIZE 8192 // Max dimension of audio buffer size
 #define NSAMPLES 2048 // Number of samples for output
 
@@ -164,7 +166,8 @@ void CDAudio_Play(byte track, bool looping)
 {
 	CDAudio_Stop();
 	char fname[256];
-	sprintf(fname,"ux0:/data/Quake/cdtracks/track");
+	if (mod_path == NULL) sprintf(fname,"ux0:/data/Quake/id1/cdtracks/track");
+	else sprintf(fname,"ux0:/data/Quake/%s/cdtracks/track",mod_path);
 	if (track < 100){
 		sprintf(fname, "%s0", fname);
 		if (track < 10){

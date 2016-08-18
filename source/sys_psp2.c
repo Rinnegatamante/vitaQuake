@@ -328,6 +328,7 @@ void Sys_LowFPPrecision (void)
 extern cvar_t platform;
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
+char* mod_path = NULL;
 
 int main (int argc, char **argv)
 {
@@ -347,7 +348,6 @@ int main (int argc, char **argv)
 	parms.basedir = "ux0:/data/Quake";
 	
 	// Mods support
-	char* mod_path = NULL;
 	FILE* f;
 	if ((f = fopen("ux0:/data/Quake/mods.txt","r")) != NULL){
 		int int_argc = 3;
@@ -418,7 +418,7 @@ int main (int argc, char **argv)
 		}
 		
 		// Danzeff keyboard manage for Console / Input
-		if (key_dest == key_console || m_state == m_lanconfig){
+		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup){
 			if (old_char != 0) Key_Event(old_char, false);
 			SceCtrlData danzeff_pad, oldpad;
 			sceCtrlPeekBufferPositive(0, &danzeff_pad, 1);
@@ -440,7 +440,7 @@ int main (int argc, char **argv)
 						Key_Event(K_TAB, true);
 						old_char = K_TAB;
 					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-						if (m_state == m_lanconfig) danzeff_free();
+						if (key_dest != key_console) danzeff_free();
 						isDanzeff = false;
 					}else{
 						Key_Event(new_char, true);
@@ -453,7 +453,7 @@ int main (int argc, char **argv)
 					Con_ToggleConsole_f ();
 				}
 			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-				if (m_state == m_lanconfig) danzeff_load();
+				if (key_dest != key_console) danzeff_load();
 				isDanzeff = true;
 			}
 			oldpad = danzeff_pad;

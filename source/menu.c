@@ -812,7 +812,7 @@ forward:
 		M_Menu_MultiPlayer_f ();
 		break;
 
-	case K_ESCAPE:
+	case K_BACKSPACE:
 		if (setup_cursor == 0)
 		{
 			if (strlen(setup_hostname))

@@ -152,84 +152,36 @@ unsigned int sendto(int sockfd, const void *buf, unsigned int len, int flags, co
 	return sceNetSendto(sockfd, buf, len, flags, &tmp, addrlen);
 }
 
-struct hostent *gethostbyname(const char *name)   
-{   
-	Log("gethostbyname (%s)...",name);
-    static struct hostent ent;   
-    char buf[1024];   
-    static char sname[MAX_NAME] = "";   
+// Copy-pasted from xyz code
+static struct hostent *gethostbyname(const char *name)
+{
+    static struct hostent ent;
+    static char sname[MAX_NAME] = "";
     static struct SceNetInAddr saddr = { 0 };
-	
-    static char *addrlist[2] = { (char *) &saddr, NULL };   
-    int rid = -1;   
-   
-    int err;   
-   
-    if(sceNetResolverCreate("resolver", NULL, 0) < 0)
-    {   
-        return NULL;   
-    }   
-   
-    sceNetResolverStartNtoa(rid, name, &saddr, 0, 0, 0);
-    //sceNetResolverAbort(rid, SCE_NET_RESOLVER_ABORT_FLAG_NTOA_PRESERVATION);   
-    sceNetResolverDestroy(rid);   
-    if(err < 0)   
-    {   
-        return NULL;   
-    }   
-   
-    snprintf(sname, MAX_NAME, "%s", name);   
-    ent.h_name = sname;   
-    ent.h_aliases = 0;   
-    ent.h_length = sizeof(struct sockaddr_in);   
-    ent.h_addrtype = SCE_NET_AF_INET;   
-    ent.h_addr_list = addrlist;   
-    ent.h_addr = (char *) &saddr;   
-   
-    return &ent;   
-} 
+    static char *addrlist[2] = { (char *) &saddr, NULL };
 
-struct hostent *gethostbyaddr(const void *addr, int len, int type)   
-{   
-	Log("gethostbyaddr...");
-    static struct hostent ent;   
-    static char * aliases[1] = { NULL };   
-    char buf[1024];   
-    static char sname[MAX_NAME] = "";   
-    static struct SceNetInAddr saddr = { 0 };   
-    static char *addrlist[2] = { (char *) &saddr, NULL };   
-    int rid = 1;   
-    int err;   
-   
-    if((len != sizeof(struct SceNetInAddr)) || (type != SCE_NET_AF_INET) || (addr == NULL))   
-    {   
-        return NULL;   
-    }   
-   
-    memcpy(&saddr, addr, len);   
-    
-    if(sceNetResolverCreate("resolver", NULL, 0) < 0)   
-    {     
+    int rid;
+    int err;
+    rid = sceNetResolverCreate("resolver", NULL, 0);
+    if(rid < 0) {
         return NULL;
-    }   
-   
-    sceNetResolverStartAton(rid, &saddr, sname, sizeof(sname), 0, 0, 0);  
-    //sceNetResolverAbort(rid, SCE_NET_RESOLVER_ABORT_FLAG_ATON_PRESERVATION);   
-    sceNetResolverDestroy(rid);   
-    if(err < 0)   
-    {    
-        return NULL;   
-    }   
-   
-    ent.h_name = sname;   
-    ent.h_aliases = aliases;   
-    ent.h_addrtype = SCE_NET_AF_INET;   
-    ent.h_length = sizeof(struct sockaddr_in);   
-    ent.h_addr_list = addrlist;   
-    ent.h_addr = (char *) &saddr;   
-   
-    return &ent;   
-} 
+    }
+
+    err = sceNetResolverStartNtoa(rid, name, &saddr, 0, 0, 0);
+    sceNetResolverDestroy(rid);
+    if(err < 0) {
+        return NULL;
+    }
+
+    ent.h_name = sname;
+    ent.h_aliases = 0;
+    ent.h_addrtype = SCE_NET_AF_INET;
+    ent.h_length = sizeof(struct SceNetInAddr);
+    ent.h_addr_list = addrlist;
+    ent.h_addr = addrlist[0];
+
+    return &ent;
+}
 
 static int net_acceptsocket = -1;		// socket for fielding new connections
 static int net_controlsocket;
@@ -589,7 +541,8 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 
 int UDP_GetNameFromAddr (struct qsockaddr *addr, char *name)
 {
-	struct hostent *hostentry;
+	// Slow and useless - Rinnegatamante
+	/*struct hostent *hostentry;
 
 	hostentry = gethostbyaddr ((char *)&((struct sockaddr_in *)addr)->sin_addr, sizeof(struct in_addr), AF_INET);
 	Log("UDP_GetNameFromAddr returned %s",name);
@@ -597,7 +550,7 @@ int UDP_GetNameFromAddr (struct qsockaddr *addr, char *name)
 	{
 		Q_strncpy (name, (char *)hostentry->h_name, NET_NAMELEN - 1);
 		return 0;
-	}
+	}*/
 
 	Q_strcpy (name, UDP_AddrToString (addr));
 	return 0;
