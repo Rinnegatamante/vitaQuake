@@ -141,6 +141,7 @@ void CL_Disconnect_f (void)
 	if (sv.active)
 		Host_ShutdownServer (false);
 
+	if (cls.netcon && cls.netcon->proquake_connection)
 	cls.netcon->proquake_connection = false;	// Ch0wW: Hacky fix to restore original NetQuake protocol.
 }
 

@@ -268,7 +268,8 @@ void SV_ConnectClient (int clientnum)
 	netconnection = client->netconnection;
 	
 	if (sv.loadgame)
-		client->netconnection->proquake_connection = false;	// Ch0wW: Hacky fix to restore original NetQuake protocol.
+		if (netconnection && netconnection->proquake_connection) 
+			netconnection->proquake_connection = false; // Ch0wW: Hacky fix to force original NetQuake protocol.
 		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
 	memset (client, 0, sizeof(*client));
 	client->netconnection = netconnection;

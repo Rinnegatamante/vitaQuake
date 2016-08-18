@@ -420,13 +420,7 @@ void M_SinglePlayer_Key (int key)
 				if (!SCR_ModalMessage("Are you sure you want to\nstart a new game?\n"))
 					break;
 			key_dest = key_game;
-			if (sv.active)
-				Cbuf_AddText ("disconnect\n");
-
-			// Ch0wW: Hacky fix to restore original NetQuake protocol.
-			if (cls.netcon->proquake_connection)
-				cls.netcon->proquake_connection = false;
-
+			Cbuf_AddText ("disconnect\n");	// Ch0wW: Disconnect all the time to reset original NetQuake behaviour.
 			Cbuf_AddText ("maxplayers 1\n");
 			Cbuf_AddText ("map start\n");
 			break;
