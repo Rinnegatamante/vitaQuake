@@ -325,6 +325,7 @@ void Sys_LowFPPrecision (void)
 
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
+char* mod_path = NULL;
 
 int main (int argc, char **argv)
 {
@@ -344,7 +345,6 @@ int main (int argc, char **argv)
 	parms.basedir = "ux0:/data/Quake";
 	
 	// Mods support
-	char* mod_path = NULL;
 	FILE* f;
 	if ((f = fopen("ux0:/data/Quake/mods.txt","r")) != NULL){
 		int int_argc = 3;
