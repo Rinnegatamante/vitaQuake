@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+CVAR (registered, 0, CVAR_ROM)
+CVAR (platform, 0, CVAR_ROM)
+CVAR (cmdline, 0, CVAR_SERVERINFO)
+
 
 #define NUM_SAFE_ARGVS  7
 
@@ -29,10 +33,6 @@ static char     *argvdummy = " ";
 
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
-
-cvar_t  registered = {"registered","0", CVAR_ROM};
-cvar_t  cmdline = {"cmdline","0", CVAR_SERVERINFO};
-cvar_t	platform = {"com_platform", "0", CVAR_ROM};
 
 
 qboolean        com_modified;   // set true if using non-id files

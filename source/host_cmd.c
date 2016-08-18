@@ -78,8 +78,6 @@ void Host_Status_f (void)
 	print ("version: %4.2f\n", VERSION);
 	if (tcpipAvailable)
 		print ("tcp/ip:  %s\n", my_tcpip_address);
-	if (ipxAvailable)
-		print ("ipx:     %s\n", my_ipx_address);
 	print ("map:     %s\n", sv.name);
 	print ("players: %i active (%i max)\n\n", net_activeconnections, svs.maxclients);
 	for (j=0, client = svs.clients ; j<svs.maxclients ; j++, client++)
@@ -1205,7 +1203,7 @@ void Host_Kill_f (void)
 
 	if (sv_player->v.health <= 0)
 	{
-		SV_ClientPrintf ("Can't suicide -- allready dead!\n");
+		SV_ClientPrintf ("Can't suicide -- already dead!\n");
 		return;
 	}
 
@@ -1267,7 +1265,7 @@ void Host_PreSpawn_f (void)
 
 	if (host_client->spawned)
 	{
-		Con_Printf ("prespawn not valid -- allready spawned\n");
+		Con_Printf ("prespawn not valid -- already spawned\n");
 		return;
 	}
 
@@ -1296,13 +1294,13 @@ void Host_Spawn_f (void)
 
 	if (host_client->spawned)
 	{
-		Con_Printf ("Spawn not valid -- allready spawned\n");
+		Con_Printf ("Spawn not valid -- already spawned\n");
 		return;
 	}
 
 // run the entrance script
 	if (sv.loadgame)
-	{	// loaded games are fully inited allready
+	{	// loaded games are fully inited already
 		// if this is the last client to be connected, unpause
 		sv.paused = false;
 	}

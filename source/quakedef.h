@@ -25,12 +25,8 @@ enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_
 
 #define	QUAKE_GAME			// as opposed to utilities
 
-#define	VERSION				1.09
-#define	GLQUAKE_VERSION		1.00
-#define	D3DQUAKE_VERSION	0.01
-#define	WINQUAKE_VERSION	0.996
-#define	LINUX_VERSION		1.30
-#define	X11_VERSION			1.10
+#define ENGINE_NAME			"VitaQuake"
+#define	VERSION				2.1
 
 //define	PARANOID			// speed sapping error checking
 

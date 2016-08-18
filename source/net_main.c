@@ -22,24 +22,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "net_vcr.h"
 
+CVAR (net_messagetimeout, 300, CVAR_NONE)
+CVAR (hostname, "UNNAMED", CVAR_ARCHIVE)
+
+//----------------------------------------------
+
 qsocket_t	*net_activeSockets = NULL;
 qsocket_t	*net_freeSockets = NULL;
 int			net_numsockets = 0;
 
-qboolean	serialAvailable = false;
-qboolean	ipxAvailable = false;
 qboolean	tcpipAvailable = false;
 
 int			net_hostport;
 int			DEFAULTnet_hostport = 26000;
 
-char		my_ipx_address[NET_NAMELEN];
 char		my_tcpip_address[NET_NAMELEN];
-
-void (*GetComPortConfig) (int portNumber, int *port, int *irq, int *baud, qboolean *useModem);
-void (*SetComPortConfig) (int portNumber, int port, int irq, int baud, qboolean useModem);
-void (*GetModemConfig) (int portNumber, char *dialType, char *clear, char *init, char *hangup);
-void (*SetModemConfig) (int portNumber, char *dialType, char *clear, char *init, char *hangup);
 
 static qboolean	listening = false;
 
@@ -62,19 +59,6 @@ int messagesSent = 0;
 int messagesReceived = 0;
 int unreliableMessagesSent = 0;
 int unreliableMessagesReceived = 0;
-
-cvar_t	net_messagetimeout = {"net_messagetimeout","300"};
-cvar_t	hostname = {"hostname", "UNNAMED"};
-
-qboolean	configRestored = false;
-cvar_t	config_com_port = {"_config_com_port", "0x3f8", true};
-cvar_t	config_com_irq = {"_config_com_irq", "4", true};
-cvar_t	config_com_baud = {"_config_com_baud", "57600", true};
-cvar_t	config_com_modem = {"_config_com_modem", "1", true};
-cvar_t	config_modem_dialtype = {"_config_modem_dialtype", "T", true};
-cvar_t	config_modem_clear = {"_config_modem_clear", "ATZ", true};
-cvar_t	config_modem_init = {"_config_modem_init", "", true};
-cvar_t	config_modem_hangup = {"_config_modem_hangup", "AT H", true};
 
 #ifdef IDGODS
 cvar_t	idgods = {"idgods", "0"};
@@ -857,14 +841,7 @@ void NET_Init (void)
 
 	Cvar_RegisterVariable (&net_messagetimeout);
 	Cvar_RegisterVariable (&hostname);
-	Cvar_RegisterVariable (&config_com_port);
-	Cvar_RegisterVariable (&config_com_irq);
-	Cvar_RegisterVariable (&config_com_baud);
-	Cvar_RegisterVariable (&config_com_modem);
-	Cvar_RegisterVariable (&config_modem_dialtype);
-	Cvar_RegisterVariable (&config_modem_clear);
-	Cvar_RegisterVariable (&config_modem_init);
-	Cvar_RegisterVariable (&config_modem_hangup);
+
 #ifdef IDGODS
 	Cvar_RegisterVariable (&idgods);
 #endif
@@ -886,8 +863,6 @@ void NET_Init (void)
 			net_drivers[net_driverlevel].Listen (true);
 		}
 
-	if (*my_ipx_address)
-		Con_DPrintf("IPX address %s\n", my_ipx_address);
 	if (*my_tcpip_address)
 		Con_DPrintf("TCP/IP address %s\n", my_tcpip_address);
 }
@@ -933,20 +908,6 @@ void NET_Poll(void)
 {
 	PollProcedure *pp;
 	qboolean	useModem;
-
-	if (!configRestored)
-	{
-		if (serialAvailable)
-		{
-			if (config_com_modem.value == 1.0)
-				useModem = true;
-			else
-				useModem = false;
-			SetComPortConfig (0, (int)config_com_port.value, (int)config_com_irq.value, (int)config_com_baud.value, useModem);
-			SetModemConfig (0, config_modem_dialtype.string, config_modem_clear.string, config_modem_init.string, config_modem_hangup.string);
-		}
-		configRestored = true;
-	}
 
 	SetNetTime();
 

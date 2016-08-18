@@ -23,9 +23,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 edict_t	*sv_player;
 
+CVAR(pq_fullpitch, 0, CVAR_ARCHIVE)
+CVAR(sv_idealpitchscale, 0.8, CVAR_NONE)
+CVAR(sv_edgefriction, 2, CVAR_NONE)
+
+CVAR(sv_maxspeed, 320, CVAR_SERVERINFO)
+CVAR(sv_accelerate, 10, CVAR_NONE)
+
 extern	cvar_t	sv_friction;
-cvar_t	sv_edgefriction = {"edgefriction", "2"};
 extern	cvar_t	sv_stopspeed;
+
+//----------------------------------------------
 
 static	vec3_t		forward, right, up;
 
@@ -40,11 +48,6 @@ float	*velocity;
 qboolean	onground;
 
 usercmd_t	cmd;
-
-cvar_t	pq_fullpitch = {"pq_fullpitch", "0", true}; // JPG 2.01
-
-cvar_t	sv_idealpitchscale = {"sv_idealpitchscale","0.8"};
-
 
 /*
 ===============
@@ -166,8 +169,6 @@ void SV_UserFriction (void)
 SV_Accelerate
 ==============
 */
-cvar_t	sv_maxspeed = {"sv_maxspeed", "320", false, true};
-cvar_t	sv_accelerate = {"sv_accelerate", "10"};
 #if 0
 void SV_Accelerate (vec3_t wishvel)
 {

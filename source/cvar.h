@@ -75,7 +75,7 @@ typedef struct cvar_s
 #define CVAR(name, defaultvalue, flags) cvar_t name = {#name, #defaultvalue, flags};
 
 void 	Cvar_RegisterVariable (cvar_t *variable);
-// registers a cvar that allready has the name, string, and optionally the
+// registers a cvar that already has the name, string, and optionally the
 // archive elements set.
 
 void 	Cvar_Set (char *var_name, char *value);
