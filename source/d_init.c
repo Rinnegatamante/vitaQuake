@@ -22,11 +22,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "d_local.h"
 
-#define NUM_MIPS	4
+CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
+CVAR (d_mipcap,		0, CVAR_ARCHIVE)
+CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 
-cvar_t	d_subdiv16 = 	{"d_subdiv16", 	"1", 	CVAR_ARCHIVE};
-cvar_t	d_mipcap = 		{"d_mipcap", 	"0", 	CVAR_ARCHIVE};
-cvar_t	d_mipscale = 	{"d_mipscale", 	"1", 	CVAR_ARCHIVE};
+//----------------------------------------------
+
+#define NUM_MIPS	4
 
 surfcache_t		*d_initial_rover;
 qboolean		d_roverwrapped;
@@ -35,7 +37,7 @@ float			d_scalemip[NUM_MIPS-1];
 
 static float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
 
-extern int			d_aflatcolor;
+extern int		d_aflatcolor;
 
 void (*d_drawspans) (espan_t *pspan);
 

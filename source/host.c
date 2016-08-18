@@ -33,6 +33,27 @@ Memory is cleared / released when a server or client begins, not when they end.
 
 */
 
+CVAR(developer, 1, CVAR_DEBUG)
+CVAR(temp1, 0, CVAR_NONE)	// Ch0wW: Honestly never saw that CVAR being used, maybe for MOD support?
+
+CVAR(host_framerate, 0, CVAR_NONE)
+CVAR(host_speeds, 0, CVAR_NONE)
+CVAR(sys_ticrate, 0.05, CVAR_NONE)
+CVAR(serverprofile, 0, CVAR_NONE)
+
+CVAR(skill, 1, CVAR_SERVERINFO)
+CVAR(deathmatch, 0, CVAR_SERVERINFO)
+CVAR(coop, 0, CVAR_SERVERINFO)
+CVAR(fraglimit, 0, CVAR_SERVERINFO)
+CVAR(timelimit, 0, CVAR_SERVERINFO)
+CVAR(teamplay, 0, CVAR_SERVERINFO)
+CVAR(samelevel, 0, CVAR_SERVERINFO)
+CVAR(noexit, 0, CVAR_SERVERINFO)
+
+CVAR(pausable, 1, CVAR_SERVERINFO)
+
+//----------------------------------------------
+
 quakeparms_t host_parms;
 
 qboolean	host_initialized;		// true if into command execution
@@ -54,29 +75,6 @@ jmp_buf 	host_abortserver;
 
 byte		*host_basepal;
 byte		*host_colormap;
-
-cvar_t	host_framerate = {"host_framerate","0"};	// set for slow motion
-cvar_t	host_speeds = {"host_speeds","0"};			// set for running times
-
-cvar_t	sys_ticrate = {"sys_ticrate", "0.05"};
-cvar_t	serverprofile = {"serverprofile","0"};
-
-cvar_t	fraglimit = {"fraglimit","0", CVAR_SERVERINFO};
-cvar_t	timelimit = {"timelimit","0", CVAR_SERVERINFO};
-cvar_t	teamplay = {"teamplay","0", CVAR_SERVERINFO};
-
-cvar_t	samelevel = {"samelevel","0"};
-cvar_t	noexit = {"noexit","0", CVAR_SERVERINFO};
-
-cvar_t	developer = {"developer","1", CVAR_DEBUG};
-
-cvar_t	skill = {"skill","1"};						// 0 - 3
-cvar_t	deathmatch = {"deathmatch","0"};			// 0, 1, or 2
-cvar_t	coop = {"coop","0"};			// 0 or 1
-
-cvar_t	pausable = {"pausable","1", CVAR_SERVERINFO};
-
-cvar_t	temp1 = {"temp1","0", CVAR_DEBUG};
 
 
 /*

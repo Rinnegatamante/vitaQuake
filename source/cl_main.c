@@ -28,24 +28,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 cvar_t	cl_name = {"_cl_name", "player", CVAR_ARCHIVE};
 cvar_t	cl_color = {"_cl_color", "0", CVAR_ARCHIVE};
 
-cvar_t	cl_shownet = {"cl_shownet","0", CVAR_NONE};	// can be 0, 1, or 2
-cvar_t	cl_nolerp = {"cl_nolerp","0", CVAR_NONE};
+CVAR (cl_shownet,	0, CVAR_DEBUG) // can be 0, 1, or 2
+CVAR (cl_nolerp,	0, CVAR_NONE)
 
-cvar_t	lookspring = {"lookspring","0", CVAR_ARCHIVE};
-cvar_t	lookstrafe = {"lookstrafe","0", CVAR_ARCHIVE};
-cvar_t	sensitivity = {"sensitivity","3", CVAR_ARCHIVE};
+CVAR (always_run,	1, CVAR_ARCHIVE)
+CVAR (lookspring,	0, CVAR_ARCHIVE)
+CVAR (lookstrafe,	0, CVAR_ARCHIVE)
 
-cvar_t	m_pitch = {"m_pitch","0.022", CVAR_ARCHIVE};
-cvar_t	m_yaw = {"m_yaw","0.022", CVAR_ARCHIVE};
-cvar_t	m_forward = {"m_forward","1", CVAR_ARCHIVE};
-cvar_t	m_side = {"m_side","0.8", CVAR_ARCHIVE};
+// ToDo: Redirect them to the mouse input file.
+CVAR (sensitivity, 3, CVAR_ARCHIVE)
+CVAR (m_pitch,	0.022,	CVAR_ARCHIVE)
+CVAR (m_yaw,	0.022,	CVAR_ARCHIVE)
+CVAR (m_forward, 1,		CVAR_ARCHIVE)
+CVAR (m_side,	0.8,	CVAR_ARCHIVE)
 
-// PSVITA extra Cvars
-cvar_t rumble = {"pstv_rumble", "1", CVAR_ARCHIVE};
+// PSVITA extra Cvars (ToDo: redirect them to in_psp2.c, since it has nothing to do here)
 cvar_t inverted = {"invert_camera", "0", CVAR_ARCHIVE};
 cvar_t res_val = {"render_res", "1.0", CVAR_ARCHIVE};
-cvar_t retrotouch = {"retrotouch", "0", CVAR_ARCHIVE};
-cvar_t always_run = {"always_run", "0", CVAR_ARCHIVE};
+
+//----------------------------------------------
 
 client_static_t	cls;
 client_state_t	cl;

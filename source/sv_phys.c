@@ -21,8 +21,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-/*
+CVAR (sv_friction, 4, CVAR_SERVERINFO)
+CVAR(sv_gravity, 800, CVAR_SERVERINFO)
+CVAR(sv_stopspeed, 100, CVAR_NONE)
+CVAR(sv_maxvelocity, 2000, CVAR_NONE)
+CVAR(sv_nostep, 0, CVAR_NONE)
 
+//----------------------------------------------
+
+/*
 
 pushmove objects do not obey gravity, and do not interact with each other or trigger fields, but block normal movement and push normal objects when they move.
 
@@ -39,11 +46,6 @@ solid_edge items only clip against bsp models.
 
 */
 
-cvar_t	sv_friction = {"sv_friction","4",false,true};
-cvar_t	sv_stopspeed = {"sv_stopspeed","100"};
-cvar_t	sv_gravity = {"sv_gravity","800",false,true};
-cvar_t	sv_maxvelocity = {"sv_maxvelocity","2000"};
-cvar_t	sv_nostep = {"sv_nostep","0"};
 
 #ifdef QUAKE2
 static	vec3_t	vec_origin = {0.0, 0.0, 0.0};
