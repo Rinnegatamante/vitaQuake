@@ -340,7 +340,7 @@ void CL_BaseMove (usercmd_t *cmd)
 CL_SendMove
 ==============
 */
-void CL_SendMove (usercmd_t *cmd)
+void CL_SendMove(usercmd_t *cmd)
 {
 	int		i;
 	int		bits;
@@ -353,19 +353,21 @@ void CL_SendMove (usercmd_t *cmd)
 
 	cl.cmd = *cmd;
 
-//
-// send the movement message
-//
-    MSG_WriteByte (&buf, clc_move);
+	//
+	// send the movement message
+	//
+	MSG_WriteByte(&buf, clc_move);
+	MSG_WriteFloat(&buf, cl.mtime[0]);	// so server can get ping times
 
-	MSG_WriteFloat (&buf, cl.mtime[0]);	// so server can get ping times
-
-	for (i=0 ; i<3 ; i++)
-		
-	if (!cls.demoplayback && NET_QSocketIsProQuakeServer(cls.netcon))
-		MSG_WritePreciseAngle (&buf, cl.viewangles[i]);
+	if (!cls.demoplayback && (cls.netcon->proquake_connection == MOD_PROQUAKE)) {
+		for (i = 0; i < 3; i++)
+			MSG_WritePreciseAngle(&buf, cl.viewangles[i]);
+	}
 	else
-		MSG_WriteAngle (&buf, cl.viewangles[i]);
+	{	
+		for (i = 0; i < 3; i++)
+			MSG_WriteAngle(&buf, cl.viewangles[i]);
+	}
 
   	MSG_WriteShort (&buf, cmd->forwardmove);
     MSG_WriteShort (&buf, cmd->sidemove);

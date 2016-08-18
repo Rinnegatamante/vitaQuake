@@ -450,11 +450,18 @@ void SV_ReadClientMove (usercmd_t *move)
 	host_client->num_pings++;
 
 // read current angles
-	for (i=0 ; i<3 ; i++)
-		angle[i] = MSG_ReadAngle ();
+	if (host_client->netconnection->proquake_connection == MOD_PROQUAKE) 
+	{
+		for (i = 0; i<3; i++)
+			angle[i] = MSG_ReadPreciseAngle();
+	}
+	else
+	{
+		for (i = 0; i<3; i++)
+			angle[i] = MSG_ReadAngle();
+	}
 
-	
-// JPG 2.01 - server-side fullpitch fix
+// ProQuake - server-side fullpitch fix
 	if (!pq_fullpitch.value)
 	{
 		if (angle[PITCH] > 80 || angle[PITCH] < -70)
@@ -468,7 +475,7 @@ void SV_ReadClientMove (usercmd_t *move)
 			for (i=0 ; i < 3 ; i++)
 				MSG_WriteAngle (&host_client->message, angle[i] );
 		}
-}
+	}
 	
 	VectorCopy (angle, host_client->edict->v.v_angle);
 

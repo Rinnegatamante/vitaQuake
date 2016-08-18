@@ -146,7 +146,7 @@ void Host_Error (char *error, ...)
 
 /*
 ================
-Host_FindMaxClients
+Host_FindMaxClients -- ToDo: Clean this up
 ================
 */
 void	Host_FindMaxClients (void)

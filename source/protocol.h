@@ -27,28 +27,38 @@ Here is a short list of known protocol used by other NetQuake ports:
 - 35, 36, 37, 38: ProQuake protocol
 ================
 */
-#define	PROTOCOL_VERSION	15	// NETWORK PROTOCOL USED (NETQUAKE)
-
+#define	PROTOCOL_NETQUAKE	15	// Official NetQuake protocol used.
+#define PROTOCOL_FITZQUAKE	666 // Protocol for FitzQuake 0.85
 
 // if the high bit of the servercmd is set, the low bits are fast update flags:
-#define	U_MOREBITS	(1<<0)
-#define	U_ORIGIN1	(1<<1)
-#define	U_ORIGIN2	(1<<2)
-#define	U_ORIGIN3	(1<<3)
-#define	U_ANGLE2	(1<<4)
-#define	U_NOLERP	(1<<5)		// don't interpolate movement
-#define	U_FRAME		(1<<6)
-#define U_SIGNAL	(1<<7)		// just differentiates from other updates
+#define	U_MOREBITS	BIT(0)
+#define	U_ORIGIN1	BIT(1)
+#define	U_ORIGIN2	BIT(2)
+#define	U_ORIGIN3	BIT(3)
+#define	U_ANGLE2	BIT(4)
+#define	U_NOLERP	BIT(5)		// don't interpolate movement
+#define	U_FRAME		BIT(6)
+#define U_SIGNAL	BIT(7)		// just differentiates from other updates
 
 // svc_update can pass all of the fast update bits, plus more
-#define	U_ANGLE1	(1<<8)
-#define	U_ANGLE3	(1<<9)
-#define	U_MODEL		(1<<10)
-#define	U_COLORMAP	(1<<11)
-#define	U_SKIN		(1<<12)
-#define	U_EFFECTS	(1<<13)
-#define	U_LONGENTITY	(1<<14)
+#define	U_ANGLE1	BIT(8)
+#define	U_ANGLE3	BIT(9)
+#define	U_MODEL		BIT(10)
+#define	U_COLORMAP	BIT(11)
+#define	U_SKIN		BIT(12)
+#define	U_EFFECTS	BIT(13)
+#define	U_LONGENTITY	BIT(14)
 
+// FitzQuake -- Protocol extender
+#define U_EXTEND1		(1<<15)
+#define U_ALPHA			(1<<16) // 1 byte, uses ENTALPHA_ENCODE, not sent if equal to baseline
+#define U_FRAME2		(1<<17) // 1 byte, this is .frame & 0xFF00 (second byte)
+#define U_MODEL2		(1<<18) // 1 byte, this is .modelindex & 0xFF00 (second byte)
+#define U_LERPFINISH	(1<<19) // 1 byte, 0.0-1.0 maps to 0-255, not sent if exactly 0.1, this is ent->v.nextthink - sv.time, used for lerping
+#define U_SCALE			(1<<20) // 1 byte, for PROTOCOL_RMQ PRFL_EDICTSCALE, currently read but ignored
+#define U_UNUSED21		(1<<21)
+#define U_UNUSED22		(1<<22)
+#define U_EXTEND2		(1<<23) // another byte to follow, future expansion
 
 #define	SU_VIEWHEIGHT	(1<<0)
 #define	SU_IDEALPITCH	(1<<1)
@@ -65,6 +75,26 @@ Here is a short list of known protocol used by other NetQuake ports:
 #define	SU_WEAPONFRAME	(1<<12)
 #define	SU_ARMOR		(1<<13)
 #define	SU_WEAPON		(1<<14)
+
+// FitzQuake -- Protocol extender 
+#define SU_EXTEND1		(1<<15) // another byte to follow
+#define SU_WEAPON2		(1<<16) // 1 byte, this is .weaponmodel & 0xFF00 (second byte)
+#define SU_ARMOR2		(1<<17) // 1 byte, this is .armorvalue & 0xFF00 (second byte)
+#define SU_AMMO2		(1<<18) // 1 byte, this is .currentammo & 0xFF00 (second byte)
+#define SU_SHELLS2		(1<<19) // 1 byte, this is .ammo_shells & 0xFF00 (second byte)
+#define SU_NAILS2		(1<<20) // 1 byte, this is .ammo_nails & 0xFF00 (second byte)
+#define SU_ROCKETS2		(1<<21) // 1 byte, this is .ammo_rockets & 0xFF00 (second byte)
+#define SU_CELLS2		(1<<22) // 1 byte, this is .ammo_cells & 0xFF00 (second byte)
+#define SU_EXTEND2		(1<<23) // another byte to follow
+#define SU_WEAPONFRAME2	(1<<24) // 1 byte, this is .weaponframe & 0xFF00 (second byte)
+#define SU_WEAPONALPHA	(1<<25) // 1 byte, this is alpha for weaponmodel, uses ENTALPHA_ENCODE, not sent if ENTALPHA_DEFAULT
+#define SU_UNUSED26		(1<<26)
+#define SU_UNUSED27		(1<<27)
+#define SU_UNUSED28		(1<<28)
+#define SU_UNUSED29		(1<<29)
+#define SU_UNUSED30		(1<<30)
+#define SU_EXTEND3		(1<<31) // another byte to follow, future expansion
+
 
 // a sound with no channel is a local only sound
 #define	SND_VOLUME		(1<<0)		// a byte

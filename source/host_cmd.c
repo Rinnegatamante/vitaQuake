@@ -611,12 +611,9 @@ void Host_Loadgame_f (void)
 	fscanf (f, "%f\n", &tfloat);
 	current_skill = (int)(tfloat + 0.1);
 	Cvar_SetValue ("skill", (float)current_skill);
-
-#ifdef QUAKE2
 	Cvar_SetValue ("deathmatch", 0);
 	Cvar_SetValue ("coop", 0);
 	Cvar_SetValue ("teamplay", 0);
-#endif
 
 	fscanf (f, "%s\n",mapname);
 	fscanf (f, "%f\n",&time);

@@ -217,9 +217,10 @@ void CL_ParseServerInfo (void)
 
 // parse protocol version number
 	i = MSG_ReadLong ();
-	if (i != PROTOCOL_VERSION)
+	if (i != PROTOCOL_NETQUAKE && i != PROTOCOL_FITZQUAKE)
 	{
-		Con_Printf ("Server returned version %i, not %i", i, PROTOCOL_VERSION);
+		Host_Error("Server returned version %i, not %i (Net/ProQuake) or %i (FitzQuake)", i, PROTOCOL_NETQUAKE, PROTOCOL_FITZQUAKE);
+		Con_Printf ("Server returned version %i, not %i", i, PROTOCOL_NETQUAKE);
 		return;
 	}
 
@@ -779,8 +780,8 @@ void CL_ParseServerMessage (void)
 
 		case svc_version:
 			i = MSG_ReadLong ();
-			if (i != PROTOCOL_VERSION)
-				Host_Error ("CL_ParseServerMessage: Server is protocol %i instead of %i\n", i, PROTOCOL_VERSION);
+			if (i != PROTOCOL_NETQUAKE)
+				Host_Error ("CL_ParseServerMessage: Server is protocol %i instead of %i\n", i, PROTOCOL_NETQUAKE);
 			break;
 
 		case svc_disconnect:
