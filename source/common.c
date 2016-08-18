@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+CVAR (registered, 0, CVAR_ROM)
+CVAR (platform, 0, CVAR_ROM)
+CVAR (cmdline, 0, CVAR_SERVERINFO)
+
 
 #define NUM_SAFE_ARGVS  7
 
@@ -30,18 +34,14 @@ static char     *argvdummy = " ";
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
-cvar_t  registered = {"registered","0", CVAR_ROM};
-cvar_t  cmdline = {"cmdline","0", CVAR_SERVERINFO};
-cvar_t	platform = {"com_platform", "0", CVAR_ROM};
 
+bool        com_modified;   // set true if using non-id files
 
-qboolean        com_modified;   // set true if using non-id files
-
-qboolean		proghack;
+bool		proghack;
 
 int             static_registered = 1;  // only for startup check, then set
 
-qboolean		msg_suppress_1 = 0;
+bool		msg_suppress_1 = 0;
 
 void COM_InitFilesystem (void);
 
@@ -56,7 +56,7 @@ char	**com_argv;
 #define CMDLINE_LENGTH	256
 char	com_cmdline[CMDLINE_LENGTH];
 
-qboolean		standard_quake = true, rogue, hipnotic;
+bool		standard_quake = true, rogue, hipnotic;
 
 // this graphic needs to be in the pak file to use registered features
 unsigned short pop[] =
@@ -217,7 +217,7 @@ float Q_atof (char *str)
 ============================================================================
 */
 
-qboolean        bigendien;
+bool        bigendien;
 
 short   (*BigShort) (short l);
 short   (*LittleShort) (short l);
@@ -366,7 +366,7 @@ void MSG_WritePreciseAngle(sizebuf_t *sb, float f)
 // reading functions
 //
 int                     msg_readcount;
-qboolean        msg_badread;
+bool        msg_badread;
 
 void MSG_BeginReading (void)
 {
@@ -831,7 +831,7 @@ COM_InitArgv
 */
 void COM_InitArgv (int argc, char **argv)
 {
-	qboolean        safe;
+	bool        safe;
 	int             i, j, n;
 
 // reconstitute the command line for the cmdline externally visible cvar

@@ -72,8 +72,10 @@ typedef struct cvar_s
 	struct cvar_s *next;
 } cvar_t;
 
+#define CVAR(name, defaultvalue, flags) cvar_t name = {#name, #defaultvalue, flags};
+
 void 	Cvar_RegisterVariable (cvar_t *variable);
-// registers a cvar that allready has the name, string, and optionally the
+// registers a cvar that already has the name, string, and optionally the
 // archive elements set.
 
 void 	Cvar_Set (char *var_name, char *value);
@@ -93,7 +95,7 @@ char 	*Cvar_CompleteVariable (char *partial);
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
 
-qboolean Cvar_Command (void);
+bool Cvar_Command (void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)

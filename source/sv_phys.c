@@ -21,8 +21,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-/*
+CVAR (sv_friction, 4, CVAR_SERVERINFO)
+CVAR(sv_gravity, 800, CVAR_SERVERINFO)
+CVAR(sv_stopspeed, 100, CVAR_NONE)
+CVAR(sv_maxvelocity, 2000, CVAR_NONE)
+CVAR(sv_nostep, 0, CVAR_NONE)
 
+//----------------------------------------------
+
+/*
 
 pushmove objects do not obey gravity, and do not interact with each other or trigger fields, but block normal movement and push normal objects when they move.
 
@@ -39,11 +46,6 @@ solid_edge items only clip against bsp models.
 
 */
 
-cvar_t	sv_friction = {"sv_friction","4",false,true};
-cvar_t	sv_stopspeed = {"sv_stopspeed","100"};
-cvar_t	sv_gravity = {"sv_gravity","800",false,true};
-cvar_t	sv_maxvelocity = {"sv_maxvelocity","2000"};
-cvar_t	sv_nostep = {"sv_nostep","0"};
 
 #ifdef QUAKE2
 static	vec3_t	vec_origin = {0.0, 0.0, 0.0};
@@ -123,7 +125,7 @@ in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
 */
-qboolean SV_RunThink (edict_t *ent)
+bool SV_RunThink (edict_t *ent)
 {
 	float	thinktime;
 
@@ -805,7 +807,7 @@ void SV_CheckStuck (edict_t *ent)
 SV_CheckWater
 =============
 */
-qboolean SV_CheckWater (edict_t *ent)
+bool SV_CheckWater (edict_t *ent)
 {
 	vec3_t	point;
 	int		cont;
@@ -1362,9 +1364,9 @@ will fall if the floor is pulled out from under them.
 #ifdef QUAKE2
 void SV_Physics_Step (edict_t *ent)
 {
-	qboolean	wasonground;
-	qboolean	inwater;
-	qboolean	hitsound = false;
+	bool	wasonground;
+	bool	inwater;
+	bool	hitsound = false;
 	float		*vel;
 	float		speed, newspeed, control;
 	float		friction;
@@ -1467,7 +1469,7 @@ void SV_Physics_Step (edict_t *ent)
 #else
 void SV_Physics_Step (edict_t *ent)
 {
-	qboolean	hitsound;
+	bool	hitsound;
 
 // freefall if not onground
 	if ( ! ((int)ent->v.flags & (FL_ONGROUND | FL_FLY | FL_SWIM) ) )

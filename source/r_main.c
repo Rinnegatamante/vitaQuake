@@ -29,16 +29,16 @@ vec3_t		viewlightvec;
 alight_t	r_viewlighting = {128, 192, viewlightvec};
 float		r_time1;
 int			r_numallocatededges;
-qboolean	r_drawpolys;
-qboolean	r_drawculledpolys;
-qboolean	r_worldpolysbacktofront;
-qboolean	r_recursiveaffinetriangles = true;
+bool	r_drawpolys;
+bool	r_drawculledpolys;
+bool	r_worldpolysbacktofront;
+bool	r_recursiveaffinetriangles = true;
 int			r_pixbytes = 1;
 float		r_aliasuvscale = 1.0;
 int			r_outofsurfaces;
 int			r_outofedges;
 
-qboolean	r_dowarp, r_dowarpold, r_viewchanged;
+bool	r_dowarp, r_dowarpold, r_viewchanged;
 
 int			numbtofpolys;
 btofpoly_t	*pbtofpolys;
@@ -46,14 +46,14 @@ mvertex_t	*r_pcurrentvertbase;
 
 int			c_surf;
 int			r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
-qboolean	r_surfsonstack;
+bool	r_surfsonstack;
 int			r_clipflags;
 
 byte		*r_warpbuffer;
 
 byte		*r_stack_start;
 
-qboolean	r_fov_greater_than_90;
+bool	r_fov_greater_than_90;
 
 //
 // view origin
@@ -137,7 +137,7 @@ cvar_t	r_numedges = {"r_numedges", "0"};
 cvar_t	r_aliastransbase = {"r_aliastransbase", "200"};
 cvar_t	r_aliastransadj = {"r_aliastransadj", "100"};
 
-extern cvar_t	scr_fov;
+extern cvar_t	fov;
 
 void CreatePassages (void);
 void SetVisibilityByPassages (void);
@@ -312,7 +312,7 @@ void R_SetVrect (vrect_t *pvrectin, vrect_t *pvrect, int lineadj)
 	int		h;
 	float	size;
 
-	size = scr_viewsize.value > 100 ? 100 : scr_viewsize.value;
+	size = viewsize.value > 100 ? 100 : viewsize.value;
 	if (cl.intermission)
 	{
 		size = 100;
@@ -456,7 +456,7 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 	r_aliastransition = r_aliastransbase.value * res_scale;
 	r_resfudge = r_aliastransadj.value * res_scale;
 
-	if (scr_fov.value <= 90.0)
+	if (fov.value <= 90.0)
 		r_fov_greater_than_90 = false;
 	else
 		r_fov_greater_than_90 = true;

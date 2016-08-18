@@ -101,10 +101,10 @@ char *Cvar_CompleteVariable (char *partial)
 Cvar_Set
 ============
 */
-void Cvar_SetFull (char *var_name, char *value, qboolean forced)
+void Cvar_SetFull (char *var_name, char *value, bool forced)
 {
 	cvar_t	*var;
-	qboolean changed;
+	bool changed;
 	
 	var = Cvar_FindVar (var_name);
 	if (!var)
@@ -168,7 +168,7 @@ void Cvar_RegisterVariable (cvar_t *variable)
 {
 	char	*oldstr;
 	
-// first check to see if it has allready been defined
+// first check to see if it has already been defined
 	if (Cvar_FindVar (variable->name))
 	{
 		Con_Printf ("Can't register variable %s, already defined\n", variable->name);
@@ -208,7 +208,7 @@ Cvar_Command
 Handles variable inspection and changing from the console
 ============
 */
-qboolean	Cvar_Command (void)
+bool	Cvar_Command (void)
 {
 	cvar_t			*v;
 

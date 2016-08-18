@@ -21,11 +21,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include <psp2/ctrl.h>
 #include <psp2/touch.h>
+
+CVAR (m_filter,		0, CVAR_ARCHIVE)
+CVAR (pstv_rumble,	1, CVAR_ARCHIVE | CVAR_PSTV)
+CVAR (retrotouch,	0, CVAR_ARCHIVE | CVAR_PSVITA)
+extern cvar_t always_run, inverted;
+
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
-extern cvar_t always_run, rumble, inverted, retrotouch;
 uint64_t rumble_tick = 0;
-cvar_t	m_filter = {"m_filter","0"};
 SceCtrlData oldanalogs, analogs;
 
 void IN_Init (void)
@@ -37,7 +41,7 @@ void IN_Init (void)
   Cvar_RegisterVariable (&retrotouch);
   Cvar_RegisterVariable (&always_run);
   Cvar_RegisterVariable (&inverted);
-  Cvar_RegisterVariable (&rumble);
+  Cvar_RegisterVariable (&pstv_rumble);
 }
 
 void IN_Shutdown (void)
@@ -50,7 +54,7 @@ void IN_Commands (void)
 
 void IN_StartRumble (void)
 {
-	if (!rumble.value) return;
+	if (!pstv_rumble.value) return;
 	SceCtrlActuator handle;
 	handle.enable = 100;
 	handle.unk = 0;

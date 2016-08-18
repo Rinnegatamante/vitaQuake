@@ -21,16 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //#define	GLTEST			// experimental stuff
 
-enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_serialconfig, m_modemconfig, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
+enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_lanconfig, m_gameoptions, m_search, m_slist} m_state;
 
 #define	QUAKE_GAME			// as opposed to utilities
 
-#define	VERSION				1.09
-#define	GLQUAKE_VERSION		1.00
-#define	D3DQUAKE_VERSION	0.01
-#define	WINQUAKE_VERSION	0.996
-#define	LINUX_VERSION		1.30
-#define	X11_VERSION			1.10
+#define ENGINE_NAME			"VitaQuake"
+#define	VERSION				2.1
 
 //define	PARANOID			// speed sapping error checking
 
@@ -139,34 +135,34 @@ void	VID_UnlockBuffer (void);
 
 // stock defines
 
-#define	IT_SHOTGUN				BIT(1)
-#define	IT_SUPER_SHOTGUN		BIT(2)
-#define	IT_NAILGUN				BIT(3)
-#define	IT_SUPER_NAILGUN		BIT(4)
-#define	IT_GRENADE_LAUNCHER		BIT(5)
-#define	IT_ROCKET_LAUNCHER		BIT(6)
-#define	IT_LIGHTNING			BIT(7)
-#define IT_SUPER_LIGHTNING      BIT(8)
-#define IT_SHELLS               BIT(9)
-#define IT_NAILS                BIT(10)
-#define IT_ROCKETS              BIT(11)
-#define IT_CELLS                BIT(12)
-#define IT_AXE                  BIT(13)
-#define IT_ARMOR1               BIT(14)
-#define IT_ARMOR2               BIT(15)
-#define IT_ARMOR3               BIT(16)
-#define IT_SUPERHEALTH          BIT(17)
-#define IT_KEY1                 BIT(18)
-#define IT_KEY2                 BIT(19)
-#define	IT_INVISIBILITY			BIT(20)
-#define	IT_INVULNERABILITY		BIT(21)
-#define	IT_SUIT					BIT(22)
-#define	IT_QUAD					BIT(23)
+#define	IT_SHOTGUN				BIT(0)
+#define	IT_SUPER_SHOTGUN		BIT(1)
+#define	IT_NAILGUN				BIT(2)
+#define	IT_SUPER_NAILGUN		BIT(3)
+#define	IT_GRENADE_LAUNCHER		BIT(4)
+#define	IT_ROCKET_LAUNCHER		BIT(5)
+#define	IT_LIGHTNING			BIT(6)
+#define IT_SUPER_LIGHTNING      BIT(7)
+#define IT_SHELLS               BIT(8)
+#define IT_NAILS                BIT(9)
+#define IT_ROCKETS              BIT(10)
+#define IT_CELLS                BIT(11)
+#define IT_AXE                  BIT(12)
+#define IT_ARMOR1               BIT(13)
+#define IT_ARMOR2               BIT(14)
+#define IT_ARMOR3               BIT(15)
+#define IT_SUPERHEALTH          BIT(16)
+#define IT_KEY1                 BIT(17)
+#define IT_KEY2                 BIT(18)
+#define	IT_INVISIBILITY			BIT(19)
+#define	IT_INVULNERABILITY		BIT(20)
+#define	IT_SUIT					BIT(21)
+#define	IT_QUAD					BIT(22)
 // [......]
-#define IT_SIGIL1               BIT(28)
-#define IT_SIGIL2               BIT(29)
-#define IT_SIGIL3               BIT(30)
-#define IT_SIGIL4               BIT(31)
+#define IT_SIGIL1               BIT(27)
+#define IT_SIGIL2               BIT(28)
+#define IT_SIGIL3               BIT(29)
+#define IT_SIGIL4               BIT(30)
 
 //===========================================
 //rogue changed and added defines
@@ -288,7 +284,7 @@ typedef struct
 
 
 
-extern qboolean noclip_anglehack;
+extern bool noclip_anglehack;
 
 
 //
@@ -300,7 +296,7 @@ extern	cvar_t		sys_ticrate;
 extern	cvar_t		sys_nostdout;
 extern	cvar_t		developer;
 
-extern	qboolean	host_initialized;		// true if into command execution
+extern	bool	host_initialized;		// true if into command execution
 extern	double		host_frametime;
 extern	byte		*host_basepal;
 extern	byte		*host_colormap;
@@ -318,15 +314,15 @@ void Host_EndGame (char *message, ...);
 void Host_Frame (float time);
 void Host_Quit_f (void);
 void Host_ClientCommands (char *fmt, ...);
-void Host_ShutdownServer (qboolean crash);
+void Host_ShutdownServer (bool crash);
 
-extern qboolean		msg_suppress_1;		// suppresses resolution and cache size console output
+extern bool		msg_suppress_1;		// suppresses resolution and cache size console output
 										//  an fullscreen DIB focus gain/loss
 extern int			current_skill;		// skill level for currently loaded level (in case
 										//  the user changes the cvar while the level is
 										//  running, this reflects the level actually in use)
 
-extern qboolean		isDedicated;
+extern bool		isDedicated;
 
 extern int			minimum_memory;
 

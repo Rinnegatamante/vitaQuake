@@ -110,7 +110,7 @@ Each entity can have eight independant sound sources, like voice,
 weapon, feet, etc.
 
 Channel 0 is an auto-allocate channel, the others override anything
-allready running on that entity/channel pair.
+already running on that entity/channel pair.
 
 An attenuation of 0 will play full volume everywhere in the level.
 Larger attenuations will drop off.  (max 4 attenuation)
@@ -268,6 +268,8 @@ void SV_ConnectClient (int clientnum)
 	netconnection = client->netconnection;
 	
 	if (sv.loadgame)
+		if (netconnection && netconnection->proquake_connection) 
+			netconnection->proquake_connection = false; // Ch0wW: Hacky fix to force original NetQuake protocol.
 		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
 	memset (client, 0, sizeof(*client));
 	client->netconnection = netconnection;
@@ -724,7 +726,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 SV_SendClientDatagram
 =======================
 */
-qboolean SV_SendClientDatagram (client_t *client)
+bool SV_SendClientDatagram (client_t *client)
 {
 	byte		buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
@@ -1056,6 +1058,8 @@ void SV_SpawnServer (char *server)
 {
 	edict_t		*ent;
 	int			i;
+
+
 
 	// let's not have any servers with no name
 	if (hostname.string[0] == 0)

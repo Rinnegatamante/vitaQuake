@@ -37,7 +37,7 @@ cmdalias_t	*cmd_alias;
 int trashtest;
 int *trashspot;
 
-qboolean	cmd_wait;
+bool	cmd_wait;
 
 //=============================================================================
 
@@ -350,7 +350,7 @@ void Cmd_Alias_f (void)
 		return;
 	}
 
-	// if the alias allready exists, reuse it
+	// if the alias already exists, reuse it
 	for (a = cmd_alias ; a ; a=a->next)
 	{
 		if (!strcmp(s, a->name))
@@ -555,7 +555,7 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 Cmd_Exists
 ============
 */
-qboolean	Cmd_Exists (char *cmd_name)
+bool	Cmd_Exists (char *cmd_name)
 {
 	cmd_function_t	*cmd;
 

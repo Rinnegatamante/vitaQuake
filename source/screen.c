@@ -23,6 +23,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #include <vita2d.h>
 
+CVAR (viewsize, 100, CVAR_ARCHIVE)
+CVAR (fov,		90,	 CVAR_ARCHIVE) // LIMITS: 10 - 170
+cvar_t		scr_conspeed = { "scr_conspeed","300", CVAR_ARCHIVE };
+cvar_t		scr_centertime = { "scr_centertime","2", CVAR_ARCHIVE };
+cvar_t		scr_showpause = { "showpause","1" };
+cvar_t		scr_printspeed = { "scr_printspeed","8" };
+CVAR (show_fps, 0, CVAR_ARCHIVE) //  FPS Counter
+
+// Ch0wW -- Those CVARs could be great for debugging
+CVAR (hud_showram,		0, CVAR_DEBUG)
+CVAR (hud_showturtle,	0, CVAR_DEBUG)
+
+
 // only the refresh window will be updated unless these variables are flagged
 int			scr_copytop;
 int			scr_copyeverything;
@@ -31,20 +44,10 @@ float		scr_con_current;
 float		scr_conlines;		// lines of console to display
 
 float		oldscreensize, oldfov;
-cvar_t		scr_viewsize = {"viewsize","100", CVAR_ARCHIVE};
-cvar_t		scr_fov = {"fov","90", CVAR_ARCHIVE};	// 10 - 170
-cvar_t		scr_conspeed = {"scr_conspeed","300", CVAR_ARCHIVE};
-cvar_t		scr_centertime = {"scr_centertime","2", CVAR_ARCHIVE};
-cvar_t		scr_showpause = {"showpause","1"};
-cvar_t		scr_printspeed = {"scr_printspeed","8"};
-cvar_t		show_fps = {"show_fps", "0", CVAR_ARCHIVE};	//  FPS Counter
-
-// Ch0wW -- Those CVARs could be great for debugging
-cvar_t		scr_showram = {"showram","0", CVAR_DEBUG};
-cvar_t		scr_showturtle = {"showturtle","0", CVAR_DEBUG};
 
 
-qboolean	scr_initialized;		// ready to draw
+
+bool	scr_initialized;		// ready to draw
 
 qpic_t		*scr_ram;
 qpic_t		*scr_net;
@@ -60,12 +63,12 @@ viddef_t	vid;				// global video state
 vrect_t		*pconupdate;
 vrect_t		scr_vrect;
 
-qboolean	scr_disabled_for_loading;
-qboolean	scr_drawloading;
+bool	scr_disabled_for_loading;
+bool	scr_drawloading;
 float		scr_disabled_time;
-qboolean	scr_skipupdate;
+bool	scr_skipupdate;
 
-qboolean	block_drawing;
+bool	block_drawing;
 
 void SCR_ScreenShot_f (void);
 
@@ -236,25 +239,25 @@ static void SCR_CalcRefdef (void)
 //========================================
 
 // bound viewsize
-	if (scr_viewsize.value < 30)
+	if (viewsize.value < 30)
 		Cvar_Set ("viewsize","30");
-	if (scr_viewsize.value > 120)
+	if (viewsize.value > 120)
 		Cvar_Set ("viewsize","120");
 
 // bound field of view
-	if (scr_fov.value < 10)
+	if (fov.value < 10)
 		Cvar_Set ("fov","10");
-	if (scr_fov.value > 170)
+	if (fov.value > 170)
 		Cvar_Set ("fov","170");
 
-	r_refdef.fov_x = scr_fov.value;
+	r_refdef.fov_x = fov.value;
 	r_refdef.fov_y = CalcFov (r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
 // intermission is always full screen
 	if (cl.intermission)
 		size = 120;
 	else
-		size = scr_viewsize.value;
+		size = viewsize.value;
 
 	if (size >= 120)
 		sb_lines = 0;		// no status bar at all
@@ -291,7 +294,7 @@ Keybinding command
 */
 void SCR_SizeUp_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize.value+10);
+	Cvar_SetValue ("viewsize",viewsize.value+10);
 	vid.recalc_refdef = 1;
 }
 
@@ -305,7 +308,7 @@ Keybinding command
 */
 void SCR_SizeDown_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize.value-10);
+	Cvar_SetValue ("viewsize",viewsize.value-10);
 	vid.recalc_refdef = 1;
 }
 
@@ -318,14 +321,14 @@ SCR_Init
 */
 void SCR_Init (void)
 {
-	Cvar_RegisterVariable (&scr_fov);
-	Cvar_RegisterVariable (&scr_viewsize);
+	Cvar_RegisterVariable (&fov);
+	Cvar_RegisterVariable (&viewsize);
 	Cvar_RegisterVariable (&scr_conspeed);
-	Cvar_RegisterVariable (&scr_showram);
-	Cvar_RegisterVariable (&scr_showturtle);
 	Cvar_RegisterVariable (&scr_showpause);
 	Cvar_RegisterVariable (&scr_centertime);
 	Cvar_RegisterVariable (&scr_printspeed);
+	Cvar_RegisterVariable (&hud_showram);
+	Cvar_RegisterVariable (&hud_showturtle);
 	Cvar_RegisterVariable (&show_fps); // muff
 
 //
@@ -351,7 +354,7 @@ SCR_DrawRam
 */
 void SCR_DrawRam (void)
 {
-	if (!scr_showram.value)
+	if (!hud_showram.value)
 		return;
 
 	if (!r_cache_thrash)
@@ -369,7 +372,7 @@ void SCR_DrawTurtle (void)
 {
 	static int	count;
 
-	if (!scr_showturtle.value)
+	if (!hud_showturtle.value)
 		return;
 
 	if (host_frametime < 0.1)
@@ -737,7 +740,7 @@ void SCR_EndLoadingPlaque (void)
 //=============================================================================
 
 char	*scr_notifystring;
-qboolean	scr_drawdialog;
+bool	scr_drawdialog;
 
 void SCR_DrawNotifyString (void)
 {
@@ -870,18 +873,18 @@ void SCR_UpdateScreen (void)
 	if (!scr_initialized || !con_initialized)
 		return;				// not initialized yet
 
-	if (scr_viewsize.value != oldscr_viewsize)
+	if (viewsize.value != oldscr_viewsize)
 	{
-		oldscr_viewsize = scr_viewsize.value;
+		oldscr_viewsize = viewsize.value;
 		vid.recalc_refdef = 1;
 	}
 
 //
 // check for vid changes
 //
-	if (oldfov != scr_fov.value)
+	if (oldfov != fov.value)
 	{
-		oldfov = scr_fov.value;
+		oldfov = fov.value;
 		vid.recalc_refdef = true;
 	}
 
@@ -891,9 +894,9 @@ void SCR_UpdateScreen (void)
 		vid.recalc_refdef = true;
 	}
 
-	if (oldscreensize != scr_viewsize.value)
+	if (oldscreensize != viewsize.value)
 	{
-		oldscreensize = scr_viewsize.value;
+		oldscreensize = viewsize.value;
 		vid.recalc_refdef = true;
 	}
 

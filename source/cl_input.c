@@ -45,6 +45,19 @@ state bit 2 is edge triggered on the down to up transition
 ===============================================================================
 */
 
+CVAR(cl_upspeed, 200, CVAR_NONE)
+CVAR(cl_forwardspeed, 200, CVAR_ARCHIVE)
+CVAR(cl_backspeed, 200, CVAR_ARCHIVE)
+CVAR(cl_sidespeed, 350, CVAR_NONE)
+
+CVAR(cl_movespeedkey, 2.0, CVAR_NONE)
+CVAR(cl_yawspeed, 140, CVAR_NONE)
+CVAR(cl_pitchspeed, 150, CVAR_NONE)
+CVAR(cl_anglespeedkey, 1.5, CVAR_NONE)
+
+CVAR(cl_fullpitch, 0, CVAR_NONE) // ProQuake - get rid of the "unknown command" messages
+
+//----------------------------------------------
 
 kbutton_t	in_mlook, in_klook;
 kbutton_t	in_left, in_right, in_forward, in_back;
@@ -171,7 +184,7 @@ Returns 0.25 if a key was pressed and released during the frame,
 float CL_KeyState (kbutton_t *key)
 {
 	float		val;
-	qboolean	impulsedown, impulseup, down;
+	bool	impulsedown, impulseup, down;
 
 	impulsedown = key->state & 2;
 	impulseup = key->state & 4;
@@ -208,20 +221,6 @@ float CL_KeyState (kbutton_t *key)
 
 
 //==========================================================================
-
-cvar_t	cl_upspeed = {"cl_upspeed","200", CVAR_NONE};
-cvar_t	cl_forwardspeed = {"cl_forwardspeed","200", CVAR_ARCHIVE};
-cvar_t	cl_backspeed = {"cl_backspeed","200", CVAR_ARCHIVE};
-cvar_t	cl_sidespeed = {"cl_sidespeed","350", CVAR_NONE};
-
-cvar_t	cl_movespeedkey = {"cl_movespeedkey","2.0", CVAR_NONE};
-
-cvar_t	cl_yawspeed = {"cl_yawspeed", "140", CVAR_NONE};
-cvar_t	cl_pitchspeed = {"cl_pitchspeed", "150", CVAR_NONE};
-
-cvar_t	cl_anglespeedkey = {"cl_anglespeedkey", "1.5", CVAR_NONE};
-
-cvar_t	cl_fullpitch = {"cl_fullpitch", "0", CVAR_NONE}; // JPG 2.01 - get rid of the "unknown command" messages
 
 /*
 ================

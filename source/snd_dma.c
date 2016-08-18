@@ -21,15 +21,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-#ifdef _WIN32
-#include "winquake.h"
-#endif
+CVAR (bgmvolume, 1, CVAR_ARCHIVE)
+CVAR (volume, 0.7, CVAR_ARCHIVE)
+
+CVAR (nosound, 0, CVAR_ROM) // Ch0wW: since it's not from the CMDLine...
+CVAR (precache, 1, CVAR_ROM)
+
+CVAR(loadas8bit, 0, CVAR_NONE)
+CVAR(bgmbuffer, 4096, CVAR_NONE)
+CVAR(ambient_level, 0.3, CVAR_NONE)
+CVAR(ambient_fade, 100, CVAR_NONE)
+CVAR(snd_noextraupdate, 0, CVAR_NONE)
+CVAR(snd_show, 0, CVAR_NONE)
+CVAR(_snd_mixahead, 0.1, CVAR_NONE)
+
+//----------------------------------------------
 
 void S_Play(void);
 void S_PlayVol(void);
 void S_SoundList(void);
 void S_Update_();
-void S_StopAllSounds(qboolean clear);
+void S_StopAllSounds(bool clear);
 void S_StopAllSoundsC(void);
 
 // =======================================================================
@@ -40,8 +52,8 @@ channel_t   channels[MAX_CHANNELS];
 int			total_channels;
 
 int				snd_blocked = 0;
-static qboolean	snd_ambient = 1;
-qboolean		snd_initialized = false;
+static bool	snd_ambient = 1;
+bool		snd_initialized = false;
 
 // pointer should go away
 volatile dma_t  *shm = 0;
@@ -68,20 +80,6 @@ int 		desired_bits = 16;
 
 int sound_started=0;
 
-cvar_t bgmvolume = {"bgmvolume", "1", true};
-cvar_t volume = {"volume", "0.7", true};
-
-cvar_t nosound = {"nosound", "0"};
-cvar_t precache = {"precache", "1"};
-cvar_t loadas8bit = {"loadas8bit", "0"};
-cvar_t bgmbuffer = {"bgmbuffer", "4096"};
-cvar_t ambient_level = {"ambient_level", "0.3"};
-cvar_t ambient_fade = {"ambient_fade", "100"};
-cvar_t snd_noextraupdate = {"snd_noextraupdate", "0"};
-cvar_t snd_show = {"snd_show", "0"};
-cvar_t _snd_mixahead = {"_snd_mixahead", "0.1", true};
-
-
 // ====================================================================
 // User-setable variables
 // ====================================================================
@@ -93,7 +91,7 @@ cvar_t _snd_mixahead = {"_snd_mixahead", "0.1", true};
 // number of times S_Update() is called per second.
 //
 
-qboolean fakedma = false;
+bool fakedma = false;
 int fakedma_updates = 15;
 
 
@@ -532,7 +530,7 @@ void S_StopSound(int entnum, int entchannel)
 	}
 }
 
-void S_StopAllSounds(qboolean clear)
+void S_StopAllSounds(bool clear)
 {
 	int		i;
 

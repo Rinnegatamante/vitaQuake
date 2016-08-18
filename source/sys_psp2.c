@@ -36,7 +36,7 @@ extern int old_char;
 extern int isDanzeff;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
-qboolean		isDedicated;
+bool		isDedicated;
 
 uint64_t initialTime = 0;
 int hostInitialized = 0;

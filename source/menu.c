@@ -20,18 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vita2d.h>
 #include "quakedef.h"
 
-#ifdef _WIN32
-#include "winquake.h"
-#endif
-
 extern vita2d_texture* tex_buffer;
 extern char res_string[256];
-extern cvar_t	scr_fov;
+extern cvar_t	fov;
 extern cvar_t	crosshair;
 extern cvar_t	d_mipscale;
 extern void VID_ChangeRes(float);
 extern cvar_t	inverted;
-extern cvar_t	rumble;
+extern cvar_t	pstv_rumble;
 extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
@@ -51,8 +47,6 @@ void M_Menu_Main_f (void);
 		void M_Menu_Video_f (void);
 	void M_Menu_Help_f (void);
 	void M_Menu_Quit_f (void);
-void M_Menu_SerialConfig_f (void);
-	void M_Menu_ModemConfig_f (void);
 void M_Menu_LanConfig_f (void);
 void M_Menu_GameOptions_f (void);
 void M_Menu_Search_f (void);
@@ -70,8 +64,6 @@ void M_Main_Draw (void);
 		void M_Video_Draw (void);
 	void M_Help_Draw (void);
 	void M_Quit_Draw (void);
-void M_SerialConfig_Draw (void);
-	void M_ModemConfig_Draw (void);
 void M_LanConfig_Draw (void);
 void M_GameOptions_Draw (void);
 void M_Search_Draw (void);
@@ -89,19 +81,17 @@ void M_Main_Key (int key);
 		void M_Video_Key (int key);
 	void M_Help_Key (int key);
 	void M_Quit_Key (int key);
-void M_SerialConfig_Key (int key);
-	void M_ModemConfig_Key (int key);
 void M_LanConfig_Key (int key);
 void M_GameOptions_Key (int key);
 void M_Search_Key (int key);
 void M_ServerList_Key (int key);
 
-qboolean	m_entersound;		// play after drawing a frame, so caching
+bool	m_entersound;		// play after drawing a frame, so caching
 								// won't disrupt the sound
-qboolean	m_recursiveDraw;
+bool	m_recursiveDraw;
 
 int			m_return_state;
-qboolean	m_return_onerror;
+bool	m_return_onerror;
 char		m_return_reason [32];
 
 #define StartingGame	(m_multiplayer_cursor == 1)
@@ -430,8 +420,7 @@ void M_SinglePlayer_Key (int key)
 				if (!SCR_ModalMessage("Are you sure you want to\nstart a new game?\n"))
 					break;
 			key_dest = key_game;
-			if (sv.active)
-				Cbuf_AddText ("disconnect\n");
+			Cbuf_AddText ("disconnect\n");	// Ch0wW: Disconnect all the time to reset original NetQuake behaviour.
 			Cbuf_AddText ("maxplayers 1\n");
 			Cbuf_AddText ("map start\n");
 			break;
@@ -646,7 +635,7 @@ void M_MultiPlayer_Draw (void)
 
 	M_DrawTransPic (54, 32 + m_multiplayer_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
 
-	if (serialAvailable || ipxAvailable || tcpipAvailable)
+	if (tcpipAvailable)
 		return;
 	M_PrintWhite ((320/2) - ((27*8)/2), 148, "No Communications Available");
 }
@@ -963,12 +952,12 @@ void M_AdjustSliders (int dir)
 	switch (options_cursor)
 	{
 	case 3:	// screen size
-		scr_viewsize.value += dir * 10;
-		if (scr_viewsize.value < 30)
-			scr_viewsize.value = 30;
-		if (scr_viewsize.value > 120)
-			scr_viewsize.value = 120;
-		Cvar_SetValue ("viewsize", scr_viewsize.value);
+		viewsize.value += dir * 10;
+		if (viewsize.value < 30)
+			viewsize.value = 30;
+		if (viewsize.value > 120)
+			viewsize.value = 120;
+		Cvar_SetValue ("viewsize", viewsize.value);
 		break;
 	case 4:	// gamma
 		v_gamma.value -= dir * 0.05;
@@ -1019,10 +1008,10 @@ void M_AdjustSliders (int dir)
 		break;
 
 	case 11:	// field of view
-		scr_fov.value += dir * 5;
-		if (scr_fov.value > 130) scr_fov.value = 130;
-		if (scr_fov.value < 75) scr_fov.value = 75;
-		Cvar_SetValue ("fov",scr_fov.value);
+		fov.value += dir * 5;
+		if (fov.value > 130) fov.value = 130;
+		if (fov.value < 75) fov.value = 75;
+		Cvar_SetValue ("fov",fov.value);
 		break;
 
 	case 12:	// crosshair		
@@ -1034,7 +1023,7 @@ void M_AdjustSliders (int dir)
 		break;
 		
 	case 14:	// rumble
-		Cvar_SetValue ("pstv_rumble", !rumble.value);
+		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
 		break;
 		
 	case 15:	// show fps
@@ -1098,7 +1087,7 @@ void M_Options_Draw (void)
 	M_Print (16, 48, "     Reset to defaults");
 
 	M_Print (16, 56, "           Screen size");
-	r = (scr_viewsize.value - 30) / (120 - 30);
+	r = (viewsize.value - 30) / (120 - 30);
 	M_DrawSlider (220, 56, r);
 
 	M_Print (16, 64, "            Brightness");
@@ -1128,7 +1117,7 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 112, inverted.value);
 
 	M_Print (16, 120, "         Field of View");
-	r = (scr_fov.value - 75) / 55;
+	r = (fov.value - 75) / 55;
 	M_DrawSlider (220, 120, r);
 
 	M_Print (16, 128, "        Show Crosshair");
@@ -1139,7 +1128,7 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 136, retrotouch.value);
 	
 	M_Print (16, 144, "         Rumble Effect");
-	M_DrawCheckbox (220, 144, rumble.value);
+	M_DrawCheckbox (220, 144, pstv_rumble.value);
 	
 	M_Print (16, 152, "        Show Framerate");
 	M_DrawCheckbox (220, 152, show_fps.value);
@@ -1194,8 +1183,8 @@ void M_Options_Key (int k)
 			Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
 			d_mipscale.value = 1;
 			Cvar_SetValue ("d_mipscale", d_mipscale.value);
-			scr_fov.value = 90;
-			Cvar_SetValue ("fov", scr_fov.value);
+			fov.value = 90;
+			Cvar_SetValue ("fov", fov.value);
 			break;
 
 		default:
@@ -1506,7 +1495,7 @@ void M_Help_Key (int key)
 
 int		msgNumber;
 int		m_quit_prevstate;
-qboolean	wasInMenus;
+bool	wasInMenus;
 
 #ifndef	_WIN32
 char *quitMessage [] = 
@@ -2007,7 +1996,7 @@ episode_t	rogueepisodes[] =
 int	startepisode;
 int	startlevel;
 int maxplayers;
-qboolean m_serverInfoMessage = false;
+bool m_serverInfoMessage = false;
 double m_serverInfoMessageTime;
 
 void M_Menu_GameOptions_f (void)
@@ -2318,7 +2307,7 @@ void M_GameOptions_Key (int key)
 //=============================================================================
 /* SEARCH MENU */
 
-qboolean	searchComplete = false;
+bool	searchComplete = false;
 double		searchCompleteTime;
 
 void M_Menu_Search_f (void)
@@ -2379,7 +2368,7 @@ void M_Search_Key (int key)
 /* SLIST MENU */
 
 int		slist_cursor;
-qboolean slist_sorted;
+bool slist_sorted;
 
 void M_Menu_ServerList_f (void)
 {
