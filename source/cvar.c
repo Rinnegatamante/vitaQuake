@@ -101,10 +101,10 @@ char *Cvar_CompleteVariable (char *partial)
 Cvar_Set
 ============
 */
-void Cvar_SetFull (char *var_name, char *value, qboolean forced)
+void Cvar_SetFull (char *var_name, char *value, bool forced)
 {
 	cvar_t	*var;
-	qboolean changed;
+	bool changed;
 	
 	var = Cvar_FindVar (var_name);
 	if (!var)
@@ -208,7 +208,7 @@ Cvar_Command
 Handles variable inspection and changing from the console
 ============
 */
-qboolean	Cvar_Command (void)
+bool	Cvar_Command (void)
 {
 	cvar_t			*v;
 

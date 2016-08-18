@@ -65,7 +65,7 @@ void VCR_ReadNext (void)
 }
 
 
-void VCR_Listen (qboolean state)
+void VCR_Listen (bool state)
 {
 }
 
@@ -113,9 +113,9 @@ int VCR_SendMessage (qsocket_t *sock, sizebuf_t *data)
 }
 
 
-qboolean VCR_CanSendMessage (qsocket_t *sock)
+bool VCR_CanSendMessage (qsocket_t *sock)
 {
-	qboolean	ret;
+	bool	ret;
 
 	if (host_time != next.time || next.op != VCR_OP_CANSENDMESSAGE || next.session != *(long *)(&sock->driverdata))
 		Sys_Error ("VCR missmatch");
@@ -133,7 +133,7 @@ void VCR_Close (qsocket_t *sock)
 }
 
 
-void VCR_SearchForHosts (qboolean xmit)
+void VCR_SearchForHosts (bool xmit)
 {
 }
 

@@ -31,7 +31,7 @@ CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 #define NUM_MIPS	4
 
 surfcache_t		*d_initial_rover;
-qboolean		d_roverwrapped;
+bool		d_roverwrapped;
 int				d_minmip;
 float			d_scalemip[NUM_MIPS-1];
 

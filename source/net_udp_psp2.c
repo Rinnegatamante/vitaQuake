@@ -280,7 +280,7 @@ void UDP_Shutdown (void)
 
 //=============================================================================
 
-void UDP_Listen (qboolean state)
+void UDP_Listen (bool state)
 {
 	Log("UDP_Listen");
 	// enable listening

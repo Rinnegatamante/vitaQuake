@@ -129,7 +129,7 @@ void PF_setorigin (void)
 }
 
 
-void SetMinMaxSize (edict_t *e, float *min, float *max, qboolean rotate)
+void SetMinMaxSize (edict_t *e, float *min, float *max, bool rotate)
 {
 	float	*angles;
 	vec3_t	rmin, rmax;

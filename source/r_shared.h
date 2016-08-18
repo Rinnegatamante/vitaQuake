@@ -92,7 +92,7 @@ typedef struct surf_s
 	void		*data;				// associated data like msurface_t
 	entity_t	*entity;
 	float		nearzi;				// nearest 1/z on surface, for mipmapping
-	qboolean	insubmodel;
+	bool	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
 
 	int			pad[2];				// to 64 bytes
