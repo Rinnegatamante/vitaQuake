@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int  WIPX_Init (void);
 void WIPX_Shutdown (void);
-void WIPX_Listen (qboolean state);
+void WIPX_Listen (bool state);
 int  WIPX_OpenSocket (int port);
 int  WIPX_CloseSocket (int socket);
 int  WIPX_Connect (int socket, struct qsockaddr *addr);

@@ -34,7 +34,7 @@ typedef union eval_s
 #define	MAX_ENT_LEAFS	16
 typedef struct edict_s
 {
-	qboolean	free;
+	bool	free;
 	link_t		area;				// linked to a division node or leaf
 	
 	int			num_leafs;
@@ -119,7 +119,7 @@ extern int pr_numbuiltins;
 
 extern int		pr_argc;
 
-extern	qboolean	pr_trace;
+extern	bool	pr_trace;
 extern	dfunction_t	*pr_xfunction;
 extern	int			pr_xstatement;
 

@@ -110,14 +110,14 @@ extern cvar_t	r_drawflat;
 extern int		d_spanpixcount;
 extern int		r_framecount;		// sequence # of current frame since Quake
 									//  started
-extern qboolean	r_drawpolys;		// 1 if driver wants clipped polygons
+extern bool	r_drawpolys;		// 1 if driver wants clipped polygons
 									//  rather than a span list
-extern qboolean	r_drawculledpolys;	// 1 if driver wants clipped polygons that
+extern bool	r_drawculledpolys;	// 1 if driver wants clipped polygons that
 									//  have been culled by the edge list
-extern qboolean	r_worldpolysbacktofront;	// 1 if driver wants polygons
+extern bool	r_worldpolysbacktofront;	// 1 if driver wants polygons
 											//  delivered back to front rather
 											//  than front to back
-extern qboolean	r_recursiveaffinetriangles;	// true if a driver wants to use
+extern bool	r_recursiveaffinetriangles;	// true if a driver wants to use
 											//  recursive triangular subdivison
 											//  and vertex drawing via
 											//  D_PolysetDrawFinalVerts() past
@@ -127,7 +127,7 @@ extern qboolean	r_recursiveaffinetriangles;	// true if a driver wants to use
 extern float	r_aliasuvscale;		// scale-up factor for screen u and v
 									//  on Alias vertices passed to driver
 extern int		r_pixbytes;
-extern qboolean	r_dowarp;
+extern bool	r_dowarp;
 
 extern affinetridesc_t	r_affinetridesc;
 extern spritedesc_t		r_spritedesc;

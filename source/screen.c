@@ -47,7 +47,7 @@ float		oldscreensize, oldfov;
 
 
 
-qboolean	scr_initialized;		// ready to draw
+bool	scr_initialized;		// ready to draw
 
 qpic_t		*scr_ram;
 qpic_t		*scr_net;
@@ -63,12 +63,12 @@ viddef_t	vid;				// global video state
 vrect_t		*pconupdate;
 vrect_t		scr_vrect;
 
-qboolean	scr_disabled_for_loading;
-qboolean	scr_drawloading;
+bool	scr_disabled_for_loading;
+bool	scr_drawloading;
 float		scr_disabled_time;
-qboolean	scr_skipupdate;
+bool	scr_skipupdate;
 
-qboolean	block_drawing;
+bool	block_drawing;
 
 void SCR_ScreenShot_f (void);
 
@@ -740,7 +740,7 @@ void SCR_EndLoadingPlaque (void)
 //=============================================================================
 
 char	*scr_notifystring;
-qboolean	scr_drawdialog;
+bool	scr_drawdialog;
 
 void SCR_DrawNotifyString (void)
 {

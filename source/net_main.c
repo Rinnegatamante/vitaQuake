@@ -31,18 +31,18 @@ qsocket_t	*net_activeSockets = NULL;
 qsocket_t	*net_freeSockets = NULL;
 int			net_numsockets = 0;
 
-qboolean	tcpipAvailable = false;
+bool	tcpipAvailable = false;
 
 int			net_hostport;
 int			DEFAULTnet_hostport = 26000;
 
 char		my_tcpip_address[NET_NAMELEN];
 
-static qboolean	listening = false;
+static bool	listening = false;
 
-qboolean	slistInProgress = false;
-qboolean	slistSilent = false;
-qboolean	slistLocal = true;
+bool	slistInProgress = false;
+bool	slistSilent = false;
+bool	slistLocal = true;
 static double	slistStartTime;
 static int		slistLastShown;
 
@@ -65,7 +65,7 @@ cvar_t	idgods = {"idgods", "0"};
 #endif
 
 int	vcrFile = -1;
-qboolean recording = false;
+bool recording = false;
 
 // these two macros are to make the code more readable
 #define sfunc	net_drivers[sock->driver]
@@ -83,7 +83,7 @@ double SetNetTime(void)
 }
 
 
-qboolean NET_QSocketIsProQuakeServer (qsocket_t *s)
+bool NET_QSocketIsProQuakeServer (qsocket_t *s)
 {
    return s->proquake_connection;
 }
@@ -681,7 +681,7 @@ Returns true or false if the given qsocket can currently accept a
 message to be transmitted.
 ==================
 */
-qboolean NET_CanSendMessage (qsocket_t *sock)
+bool NET_CanSendMessage (qsocket_t *sock)
 {
 	int		r;
 	
@@ -713,8 +713,8 @@ int NET_SendToAll(sizebuf_t *data, int blocktime)
 	double		start;
 	int			i;
 	int			count = 0;
-	qboolean	state1 [MAX_SCOREBOARD];
-	qboolean	state2 [MAX_SCOREBOARD];
+	bool	state1 [MAX_SCOREBOARD];
+	bool	state2 [MAX_SCOREBOARD];
 
 	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
 	{
@@ -907,7 +907,7 @@ static PollProcedure *pollProcedureList = NULL;
 void NET_Poll(void)
 {
 	PollProcedure *pp;
-	qboolean	useModem;
+	bool	useModem;
 
 	SetNetTime();
 
@@ -948,7 +948,7 @@ void SchedulePollProcedure(PollProcedure *proc, double timeOffset)
 #ifdef IDGODS
 #define IDNET	0xc0f62800
 
-qboolean IsID(struct qsockaddr *addr)
+bool IsID(struct qsockaddr *addr)
 {
 	if (idgods.value == 0.0)
 		return false;

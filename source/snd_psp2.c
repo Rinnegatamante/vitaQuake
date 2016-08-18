@@ -60,7 +60,7 @@ static int audio_thread(int args, void *argp)
     return 0;
 }
 
-qboolean SNDDMA_Init(void)
+bool SNDDMA_Init(void)
 {
 	snd_initialized = 0;
 

@@ -160,7 +160,7 @@ static int bgmThread(unsigned int args, void* arg){
 	
 }
 
-void CDAudio_Play(byte track, qboolean looping)
+void CDAudio_Play(byte track, bool looping)
 {
 	CDAudio_Stop();
 	char fname[256];

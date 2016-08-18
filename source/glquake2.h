@@ -52,8 +52,8 @@ extern	int		texture_mode;
 
 extern	float	gldepthmin, gldepthmax;
 
-void GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap, qboolean alpha, qboolean modulate);
-void GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean alpha, qboolean modulate);
+void GL_Upload32 (unsigned *data, int width, int height,  bool mipmap, bool alpha, bool modulate);
+void GL_Upload8 (byte *data, int width, int height,  bool mipmap, bool alpha, bool modulate);
 int GL_LoadTexture (char *identifier, int width, int height, byte *data, int mipmap, int alpha, int modulate);
 int GL_FindTexture (char *identifier);
 
@@ -148,7 +148,7 @@ typedef struct particle_s
 
 
 extern	entity_t	r_worldentity;
-extern	qboolean	r_cache_thrash;		// compatability
+extern	bool	r_cache_thrash;		// compatability
 extern	vec3_t		modelorg, r_entorigin;
 extern	entity_t	*currententity;
 extern	int			r_visframecount;	// ??? what difs?
@@ -173,7 +173,7 @@ extern	mleaf_t		*r_viewleaf, *r_oldviewleaf;
 extern	texture_t	*r_notexture_mip;
 extern	int		d_lightstylevalue[256];	// 8.8 fraction of base light value
 
-extern	qboolean	envmap;
+extern	bool	envmap;
 extern	int	currenttexture;
 extern	int	particletexture;
 extern	int	playertextures;

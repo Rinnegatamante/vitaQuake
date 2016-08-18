@@ -41,7 +41,7 @@ void S_Play(void);
 void S_PlayVol(void);
 void S_SoundList(void);
 void S_Update_();
-void S_StopAllSounds(qboolean clear);
+void S_StopAllSounds(bool clear);
 void S_StopAllSoundsC(void);
 
 // =======================================================================
@@ -52,8 +52,8 @@ channel_t   channels[MAX_CHANNELS];
 int			total_channels;
 
 int				snd_blocked = 0;
-static qboolean	snd_ambient = 1;
-qboolean		snd_initialized = false;
+static bool	snd_ambient = 1;
+bool		snd_initialized = false;
 
 // pointer should go away
 volatile dma_t  *shm = 0;
@@ -91,7 +91,7 @@ int sound_started=0;
 // number of times S_Update() is called per second.
 //
 
-qboolean fakedma = false;
+bool fakedma = false;
 int fakedma_updates = 15;
 
 
@@ -530,7 +530,7 @@ void S_StopSound(int entnum, int entchannel)
 	}
 }
 
-void S_StopAllSounds(qboolean clear)
+void S_StopAllSounds(bool clear)
 {
 	int		i;
 

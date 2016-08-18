@@ -58,7 +58,7 @@ extern cvar_t	d_subdiv16;
 
 extern float	scale_for_mip;
 
-extern qboolean		d_roverwrapped;
+extern bool		d_roverwrapped;
 extern surfcache_t	*sc_rover;
 extern surfcache_t	*d_initial_rover;
 
