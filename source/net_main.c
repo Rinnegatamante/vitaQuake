@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 CVAR (net_messagetimeout, 300, CVAR_NONE)
 CVAR (hostname, "UNNAMED", CVAR_ARCHIVE)
 
+CVAR (pq_password, "", CVAR_NONE)	// ProQuake 3 behaviour
+
 //----------------------------------------------
 
 qsocket_t	*net_activeSockets = NULL;
@@ -80,12 +82,6 @@ double SetNetTime(void)
 {
 	net_time = Sys_FloatTime();
 	return net_time;
-}
-
-
-bool NET_QSocketIsProQuakeServer (qsocket_t *s)
-{
-   return s->proquake_connection;
 }
 
 /*
