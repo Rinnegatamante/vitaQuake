@@ -47,8 +47,6 @@ void M_Menu_Main_f (void);
 		void M_Menu_Video_f (void);
 	void M_Menu_Help_f (void);
 	void M_Menu_Quit_f (void);
-void M_Menu_SerialConfig_f (void);
-	void M_Menu_ModemConfig_f (void);
 void M_Menu_LanConfig_f (void);
 void M_Menu_GameOptions_f (void);
 void M_Menu_Search_f (void);
@@ -66,8 +64,6 @@ void M_Main_Draw (void);
 		void M_Video_Draw (void);
 	void M_Help_Draw (void);
 	void M_Quit_Draw (void);
-void M_SerialConfig_Draw (void);
-	void M_ModemConfig_Draw (void);
 void M_LanConfig_Draw (void);
 void M_GameOptions_Draw (void);
 void M_Search_Draw (void);
@@ -85,8 +81,6 @@ void M_Main_Key (int key);
 		void M_Video_Key (int key);
 	void M_Help_Key (int key);
 	void M_Quit_Key (int key);
-void M_SerialConfig_Key (int key);
-	void M_ModemConfig_Key (int key);
 void M_LanConfig_Key (int key);
 void M_GameOptions_Key (int key);
 void M_Search_Key (int key);
@@ -428,6 +422,11 @@ void M_SinglePlayer_Key (int key)
 			key_dest = key_game;
 			if (sv.active)
 				Cbuf_AddText ("disconnect\n");
+
+			// Ch0wW: Hacky fix to restore original NetQuake protocol.
+			if (cls.netcon->proquake_connection)
+				cls.netcon->proquake_connection = false;
+
 			Cbuf_AddText ("maxplayers 1\n");
 			Cbuf_AddText ("map start\n");
 			break;

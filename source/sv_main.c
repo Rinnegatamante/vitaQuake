@@ -268,6 +268,7 @@ void SV_ConnectClient (int clientnum)
 	netconnection = client->netconnection;
 	
 	if (sv.loadgame)
+		client->netconnection->proquake_connection = false;	// Ch0wW: Hacky fix to restore original NetQuake protocol.
 		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
 	memset (client, 0, sizeof(*client));
 	client->netconnection = netconnection;
@@ -1056,6 +1057,8 @@ void SV_SpawnServer (char *server)
 {
 	edict_t		*ent;
 	int			i;
+
+
 
 	// let's not have any servers with no name
 	if (hostname.string[0] == 0)
