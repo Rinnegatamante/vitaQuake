@@ -19,7 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // protocol.h -- communications protocols
 
-#define	PROTOCOL_VERSION	15
+/*
+================
+Here is a short list of known protocol used by other NetQuake ports:
+- 15: Default NetQuake protocol.
+- 666: FitzQuake protocol (also used by QuakeSpasm)
+- 35, 36, 37, 38: ProQuake protocol
+================
+*/
+#define	PROTOCOL_VERSION	15	// NETWORK PROTOCOL USED (NETQUAKE)
+
 
 // if the high bit of the servercmd is set, the low bits are fast update flags:
 #define	U_MOREBITS	(1<<0)

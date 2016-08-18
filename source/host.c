@@ -41,7 +41,7 @@ CVAR(host_speeds, 0, CVAR_NONE)
 CVAR(sys_ticrate, 0.05, CVAR_NONE)
 CVAR(serverprofile, 0, CVAR_NONE)
 
-CVAR(skill, 1, CVAR_SERVERINFO)
+CVAR(skill, 1, CVAR_NONE)
 CVAR(deathmatch, 0, CVAR_SERVERINFO)
 CVAR(coop, 0, CVAR_SERVERINFO)
 CVAR(fraglimit, 0, CVAR_SERVERINFO)

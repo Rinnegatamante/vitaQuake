@@ -907,7 +907,6 @@ static PollProcedure *pollProcedureList = NULL;
 void NET_Poll(void)
 {
 	PollProcedure *pp;
-	bool	useModem;
 
 	SetNetTime();
 
