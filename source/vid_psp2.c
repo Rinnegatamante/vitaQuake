@@ -116,7 +116,7 @@ void VID_ChangeRes(float scale){
 	
 	// Forcing a palette restoration
 	fixpalette = v_gamma.value;
-	Cvar_SetValue ("gamma", 0.1);
+	Cvar_SetValue ("v_gamma", 0.1);
 	
 	// Changing scale value
 	rend_scale = scales[idx];
@@ -134,7 +134,7 @@ void	VID_Update (vrect_t *rects)
 {
 	
 	if (fixpalette > 0){
-		Cvar_SetValue ("gamma", fixpalette);
+		Cvar_SetValue ("v_gamma", fixpalette);
 		fixpalette = 0;
 	}
 	vita2d_start_drawing();
