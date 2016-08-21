@@ -3,6 +3,7 @@ TITLE		:= QUAK00001
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
 LIBS = -lvorbisfile -logg -lvorbis -lspeexdsp -lmpg123 \
 	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
@@ -93,7 +94,7 @@ OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -Wl,-q -O3 -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER
+CFLAGS  = -Wl,-q -O3 -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
