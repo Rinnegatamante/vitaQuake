@@ -651,7 +651,7 @@ void Cmd_ForwardToServer (void)
 {
 	if (cls.state != ca_connected)
 	{
-		Con_Printf ("Can't \"%s\", not connected\n", Cmd_Argv(0));
+		Con_Printf ("You have to be connected to be able to use %s.\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -664,10 +664,8 @@ void Cmd_ForwardToServer (void)
 		SZ_Print (&cls.message, Cmd_Argv(0));
 		SZ_Print (&cls.message, " ");
 	}
-	if (Cmd_Argc() > 1)
-		SZ_Print (&cls.message, Cmd_Args());
-	else
-		SZ_Print (&cls.message, "\n");
+	
+	SZ_Print (&cls.message, Cmd_Argc() > 1 ? Cmd_Args() : "\n");
 }
 
 

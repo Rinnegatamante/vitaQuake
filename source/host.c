@@ -189,10 +189,7 @@ void	Host_FindMaxClients (void)
 		svs.maxclientslimit = 4;
 	svs.clients = Hunk_AllocName (svs.maxclientslimit*sizeof(client_t), "clients");
 
-	if (svs.maxclients > 1)
-		Cvar_SetValue ("deathmatch", 1.0);
-	else
-		Cvar_SetValue ("deathmatch", 0.0);
+	Cvar_SetValue ("deathmatch", svs.maxclients > 1 ? 1.0 : 0.0);
 }
 
 
@@ -244,7 +241,7 @@ void Host_WriteConfiguration (void)
 
 // dedicated servers initialize the host but don't parse and set the
 // config.cfg cvars
-	if (host_initialized & !isDedicated)
+	if (host_initialized)
 	{
 		f = fopen (va("%s/config.cfg",com_gamedir), "w");
 		if (!f)
@@ -867,7 +864,7 @@ void Host_Init (quakeparms_t *parms)
 	NET_Init ();
 	SV_Init ();
 
-	Con_Printf ("Exe: "__TIME__" "__DATE__"\n");
+	Host_Version_f();
 	Con_Printf ("%4.1f megabyte heap\n",parms->memsize/ (1024*1024.0));
 
 	R_InitTextures ();		// needed even for dedicated servers
@@ -916,7 +913,7 @@ void Host_Init (quakeparms_t *parms)
 
 	host_initialized = true;
 
-	Sys_Printf ("========Quake Initialized=========\n");
+	Sys_Printf ("======== %s Initialized=========\n", ENGINE_NAME);
 }
 
 
