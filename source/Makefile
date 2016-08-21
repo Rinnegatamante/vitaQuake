@@ -3,7 +3,7 @@ TITLE		:= QUAK00001
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 
 LIBS = -lvorbisfile -logg -lvorbis -lspeexdsp -lmpg123 \
 	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \

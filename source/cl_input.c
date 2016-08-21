@@ -261,27 +261,13 @@ void CL_AdjustAngles (void)
 	if (up || down)
 		V_StopPitchDrift ();
 
-// JPG 1.05 - add pq_fullpitch
+// ProQuake aiming compatibility
 	if (pq_fullpitch.value)
-	{
-		if (cl.viewangles[PITCH] > 90)
-			cl.viewangles[PITCH] = 90;
-		if (cl.viewangles[PITCH] < -90)
-			cl.viewangles[PITCH] = -90;
-	}
+		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);
 	else
-	{
-		if (cl.viewangles[PITCH] > 80)
-			cl.viewangles[PITCH] = 80;
-		if (cl.viewangles[PITCH] < -70)
-			cl.viewangles[PITCH] = -70;
-	}
+		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -70, 80);
 
-	if (cl.viewangles[ROLL] > 50)
-		cl.viewangles[ROLL] = 50;
-	if (cl.viewangles[ROLL] < -50)
-		cl.viewangles[ROLL] = -50;
-
+	cl.viewangles[ROLL] = COM_Clamp(cl.viewangles[ROLL], -50, 50);
 }
 
 /*
@@ -461,5 +447,5 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);
 
-	Cvar_RegisterVariable (&cl_fullpitch); // JPG 2.01 - get rid of "unknown command"
+	Cvar_RegisterVariable (&cl_fullpitch); // ProQuake CVAR
 }
