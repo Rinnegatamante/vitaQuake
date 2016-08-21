@@ -391,7 +391,7 @@ void CL_SendMove(usercmd_t *cmd)
 		return;
 
 //
-// allways dump the first two message, because it may contain leftover inputs
+// always dump the first two message, because it may contain leftover inputs
 // from the last level
 //
 	if (++cl.movemessages <= 2)

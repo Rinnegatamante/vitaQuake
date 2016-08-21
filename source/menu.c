@@ -980,7 +980,7 @@ void M_AdjustSliders (int dir)
 			v_gamma.value = 0.5;
 		if (v_gamma.value > 1)
 			v_gamma.value = 1;
-		Cvar_SetValue ("gamma", v_gamma.value);
+		Cvar_SetValue ("v_gamma", v_gamma.value);
 		break;
 	case 5:	// mouse speed
 		sensitivity.value += dir * 0.5;
@@ -1013,12 +1013,11 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("volume", volume.value);
 		break;
 
-	case 9:	// allways run
+	case 9:	// always run
 		Cvar_SetValue ("always_run", !always_run.value);
 		break;
 
 	case 10:	// invert mouse
-		//Cvar_SetValue ("m_pitch", -m_pitch.value); Hotfix for PSVITA
 		Cvar_SetValue ("invert_camera", !inverted.value);
 		break;
 
@@ -1103,7 +1102,7 @@ void M_Options_Draw (void)
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 64, r);
 
-	M_Print (16, 72, "    Camera Sensibility");
+	M_Print (16, 72, "    Camera Sensitivity");
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
