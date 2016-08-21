@@ -466,10 +466,7 @@ void SV_ReadClientMove (usercmd_t *move)
 	{
 		if (angle[PITCH] > 80 || angle[PITCH] < -70)
 		{
-			if (angle[PITCH] > 80)
-				angle[PITCH] = 80;
-			if (angle[PITCH] < -70)
-				angle[PITCH] = -70;
+			angle[PITCH] = COM_Clamp(angle[PITCH], -70, 80);
 
 			MSG_WriteByte (&host_client->message, svc_setangle);
 			for (i=0 ; i < 3 ; i++)
