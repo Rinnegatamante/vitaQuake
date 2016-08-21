@@ -27,6 +27,7 @@ enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_
 
 #define ENGINE_NAME			"VitaQuake"
 #define	VERSION				2.1
+#define VERSION_PROQUAKE	3.50
 
 //define	PARANOID			// speed sapping error checking
 

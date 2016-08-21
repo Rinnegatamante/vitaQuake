@@ -176,6 +176,7 @@ byte *COM_LoadTempFile (char *path);
 byte *COM_LoadHunkFile (char *path);
 void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
 
+int COM_Clamp(int value, int min, int max);
 
 extern	struct cvar_s	registered;
 

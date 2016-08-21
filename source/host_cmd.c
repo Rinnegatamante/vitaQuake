@@ -611,12 +611,9 @@ void Host_Loadgame_f (void)
 	fscanf (f, "%f\n", &tfloat);
 	current_skill = (int)(tfloat + 0.1);
 	Cvar_SetValue ("skill", (float)current_skill);
-
-#ifdef QUAKE2
 	Cvar_SetValue ("deathmatch", 0);
 	Cvar_SetValue ("coop", 0);
 	Cvar_SetValue ("teamplay", 0);
-#endif
 
 	fscanf (f, "%s\n",mapname);
 	fscanf (f, "%f\n",&time);
@@ -952,8 +949,9 @@ void Host_Name_f (void)
 
 void Host_Version_f (void)
 {
-	Con_Printf ("Version %4.2f\n", VERSION);
-	Con_Printf ("Exe: "__TIME__" "__DATE__"\n");
+	Con_Printf ("%s - Version %4.2f (GIT: %s)\n", ENGINE_NAME, VERSION, GIT_VERSION);
+	Con_Printf ("Compiled: "__TIME__" "__DATE__"\n");
+	Con_Printf ("ProQuake protocol: %4.2f. \n", VERSION_PROQUAKE);
 }
 
 #ifdef IDGODS
@@ -1232,14 +1230,8 @@ void Host_Pause_f (void)
 	{
 		sv.paused ^= 1;
 
-		if (sv.paused)
-		{
-			SV_BroadcastPrintf ("%s paused the game\n", pr_strings + sv_player->v.netname);
-		}
-		else
-		{
-			SV_BroadcastPrintf ("%s unpaused the game\n",pr_strings + sv_player->v.netname);
-		}
+		if (svs.maxclients > 1)
+			SV_BroadcastPrintf ("%s %s the game\n", pr_strings + sv_player->v.netname, sv.paused ? "paused":"unpaused");
 
 	// send notification to all clients
 		MSG_WriteByte (&sv.reliable_datagram, svc_setpause);
