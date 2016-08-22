@@ -79,7 +79,7 @@ static int bgmThread(unsigned int args, void* arg){
 			if (mustExit){
 				sceAudioOutReleasePort(ch);
 				mustExit = false;
-				sceKernelExitThread(0);
+				sceKernelExitDeleteThread(0);
 			}
 		
 		}
@@ -251,7 +251,7 @@ void CDAudio_Shutdown(void)
 {	
 	mustExit = true;
 	sceKernelSignalSema(Audio_Mutex, 1);
-	while (mustExit){} // Wait for threads exiting...
+	sceKernelWaitThreadEnd(thread, NULL, NULL);
 	sceKernelDeleteSema(Audio_Mutex);
 	sceKernelDeleteSema(Talk_Mutex);
 	sceKernelDeleteThread(thread);
