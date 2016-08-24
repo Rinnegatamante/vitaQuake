@@ -1300,7 +1300,7 @@ void COM_CloseFile (int h)
 COM_LoadFile
 
 Filename are reletive to the quake directory.
-Allways appends a 0 byte.
+Always appends a 0 byte.
 ============
 */
 cache_user_t *loadcache;
@@ -1595,4 +1595,9 @@ void COM_InitFilesystem (void)
 
 	if (COM_CheckParm ("-proghack"))
 		proghack = true;
+}
+
+int COM_Clamp(int value, int min, int max)
+{
+	return value < min ? min : (value > max ? max : value);
 }

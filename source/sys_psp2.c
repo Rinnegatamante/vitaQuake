@@ -36,7 +36,7 @@ extern int old_char;
 extern int isDanzeff;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
-bool		isDedicated;
+extern cvar_t psvita_touchmode;
 
 uint64_t initialTime = 0;
 int hostInitialized = 0;
@@ -241,9 +241,9 @@ double Sys_FloatTime (void)
 void PSP2_KeyDown(int keys){
 	if (!isDanzeff){
 		if( keys & SCE_CTRL_SELECT)
-			Key_Event(K_ESCAPE, true);
+			Key_Event(K_SELECT, true);
 		if( keys & SCE_CTRL_START)
-			Key_Event(K_ENTER, true);
+			Key_Event(K_START, true);
 		if( keys & SCE_CTRL_UP)
 			Key_Event(K_UPARROW, true);
 		if( keys & SCE_CTRL_DOWN)
@@ -253,26 +253,27 @@ void PSP2_KeyDown(int keys){
 		if( keys & SCE_CTRL_RIGHT)
 			Key_Event(K_RIGHTARROW, true);
 		if( keys & SCE_CTRL_SQUARE)
-			Key_Event(K_AUX2, true);
+			Key_Event(K_SQUARE, true);
 		if( keys & SCE_CTRL_TRIANGLE)
-			Key_Event(K_AUX3, true);
+			Key_Event(K_TRIANGLE, true);
 		if( keys & SCE_CTRL_CROSS)
-			Key_Event(K_AUX1, true);
+			Key_Event(K_CROSS, true);
 		if( keys & SCE_CTRL_CIRCLE)
-			Key_Event(K_AUX4, true);
+			Key_Event(K_CIRCLE, true);
 		if( keys & SCE_CTRL_LTRIGGER)
-			Key_Event(K_AUX5, true);
+			Key_Event(K_LEFTTRIGGER, true);
 		if( keys & SCE_CTRL_RTRIGGER)
-			Key_Event(K_AUX6, true);
+			Key_Event(K_RIGHTTRIGGER, true);
 	}
 }
+
 
 void PSP2_KeyUp(int keys, int oldkeys){
 	if (!isDanzeff){
 		if ((!(keys & SCE_CTRL_SELECT)) && (oldkeys & SCE_CTRL_SELECT))
-			Key_Event(K_ESCAPE, false);
+			Key_Event(K_SELECT, false);
 		if ((!(keys & SCE_CTRL_START)) && (oldkeys & SCE_CTRL_START))
-			Key_Event(K_ENTER, false);
+			Key_Event(K_START, false);
 		if ((!(keys & SCE_CTRL_UP)) && (oldkeys & SCE_CTRL_UP))
 			Key_Event(K_UPARROW, false);
 		if ((!(keys & SCE_CTRL_DOWN)) && (oldkeys & SCE_CTRL_DOWN))
@@ -282,17 +283,17 @@ void PSP2_KeyUp(int keys, int oldkeys){
 		if ((!(keys & SCE_CTRL_RIGHT)) && (oldkeys & SCE_CTRL_RIGHT))
 			Key_Event(K_RIGHTARROW, false);
 		if ((!(keys & SCE_CTRL_SQUARE)) && (oldkeys & SCE_CTRL_SQUARE))
-			Key_Event(K_AUX2, false);
+			Key_Event(K_SQUARE, false);
 		if ((!(keys & SCE_CTRL_TRIANGLE)) && (oldkeys & SCE_CTRL_TRIANGLE))
-			Key_Event(K_AUX3, false);
+			Key_Event(K_TRIANGLE, false);
 		if ((!(keys & SCE_CTRL_CROSS)) && (oldkeys & SCE_CTRL_CROSS))
-			Key_Event(K_AUX1, false);
+			Key_Event(K_CROSS, false);
 		if ((!(keys & SCE_CTRL_CIRCLE)) && (oldkeys & SCE_CTRL_CIRCLE))
-			Key_Event(K_AUX4, false);
+			Key_Event(K_CIRCLE, false);
 		if ((!(keys & SCE_CTRL_LTRIGGER)) && (oldkeys & SCE_CTRL_LTRIGGER))
-			Key_Event(K_AUX5, false);
+			Key_Event(K_LEFTTRIGGER, false);
 		if ((!(keys & SCE_CTRL_RTRIGGER)) && (oldkeys & SCE_CTRL_RTRIGGER))
-			Key_Event(K_AUX6, false);
+			Key_Event(K_RIGHTTRIGGER, false);
 	}
 }
 
@@ -306,13 +307,15 @@ void Sys_SendKeyEvents (void)
 			PSP2_KeyDown(kDown);
 		if(kUp != kDown)
 			PSP2_KeyUp(kDown, kUp);
-			
-		// Touchscreen support for game status showing
-		SceTouchData touch;
-		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
-		if (touch.reportNum > 0) Key_Event(K_TOUCH, true);
-		else Key_Event(K_TOUCH, false);
 		
+		if (psvita_touchmode.value == 0)
+		{
+			// Touchscreen support for game status showing
+			SceTouchData touch;
+			sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
+			Key_Event(K_TOUCH, touch.reportNum > 0 ? true : false);
+
+		}
 		oldpad = pad;
 	}
 }
@@ -376,30 +379,14 @@ int main (int argc, char **argv)
 	static char cmd[256];
 	sprintf(cmd,"_cl_name \"%s\"\n",nickname);
 	Cbuf_AddText (cmd);
-	
-	// Set default PSVITA controls
-	Cbuf_AddText ("unbindall\n");
-	Cbuf_AddText ("bind CROSS +jump\n"); // Cross
-	Cbuf_AddText ("bind SQUARE +attack\n"); // Square
-	Cbuf_AddText ("bind CIRCLE +jump\n"); // Circle
-	Cbuf_AddText ("bind TRIANGLE \"impulse 10\"\n"); // Triangle
-	Cbuf_AddText ("bind LTRIGGER +speed\n"); // Left Trigger
-	Cbuf_AddText ("bind RTRIGGER +attack\n"); // Right Trigger
-	Cbuf_AddText ("bind UPARROW +moveup\n"); // Up
-	Cbuf_AddText ("bind DOWNARROW +movedown\n"); // Down
-	Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
-	Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
-	Cbuf_AddText ("bind TOUCH +showscores\n"); // Touchscreen
-	Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
-	
+	IN_ResetInputs();
 	Cbuf_AddText ("exec config.cfg\n");
 
-#if 0
-	if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
+	/*if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
 	{
 		Cvar_ForceSet("platform", "2");
-	}
-#endif
+	}*/
+
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
 	
@@ -418,11 +405,13 @@ int main (int argc, char **argv)
 		}
 		
 		// Danzeff keyboard manage for Console / Input
-		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup){
+		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup)
+		{
 			if (old_char != 0) Key_Event(old_char, false);
 			SceCtrlData danzeff_pad, oldpad;
 			sceCtrlPeekBufferPositive(0, &danzeff_pad, 1);
-			if (isDanzeff){
+			if (isDanzeff)
+			{
 				int new_char = danzeff_readInput(danzeff_pad);
 				if (new_char != 0){
 					if (new_char == DANZEFF_START){
@@ -453,8 +442,20 @@ int main (int argc, char **argv)
 					Con_ToggleConsole_f ();
 				}
 			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-				if (key_dest != key_console) danzeff_load();
+				danzeff_load();
 				isDanzeff = true;
+			}
+			else if ((danzeff_pad.buttons & SCE_CTRL_LTRIGGER) && (!(oldpad.buttons & SCE_CTRL_LTRIGGER))) {
+				if (key_dest == key_console) {
+					Key_Event(K_LEFTTRIGGER, true);
+					old_char = K_LEFTTRIGGER;
+				}
+			}
+			else if ((danzeff_pad.buttons & SCE_CTRL_RTRIGGER) && (!(oldpad.buttons & SCE_CTRL_RTRIGGER))) {
+				if (key_dest == key_console) {
+					Key_Event(K_RIGHTTRIGGER, true);
+					old_char = K_RIGHTTRIGGER;
+				}
 			}
 			oldpad = danzeff_pad;
 		}
