@@ -442,7 +442,7 @@ int main (int argc, char **argv)
 					Con_ToggleConsole_f ();
 				}
 			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-				if (key_dest != key_console) danzeff_load();
+				danzeff_load();
 				isDanzeff = true;
 			}
 			else if ((danzeff_pad.buttons & SCE_CTRL_LTRIGGER) && (!(oldpad.buttons & SCE_CTRL_LTRIGGER))) {
