@@ -32,7 +32,7 @@ int 		con_linewidth;
 
 float		con_cursorspeed = 4;
 
-#define		CON_TEXTSIZE	16384
+#define		CON_TEXTSIZE	65536
 
 bool 	con_forcedup;		// because no entities to refresh
 
