@@ -56,7 +56,7 @@ static int audio_thread(int args, void *argp)
 	sceAudioOutReleasePort(chn);
     free(audiobuffer);
 
-    sceKernelExitThread(0);
+    sceKernelExitDeleteThread(0);
     return 0;
 }
 
