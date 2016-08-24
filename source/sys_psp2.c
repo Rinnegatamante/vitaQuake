@@ -22,7 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "errno.h"
 #include <psp2/types.h>
 #include <psp2/rtc.h>
-#include "danzeff.h"
+#include <psp2/common_dialog.h>
+#include <psp2/ime_dialog.h>
 #include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
@@ -33,7 +34,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u64 uint64_t
 
 extern int old_char;
-extern int isDanzeff;
+extern int setup_cursor;
+extern int lanConfig_cursor;
+extern int isKeyboard;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
 bool		isDedicated;
@@ -237,7 +240,7 @@ double Sys_FloatTime (void)
 }
 
 void PSP2_KeyDown(int keys){
-	if (!isDanzeff){
+	if (!isKeyboard){
 		if( keys & SCE_CTRL_SELECT)
 			Key_Event(K_ESCAPE, true);
 		if( keys & SCE_CTRL_START)
@@ -266,7 +269,7 @@ void PSP2_KeyDown(int keys){
 }
 
 void PSP2_KeyUp(int keys, int oldkeys){
-	if (!isDanzeff){
+	if (!isKeyboard){
 		if ((!(keys & SCE_CTRL_SELECT)) && (oldkeys & SCE_CTRL_SELECT))
 			Key_Event(K_ESCAPE, false);
 		if ((!(keys & SCE_CTRL_START)) && (oldkeys & SCE_CTRL_START))
@@ -327,6 +330,39 @@ void Sys_LowFPPrecision (void)
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 char* mod_path = NULL;
 
+static uint16_t title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
+static uint16_t initial_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
+static uint16_t input_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
+char title_keyboard[256];
+
+void ascii2utf(uint16_t* dst, char* src){
+	if(!src || !dst)return;
+	while(*src)*(dst++)=(*src++);
+	*dst=0x00;
+}
+
+void utf2ascii(char* dst, uint16_t* src){
+	if(!src || !dst)return;
+	while(*src)*(dst++)=(*(src++))&0xFF;
+	*dst=0x00;
+}
+
+void simulateKeyPress(char* text){
+	
+	//We first delete the current text
+	int i;
+	for (i=0;i<100;i++){
+		Key_Event(K_BACKSPACE, true);
+		Key_Event(K_BACKSPACE, false);
+	}
+	
+	while (*text){
+		Key_Event(*text, true);
+		Key_Event(*text, false);
+		text++;
+	}
+}
+
 int main (int argc, char **argv)
 {
 
@@ -336,6 +372,8 @@ int main (int argc, char **argv)
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
+	sceAppUtilInit(&(SceAppUtilInitParam){}, &(SceAppUtilBootParam){});
+	sceCommonDialogSetConfigParam(&(SceCommonDialogConfigParam){});
 	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
@@ -408,46 +446,62 @@ int main (int argc, char **argv)
 			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
 		}
 		
-		// Danzeff keyboard manage for Console / Input
+		// OSK manage for Console / Input
 		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup){
 			if (old_char != 0) Key_Event(old_char, false);
-			SceCtrlData danzeff_pad, oldpad;
-			sceCtrlPeekBufferPositive(0, &danzeff_pad, 1);
-			if (isDanzeff){
-				int new_char = danzeff_readInput(danzeff_pad);
-				if (new_char != 0){
-					if (new_char == DANZEFF_START){
-						Key_Console(K_END);
-					}else if (new_char == DANZEFF_LEFT){
-						Key_Event(K_UPARROW, true);
-						old_char = K_UPARROW;
-					}else if (new_char == '\n'){
-						Key_Event(K_DOWNARROW, true);
-						old_char = K_DOWNARROW;
-					}else if (new_char == 8){
-						Key_Event(K_BACKSPACE, true);
-						old_char = K_BACKSPACE;
-					}else if (new_char == DANZEFF_RIGHT){
-						Key_Event(K_TAB, true);
-						old_char = K_TAB;
-					}else if (new_char == DANZEFF_SELECT && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-						if (key_dest != key_console) danzeff_free();
-						isDanzeff = false;
-					}else{
-						Key_Event(new_char, true);
-						old_char = new_char;
+			SceCtrlData tmp_pad, oldpad;
+			sceCtrlPeekBufferPositive(0, &tmp_pad, 1);
+			if (isKeyboard){
+				SceCommonDialogStatus status = sceImeDialogGetStatus();
+				if (status == 2) {
+					SceImeDialogResult result;
+					memset(&result, 0, sizeof(SceImeDialogResult));
+					sceImeDialogGetResult(&result);
+
+					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE) {
+						if (key_dest == key_console){
+							utf2ascii(title_keyboard, input_text);
+							sprintf(title_keyboard,"%s\n",title_keyboard);
+							Cbuf_AddText (title_keyboard);
+						}else{
+							utf2ascii(title_keyboard, input_text);
+							simulateKeyPress(title_keyboard);
+						}
+					}
+
+					sceImeDialogTerm();
+					isKeyboard = false;
+				}
+			}else{
+				if ((tmp_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
+					if (key_dest == key_console) Con_ToggleConsole_f ();
+				}else if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
+					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 1 || lanConfig_cursor == 3))){
+						memset(input_text,0,(SCE_IME_DIALOG_MAX_TEXT_LENGTH+1)<<1);
+						memset(initial_text,0,(SCE_IME_DIALOG_MAX_TEXT_LENGTH)<<1);
+						if (key_dest == key_console){
+							sprintf(title_keyboard,"Insert Quake command");
+						}else if (m_state == m_setup){
+							(setup_cursor == 0) ? sprintf(title_keyboard, "Insert hostname") : sprintf(title_keyboard, "Insert player name");
+						}else if (m_state == m_lanconfig){
+							(lanConfig_cursor == 1) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");
+						}
+						ascii2utf(title, title_keyboard);
+						isKeyboard = true;
+						SceImeDialogParam param;
+						sceImeDialogParamInit(&param);
+						param.supportedLanguages = 0x0001FFFF;
+						param.languagesForced = SCE_TRUE;
+						param.type = (m_state == m_lanconfig && lanConfig_cursor == 1) ? SCE_IME_TYPE_NUMBER : SCE_IME_TYPE_BASIC_LATIN;
+						param.title = title;
+						param.maxTextLength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+						param.initialText = initial_text;
+						param.inputTextBuffer = input_text;
+						sceImeDialogInit(&param);
 					}
 				}
-			}else if ((danzeff_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
-				if (key_dest == key_console){
-					danzeff_free();
-					Con_ToggleConsole_f ();
-				}
-			}else if ((danzeff_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-				if (key_dest != key_console) danzeff_load();
-				isDanzeff = true;
 			}
-			oldpad = danzeff_pad;
+			oldpad = tmp_pad;
 		}
 		
 		// Get current frame
