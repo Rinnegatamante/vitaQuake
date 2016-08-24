@@ -18,7 +18,6 @@ COMMON_OBJS =	chase.o \
 	cl_parse.o \
 	cl_tent.o \
 	cmd.o \
-	danzeff.o \
 	common.o \
 	console.o \
 	crc.o \
