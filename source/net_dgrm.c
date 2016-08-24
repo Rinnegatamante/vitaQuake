@@ -57,6 +57,8 @@ struct sockaddr_in
 #include "quakedef.h"
 #include "net_dgrm.h"
 
+extern cvar_t pq_password;
+
 // these two macros are to make the code more readable
 #define sfunc	net_landrivers[sock->landriver]
 #define dfunc	net_landrivers[net_landriverlevel]
@@ -159,6 +161,20 @@ void NET_Ban_f (void)
 }
 #endif
 
+// JPG 3.00 - this code appears multiple times, so factor it out
+qsocket_t *Datagram_Reject(char *message, int acceptsock, struct qsockaddr *addr)
+{
+	SZ_Clear(&net_message);
+	// save space for the header, filled in later
+	MSG_WriteLong(&net_message, 0);
+	MSG_WriteByte(&net_message, CCREP_REJECT);
+	MSG_WriteString(&net_message, message);
+	*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
+	dfunc.Write(acceptsock, net_message.data, net_message.cursize, addr);
+	SZ_Clear(&net_message);
+
+	return NULL;
+}
 
 int Datagram_SendMessage (qsocket_t *sock, sizebuf_t *data)
 {
@@ -343,7 +359,8 @@ int	Datagram_GetMessage (qsocket_t *sock)
 			return -1;
 		}
 
-		if (sfunc.AddrCompare(&readaddr, &sock->addr) != 0)
+		// ProQuake: NAT support for Servers
+		if (!sock->net_wait && sfunc.AddrCompare(&readaddr, &sock->addr) != 0)	
 		{
 #ifdef DEBUG
 			Con_DPrintf("Forged packet received\n");
@@ -363,11 +380,25 @@ int	Datagram_GetMessage (qsocket_t *sock)
 		flags = length & (~NETFLAG_LENGTH_MASK);
 		length &= NETFLAG_LENGTH_MASK;
 
+		if (length > NET_DATAGRAMSIZE)
+		{
+			Con_Printf("Invalid length\n");
+			return -1;
+		}
+
 		if (flags & NETFLAG_CTL)
 			continue;
 
 		sequence = BigLong(packetBuffer.sequence);
 		packetsReceived++;
+
+		// ProQuake
+		if (sock->net_wait)
+		{
+			sock->addr = readaddr;
+			strcpy(sock->address, sfunc.AddrToString(&readaddr));
+			sock->net_wait = false;
+		}
 
 		if (flags & NETFLAG_UNRELIABLE)
 		{
@@ -841,6 +872,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 	int			command;
 	int			control;
 	int			ret;
+	byte		mod, mod_version, mod_flags; // ProQuake
 
 	acceptsock = dfunc.CheckNewConnections();
 	if (acceptsock == -1)
@@ -866,6 +898,10 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 	command = MSG_ReadByte();
 	if (command == CCREQ_SERVER_INFO)
 	{
+
+		char name[256];
+		strcpy(name, hostname.string);
+
 		if (Q_strcmp(MSG_ReadString(), "QUAKE") != 0)
 			return NULL;
 
@@ -875,7 +911,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		MSG_WriteByte(&net_message, CCREP_SERVER_INFO);
 		dfunc.GetSocketAddr(acceptsock, &newaddr);
 		MSG_WriteString(&net_message, dfunc.AddrToString(&newaddr));
-		MSG_WriteString(&net_message, hostname.string);
+		MSG_WriteString(&net_message, name);
 		MSG_WriteString(&net_message, sv.name);
 		MSG_WriteByte(&net_message, net_activeconnections);
 		MSG_WriteByte(&net_message, svs.maxclients);
@@ -917,6 +953,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		MSG_WriteLong(&net_message, (int)client->edict->v.frags);
 		MSG_WriteLong(&net_message, (int)(net_time - client->netconnection->connecttime));
 		MSG_WriteString(&net_message, client->netconnection->address);
+		
 		*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
 		dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
 		SZ_Clear(&net_message);
@@ -974,17 +1011,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		return NULL;
 
 	if (MSG_ReadByte() != NET_PROTOCOL_VERSION)
-	{
-		SZ_Clear(&net_message);
-		// save space for the header, filled in later
-		MSG_WriteLong(&net_message, 0);
-		MSG_WriteByte(&net_message, CCREP_REJECT);
-		MSG_WriteString(&net_message, "Incompatible version.\n");
-		*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
-		dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
-		SZ_Clear(&net_message);
-		return NULL;
-	}
+		return Datagram_Reject("Incompatible version.\n", acceptsock, &clientaddr);
 
 #ifdef BAN_TEST
 	// check for a ban
@@ -993,17 +1020,7 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		unsigned long testAddr;
 		testAddr = ((struct sockaddr_in *)&clientaddr)->sin_addr.s_addr;
 		if ((testAddr & banMask) == banAddr)
-		{
-			SZ_Clear(&net_message);
-			// save space for the header, filled in later
-			MSG_WriteLong(&net_message, 0);
-			MSG_WriteByte(&net_message, CCREP_REJECT);
-			MSG_WriteString(&net_message, "You have been banned.\n");
-			*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
-			dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
-			SZ_Clear(&net_message);
-			return NULL;
-		}
+			return Datagram_Reject("You have been banned.\n", acceptsock, &clientaddr);
 	}
 #endif
 
@@ -1032,26 +1049,38 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 			}
 			// it's somebody coming back in from a crash/disconnect
 			// so close the old qsocket and let their retry get them back in
-			NET_Close(s);
-			return NULL;
+			//NET_Close(s);
+			//return NULL;
 		}
 	}
 
+	// ProQuake additions, passwords, stuffs...
+	if (len > 12)
+		mod = MSG_ReadByte();
+	else
+		mod = MOD_NONE;
+
+	if (len > 13)
+		mod_version = MSG_ReadByte();
+	else
+		mod_version = 0;
+
+	if (len > 14)
+		mod_flags = MSG_ReadByte();
+	else
+		mod_flags = 0;
+
+#if 0
+	if (mod != MOD_QSMACK)
+	{
+		if (pq_password.value && (len <= 18 || pq_password.value != MSG_ReadLong()))
+			return Datagram_Reject("Your client does not seem to accept passworded servers.\n", acceptsock, &clientaddr);
+	}
+#endif
 	// allocate a QSocket
 	sock = NET_NewQSocket ();
 	if (sock == NULL)
-	{
-		// no room; try to let him know
-		SZ_Clear(&net_message);
-		// save space for the header, filled in later
-		MSG_WriteLong(&net_message, 0);
-		MSG_WriteByte(&net_message, CCREP_REJECT);
-		MSG_WriteString(&net_message, "Server is full.\n");
-		*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
-		dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
-		SZ_Clear(&net_message);
-		return NULL;
-	}
+		return Datagram_Reject("Server is full.\n", acceptsock, &clientaddr);
 
 	// allocate a network socket
 	newsock = dfunc.OpenSocket(0);
@@ -1070,6 +1099,13 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 	}
 
 	// everything is allocated, just fill in the details	
+	// JPG - support for mods
+	sock->proquake_connection = mod;
+	sock->proquake_version = mod_version;
+	sock->proquake_flags = mod_flags;
+	if (mod == MOD_PROQUAKE && mod_version >= 34)	// ProQuake 3.40
+		sock->net_wait = true;
+
 	sock->socket = newsock;
 	sock->landriver = net_landriverlevel;
 	sock->addr = clientaddr;
@@ -1081,8 +1117,13 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 	MSG_WriteLong(&net_message, 0);
 	MSG_WriteByte(&net_message, CCREP_ACCEPT);
 	dfunc.GetSocketAddr(newsock, &newaddr);
-	MSG_WriteLong(&net_message, dfunc.GetSocketPort(&newaddr));
-//	MSG_WriteString(&net_message, dfunc.AddrToString(&newaddr));
+	sock->client_port = dfunc.GetSocketPort(&newaddr);
+	MSG_WriteLong(&net_message, sock->client_port);
+	MSG_WriteByte(&net_message, MOD_PROQUAKE); // JPG - added this
+	MSG_WriteByte(&net_message, VERSION_PROQUAKE * 10); // JPG 3.00
+
+	MSG_WriteByte(&net_message, 0);
+
 	*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
 	dfunc.Write (acceptsock, net_message.data, net_message.cursize, &clientaddr);
 	SZ_Clear(&net_message);
@@ -1254,13 +1295,13 @@ static qsocket_t *_Datagram_Connect (char *host)
 		MSG_WriteByte(&net_message, CCREQ_CONNECT);
 		MSG_WriteString(&net_message, "QUAKE");
 		MSG_WriteByte(&net_message, NET_PROTOCOL_VERSION);
-		// Tell the server we are ProQuake 3.70
-		// A normal Quake server only looks at the first 12 bytes of the message
-		// above, so only a ProQuake server reads these extra bytes.
-		MSG_WriteByte(&net_message, 1); // JPG - added this
-		MSG_WriteByte(&net_message, 37); // JPG 3.00 - added this
-		MSG_WriteByte(&net_message, 0); // JPG 3.00 - added this (flags)
-		MSG_WriteLong(&net_message, 0); // JPG 3.00 - password protected servers
+
+		// We are telling to the server we are using ProQuake, for compatibility purposes.
+		MSG_WriteByte(&net_message, MOD_PROQUAKE);			// Flag telling our client is ProQuake.
+		MSG_WriteByte(&net_message, VERSION_PROQUAKE * 10); // Version used of ProQuake.
+		MSG_WriteByte(&net_message, 0);						// Connection Flags (3.0)
+		MSG_WriteLong(&net_message, pq_password.value);		// Password (ProQuake 3.0)
+		//MSG_WriteByte(&net_message, 1);					// Ch0wW: Added a byte to tell we're on a console (
 		
 		*((int *)net_message.data) = BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
 		dfunc.Write (newsock, net_message.data, net_message.cursize, &sendaddr);
@@ -1336,7 +1377,6 @@ static qsocket_t *_Datagram_Connect (char *host)
 	}
 
 	int len = ret;
-	
 	ret = MSG_ReadByte();
 	if (ret == CCREP_REJECT)
 	{
@@ -1348,13 +1388,31 @@ static qsocket_t *_Datagram_Connect (char *host)
 
 	if (ret == CCREP_ACCEPT)
 	{
+		sock->client_port = MSG_ReadLong();	// ProQuake: Change the port.
 		Q_memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
-		dfunc.SetSocketPort (&sock->addr, MSG_ReadLong());
+		dfunc.SetSocketPort(&sock->addr, sock->client_port);
 		
-	Con_Printf ("Client port is %s\n", dfunc.AddrToString(&sock->addr));
+	//Con_Printf ("Client port is %s\n", dfunc.AddrToString(&sock->addr));
 	// Client has received CCREP_ACCEPT meaning client may connect
 	// Now find out if this is a ProQuake server ...
-	sock->proquake_connection = (len > 9 && MSG_ReadByte () == 1) ? 1 : 0;
+
+	// ProQuake -- Looking for what kind of mod it is using
+	if (len > 9)
+		sock->proquake_connection = MSG_ReadByte();
+	else
+		sock->proquake_connection = MOD_NONE;
+	
+	// ProQuake -- Looking for the version the server uses 
+	if (len > 10)
+		sock->proquake_version = MSG_ReadByte();
+	else
+		sock->proquake_version = 0;
+
+	if (len > 11)
+		sock->proquake_flags = MSG_ReadByte();
+	else
+		sock->proquake_flags = 0;
+
 	}
 	else
 	{
@@ -1368,8 +1426,6 @@ static qsocket_t *_Datagram_Connect (char *host)
 
 	Con_Printf ("Connection accepted\n");
 	sock->lastMessageTime = SetNetTime();
-	
-	//if (strcmp(sock->address,"212.24.100.151:26000")) Cbuf_AddText("PING\n");
 	
 	// switch the connection to the specified address
 	if (dfunc.Connect (newsock, &sock->addr) == -1)

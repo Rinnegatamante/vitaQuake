@@ -194,11 +194,16 @@ void SV_SendServerinfo (client_t *client)
 	char			message[2048];
 
 	MSG_WriteByte (&client->message, svc_print);
-	sprintf (message, "%c\nVERSION %4.2f SERVER (%i CRC)", 2, VERSION, pr_crc);
-	MSG_WriteString (&client->message,message);
+	snprintf(message, sizeof(message), "\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n"
+		"\n   \01\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\02\03");
+	MSG_WriteString(&client->message, message);
+	MSG_WriteByte(&client->message, svc_print);
+	snprintf(message, sizeof(message), "\02\n   \04ProQuake Server Version %4.2f\06"
+		"\n   \07\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\10\11", VERSION_PROQUAKE);
+	MSG_WriteString(&client->message, message);
 
 	MSG_WriteByte (&client->message, svc_serverinfo);
-	MSG_WriteLong (&client->message, PROTOCOL_VERSION);
+	MSG_WriteLong (&client->message, PROTOCOL_NETQUAKE);
 	MSG_WriteByte (&client->message, svs.maxclients);
 
 	if (!coop.value && deathmatch.value)
@@ -227,7 +232,7 @@ void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_setview);
 	MSG_WriteShort (&client->message, NUM_FOR_EDICT(client->edict));
 
-	if (!pq_fullpitch.value /*&& client->netconnection->mod != MOD_QSMACK*/) {	// Ch0wW: Re-add it 
+	if (!pq_fullpitch.value && client->netconnection->proquake_connection != MOD_QSMACK) {	// Ch0wW: Re-add it 
 		MSG_WriteByte(&client->message, svc_stufftext);
 		MSG_WriteString(&client->message, "pq_fullpitch 0; cl_fullpitch 0\n");
 }
@@ -258,7 +263,10 @@ void SV_ConnectClient (int clientnum)
 
 	client = svs.clients + clientnum;
 
-	Con_DPrintf ("Client %s connected\n", client->netconnection->address);
+	if (client->netconnection->proquake_connection == MOD_PROQUAKE)
+		Con_Printf("ProQuake Client %s connected\n", client->netconnection->address);
+	else
+		Con_Printf ("Client %s connected\n", client->netconnection->address);
 
 	edictnum = clientnum+1;
 
@@ -268,8 +276,6 @@ void SV_ConnectClient (int clientnum)
 	netconnection = client->netconnection;
 	
 	if (sv.loadgame)
-		if (netconnection && netconnection->proquake_connection) 
-			netconnection->proquake_connection = false; // Ch0wW: Hacky fix to force original NetQuake protocol.
 		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
 	memset (client, 0, sizeof(*client));
 	client->netconnection = netconnection;
@@ -457,7 +463,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 #endif
 
 // ignore if not touching a PV leaf
-		if (ent != clent)	// clent is ALLWAYS sent
+		if (ent != clent)	// clent is ALWAYS sent
 		{
 // ignore ents without visible models
 			if (!ent->v.modelindex || !pr_strings[ent->v.model])
@@ -857,6 +863,10 @@ void SV_SendClientMessages (void)
 				continue;	// don't send out non-signon messages
 			}
 		}
+
+		// ProQuake - NAT fix for servers.
+		if (host_client->netconnection->net_wait)
+			continue;
 
 		// check for an overflowed message.  Should only happen
 		// on a very fucked up connection that backs up a lot, then

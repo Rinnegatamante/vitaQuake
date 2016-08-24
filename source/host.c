@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 
-A server can allways be started, even if the system started out as a client
+A server can always be started, even if the system started out as a client
 to a remote system.
 
 A client can NOT be started if the system started as a dedicated server.
@@ -99,7 +99,10 @@ void Host_EndGame (char *message, ...)
 		Sys_Error ("Host_EndGame: %s\n",string);	// dedicated servers exit
 
 	if (cls.demonum != -1)
-		CL_NextDemo ();
+	{
+		CL_StopPlayback();
+		CL_NextDemo();
+	}
 	else
 		CL_Disconnect ();
 
@@ -146,7 +149,7 @@ void Host_Error (char *error, ...)
 
 /*
 ================
-Host_FindMaxClients
+Host_FindMaxClients -- ToDo: Clean this up
 ================
 */
 void	Host_FindMaxClients (void)
@@ -189,10 +192,7 @@ void	Host_FindMaxClients (void)
 		svs.maxclientslimit = 4;
 	svs.clients = Hunk_AllocName (svs.maxclientslimit*sizeof(client_t), "clients");
 
-	if (svs.maxclients > 1)
-		Cvar_SetValue ("deathmatch", 1.0);
-	else
-		Cvar_SetValue ("deathmatch", 0.0);
+	Cvar_SetValue ("deathmatch", svs.maxclients > 1 ? 1.0 : 0.0);
 }
 
 
@@ -244,7 +244,7 @@ void Host_WriteConfiguration (void)
 
 // dedicated servers initialize the host but don't parse and set the
 // config.cfg cvars
-	if (host_initialized & !isDedicated)
+	if (host_initialized)
 	{
 		f = fopen (va("%s/config.cfg",com_gamedir), "w");
 		if (!f)
@@ -341,6 +341,9 @@ void SV_DropClient (bool crash)
 	int		i;
 	client_t *client;
 
+	if (!host_client->active)
+		return;
+
 	if (!crash)
 	{
 		// send any final messages (don't check for errors)
@@ -362,6 +365,9 @@ void SV_DropClient (bool crash)
 
 		Sys_Printf ("Client %s removed\n",host_client->name);
 	}
+
+	/*if (host_client->netconnection->proquake_connection == MOD_QSMACK)
+		qsmackActive = false;*/
 
 // break the net connection
 	NET_Close (host_client->netconnection);
@@ -593,6 +599,15 @@ void Host_ServerFrame (void)
 
 void Host_ServerFrame (void)
 {
+
+	static double port_time = 0;
+
+	if (port_time > sv.time + 1 || port_time < sv.time - 60)
+	{
+		port_time = sv.time;
+		Cmd_ExecuteString(va("port %d\n", net_hostport), src_command);
+	}
+
 // run the world state
 	pr_global_struct->frametime = host_frametime;
 
@@ -855,8 +870,10 @@ void Host_Init (quakeparms_t *parms)
 	Host_InitVCR (parms);
 	COM_Init (parms->basedir);
 	Host_InitLocal ();
+
 	W_LoadWadFile ("gfx.wad");
 	Key_Init ();
+
 	Con_Init ();
 	M_Init ();
 	PR_Init ();
@@ -864,7 +881,7 @@ void Host_Init (quakeparms_t *parms)
 	NET_Init ();
 	SV_Init ();
 
-	Con_Printf ("Exe: "__TIME__" "__DATE__"\n");
+	Host_Version_f();
 	Con_Printf ("%4.1f megabyte heap\n",parms->memsize/ (1024*1024.0));
 
 	R_InitTextures ();		// needed even for dedicated servers
@@ -913,7 +930,7 @@ void Host_Init (quakeparms_t *parms)
 
 	host_initialized = true;
 
-	Sys_Printf ("========Quake Initialized=========\n");
+	Sys_Printf ("======== %s Initialized=========\n", ENGINE_NAME);
 }
 
 
