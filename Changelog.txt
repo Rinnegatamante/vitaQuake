@@ -1,16 +1,19 @@
 ===
 Version 2.10
 ===
+- The console/text inputs are now using the IME keyboard, not danzeff anymore.
 - The front touchscreen can now be toggled between a camera or a button.
 - Added psvita_front_sensitivity_x , psvita_front_sensitivity_y , psvita_back_sensitivity_x , psvita_back_sensitivity_y CVARs for better accessibility.
 - Added new keys for menu: TRIANGLE to go back to the previous menu.
+- Fixed lots of Key problems related to other navigations.
 - Added L & R shoulders can be used to track back the console messages.
 - Adapted the ProQuake 3.40 protocol to join / create servers.
 - Fixed an unknown bug related to loading and deathmatch.
-- Added a "Previous Weapon" binding (set to CIRCLE by default).
+- Added a "Previous Weapon" binding (bound to CIRCLE by default).
 - Reworked a bit the controls menu.
 - Fixed a BIT oversight, which made every element from the HUD out of place (invisible while invulnerable, etc...)
 - VitaQuake's version is displayed to 2.10, aswell as on the console.
+
 
 ===
 Version 2.00

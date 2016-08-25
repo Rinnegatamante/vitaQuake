@@ -39,7 +39,7 @@ extern int lanConfig_cursor;
 extern int isKeyboard;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
-bool		isDedicated;
+extern cvar_t psvita_touchmode;
 
 uint64_t initialTime = 0;
 int hostInitialized = 0;
@@ -51,6 +51,8 @@ FILE IO
 
 ===============================================================================
 */
+
+#define PLATFORM_PSVITA	0x00010000
 
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
@@ -236,86 +238,6 @@ double Sys_FloatTime(void)
 	u64 ticks;
 	sceRtcGetCurrentTick(&ticks);
 	return ticks * 0.000001;
-
-}
-
-void PSP2_KeyDown(int keys) {
-	if (!isKeyboard) {
-		if (keys & SCE_CTRL_SELECT)
-			Key_Event(K_ESCAPE, true);
-		if (keys & SCE_CTRL_START)
-			Key_Event(K_ENTER, true);
-		if (keys & SCE_CTRL_UP)
-			Key_Event(K_UPARROW, true);
-		if (keys & SCE_CTRL_DOWN)
-			Key_Event(K_DOWNARROW, true);
-		if (keys & SCE_CTRL_LEFT)
-			Key_Event(K_LEFTARROW, true);
-		if (keys & SCE_CTRL_RIGHT)
-			Key_Event(K_RIGHTARROW, true);
-		if (keys & SCE_CTRL_SQUARE)
-			Key_Event(K_AUX2, true);
-		if (keys & SCE_CTRL_TRIANGLE)
-			Key_Event(K_AUX3, true);
-		if (keys & SCE_CTRL_CROSS)
-			Key_Event(K_AUX1, true);
-		if (keys & SCE_CTRL_CIRCLE)
-			Key_Event(K_AUX4, true);
-		if (keys & SCE_CTRL_LTRIGGER)
-			Key_Event(K_AUX5, true);
-		if (keys & SCE_CTRL_RTRIGGER)
-			Key_Event(K_AUX6, true);
-	}
-}
-
-void PSP2_KeyUp(int keys, int oldkeys) {
-	if (!isKeyboard) {
-		if ((!(keys & SCE_CTRL_SELECT)) && (oldkeys & SCE_CTRL_SELECT))
-			Key_Event(K_ESCAPE, false);
-		if ((!(keys & SCE_CTRL_START)) && (oldkeys & SCE_CTRL_START))
-			Key_Event(K_ENTER, false);
-		if ((!(keys & SCE_CTRL_UP)) && (oldkeys & SCE_CTRL_UP))
-			Key_Event(K_UPARROW, false);
-		if ((!(keys & SCE_CTRL_DOWN)) && (oldkeys & SCE_CTRL_DOWN))
-			Key_Event(K_DOWNARROW, false);
-		if ((!(keys & SCE_CTRL_LEFT)) && (oldkeys & SCE_CTRL_LEFT))
-			Key_Event(K_LEFTARROW, false);
-		if ((!(keys & SCE_CTRL_RIGHT)) && (oldkeys & SCE_CTRL_RIGHT))
-			Key_Event(K_RIGHTARROW, false);
-		if ((!(keys & SCE_CTRL_SQUARE)) && (oldkeys & SCE_CTRL_SQUARE))
-			Key_Event(K_AUX2, false);
-		if ((!(keys & SCE_CTRL_TRIANGLE)) && (oldkeys & SCE_CTRL_TRIANGLE))
-			Key_Event(K_AUX3, false);
-		if ((!(keys & SCE_CTRL_CROSS)) && (oldkeys & SCE_CTRL_CROSS))
-			Key_Event(K_AUX1, false);
-		if ((!(keys & SCE_CTRL_CIRCLE)) && (oldkeys & SCE_CTRL_CIRCLE))
-			Key_Event(K_AUX4, false);
-		if ((!(keys & SCE_CTRL_LTRIGGER)) && (oldkeys & SCE_CTRL_LTRIGGER))
-			Key_Event(K_AUX5, false);
-		if ((!(keys & SCE_CTRL_RTRIGGER)) && (oldkeys & SCE_CTRL_RTRIGGER))
-			Key_Event(K_AUX6, false);
-	}
-}
-
-void Sys_SendKeyEvents(void)
-{
-	if (key_dest != key_console) {
-		sceCtrlPeekBufferPositive(0, &pad, 1);
-		int kDown = pad.buttons;
-		int kUp = oldpad.buttons;
-		if (kDown)
-			PSP2_KeyDown(kDown);
-		if (kUp != kDown)
-			PSP2_KeyUp(kDown, kUp);
-
-		// Touchscreen support for game status showing
-		SceTouchData touch;
-		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
-		if (touch.reportNum > 0) Key_Event(K_TOUCH, true);
-		else Key_Event(K_TOUCH, false);
-
-		oldpad = pad;
-	}
 }
 
 void Sys_HighFPPrecision(void)
@@ -326,6 +248,79 @@ void Sys_LowFPPrecision(void)
 {
 }
 
+/*
+===============================================================================
+
+KEYS & INPUTS
+
+===============================================================================
+*/
+typedef struct
+{
+	int	    button;
+	int		key;
+} psvita_buttons;
+
+#define MAX_PSVITA_KEYS 12
+psvita_buttons KeyTable[MAX_PSVITA_KEYS] =
+{
+	{ SCE_CTRL_SELECT, K_SELECT },
+	{ SCE_CTRL_START, K_START },
+
+	{ SCE_CTRL_UP, K_UPARROW },
+	{ SCE_CTRL_DOWN, K_DOWNARROW},
+	{ SCE_CTRL_LEFT, K_LEFTARROW },
+	{ SCE_CTRL_RIGHT, K_RIGHTARROW },
+	{ SCE_CTRL_LTRIGGER, K_LEFTTRIGGER },
+	{ SCE_CTRL_RTRIGGER, K_RIGHTTRIGGER },
+
+	{ SCE_CTRL_SQUARE, K_SQUARE },
+	{ SCE_CTRL_TRIANGLE, K_TRIANGLE },
+	{ SCE_CTRL_CROSS, K_CROSS },
+	{ SCE_CTRL_CIRCLE, K_CIRCLE }
+};
+
+void PSP2_KeyDown(int keys) {
+	int i;
+	for (i = 0; i < MAX_PSVITA_KEYS; i++) {
+		if (keys & KeyTable[i].button) {
+				Key_Event(KeyTable[i].key, true);
+		}
+	}
+}
+
+void PSP2_KeyUp(int keys, int oldkeys) {
+	int i;
+	for (i = 0; i < MAX_PSVITA_KEYS; i++) {
+		if ((!(keys & KeyTable[i].button)) && (oldkeys & KeyTable[i].button)) {
+			Key_Event(KeyTable[i].key, false);
+		}
+	}
+}
+
+void Sys_SendKeyEvents(void)
+{
+	sceCtrlPeekBufferPositive(0, &pad, 1);
+	int kDown = pad.buttons;
+	int kUp = oldpad.buttons;
+
+	if (kDown)
+		PSP2_KeyDown(kDown);
+	if (kUp != kDown)
+		PSP2_KeyUp(kDown, kUp);
+
+	if (psvita_touchmode.value == 0)
+	{
+		// Touchscreen support for game status showing
+		SceTouchData touch;
+		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
+		Key_Event(K_TOUCH, touch.reportNum > 0 ? true : false);
+
+	}
+	oldpad = pad;
+}
+
+extern cvar_t platform;
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 char* mod_path = NULL;
@@ -363,6 +358,12 @@ void simulateKeyPress(char* text) {
 	}
 }
 
+#define		MAXCMDLINE	256
+extern	char	key_lines[32][MAXCMDLINE];
+extern	int		edit_line;
+extern	int		key_linepos;
+extern int		history_line;
+
 int main(int argc, char **argv)
 {
 
@@ -399,37 +400,32 @@ int main(int argc, char **argv)
 
 	Host_Init(&parms);
 	hostInitialized = 1;
-	//Sys_Init();
 
-	// Setting player name to PSVITA nickname
-	char nickname[32];
+
 	SceAppUtilInitParam init_param;
 	SceAppUtilBootParam boot_param;
 	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
 	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
 	sceAppUtilInit(&init_param, &boot_param);
-	sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, nickname, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
-	static char cmd[256];
-	sprintf(cmd, "_cl_name \"%s\"\n", nickname);
-	Cbuf_AddText(cmd);
+	
+	// Setting PSN Account if it's his first time
+	if (!strcmp(cl_name.string, "player"))
+	{
+		char nickname[32];
+		sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, nickname, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
 
-	// Set default PSVITA controls
-	Cbuf_AddText("unbindall\n");
-	Cbuf_AddText("bind CROSS +jump\n"); // Cross
-	Cbuf_AddText("bind SQUARE +attack\n"); // Square
-	Cbuf_AddText("bind CIRCLE +jump\n"); // Circle
-	Cbuf_AddText("bind TRIANGLE \"impulse 10\"\n"); // Triangle
-	Cbuf_AddText("bind LTRIGGER +speed\n"); // Left Trigger
-	Cbuf_AddText("bind RTRIGGER +attack\n"); // Right Trigger
-	Cbuf_AddText("bind UPARROW +moveup\n"); // Up
-	Cbuf_AddText("bind DOWNARROW +movedown\n"); // Down
-	Cbuf_AddText("bind LEFTARROW +moveleft\n"); // Left
-	Cbuf_AddText("bind RIGHTARROW +moveright\n"); // Right
-	Cbuf_AddText("bind TOUCH +showscores\n"); // Touchscreen
-	Cbuf_AddText("sensitivity 5\n"); // Right Analog Sensitivity
+		static char cmd[256];
+		sprintf(cmd, "_cl_name \"%s\"\n", nickname);
+		Cbuf_AddText(cmd);
+	}
 
-									 // Loading default config file
+	IN_ResetInputs();
 	Cbuf_AddText("exec config.cfg\n");
+
+	/*if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
+	{
+	Cvar_ForceSet("platform", "2");
+	}*/
 
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
@@ -448,27 +444,36 @@ int main(int argc, char **argv)
 		}
 
 		// OSK manage for Console / Input
-		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup) {
+		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup)
+		{
 			if (old_char != 0) Key_Event(old_char, false);
 			SceCtrlData tmp_pad, oldpad;
 			sceCtrlPeekBufferPositive(0, &tmp_pad, 1);
-			if (isKeyboard) {
+			if (isKeyboard)
+			{
 				SceCommonDialogStatus status = sceImeDialogGetStatus();
 				if (status == 2) {
 					SceImeDialogResult result;
 					memset(&result, 0, sizeof(SceImeDialogResult));
 					sceImeDialogGetResult(&result);
 
-					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE) {
-						if (key_dest == key_console) {
+					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE)
+					{
+						if (key_dest == key_console)
+						{
 							utf2ascii(title_keyboard, input_text);
-							sprintf(title_keyboard, "%s\n", title_keyboard);
-							Cbuf_AddText(title_keyboard);
+							Q_strcpy(key_lines[edit_line] + 1, title_keyboard);
+							Key_SendText(key_lines[edit_line] + 1);
 						}
 						else {
 							utf2ascii(title_keyboard, input_text);
 							simulateKeyPress(title_keyboard);
 						}
+					}
+					else // Just type in
+					{
+							utf2ascii(title_keyboard, input_text);
+							simulateKeyPress(title_keyboard);
 					}
 
 					sceImeDialogTerm();
@@ -476,14 +481,14 @@ int main(int argc, char **argv)
 				}
 			}
 			else {
-				if ((tmp_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))) {
-					if (key_dest == key_console) Con_ToggleConsole_f();
-				}
-				else if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))) {
-					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 1 || lanConfig_cursor == 3))) {
+				if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT)))
+				{
+					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 1 || lanConfig_cursor == 3)))
+					{
 						memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
 						memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
 						if (key_dest == key_console) {
+
 							sprintf(title_keyboard, "Insert Quake command");
 						}
 						else if (m_state == m_setup) {
@@ -501,6 +506,11 @@ int main(int argc, char **argv)
 						param.type = (m_state == m_lanconfig && lanConfig_cursor == 1) ? SCE_IME_TYPE_NUMBER : SCE_IME_TYPE_BASIC_LATIN;
 						param.title = title;
 						param.maxTextLength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+						/*if (key_dest == key_console)
+						{
+							Q_strcpy(initial_text, key_lines[edit_line] + 1);
+							Q_strcpy(input_text, key_lines[edit_line] + 1);
+						}*/
 						param.initialText = initial_text;
 						param.inputTextBuffer = input_text;
 						sceImeDialogInit(&param);

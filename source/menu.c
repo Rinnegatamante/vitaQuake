@@ -1365,7 +1365,7 @@ void M_Keys_Key (int k)
 	if (bind_grab)
 	{	// defining a key
 		S_LocalSound ("misc/menu1.wav");
-		if (k == K_ESCAPE)
+		if (k == K_START) // Start cancels
 		{
 			bind_grab = false;
 		}
