@@ -66,7 +66,6 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	
 	// Init GPU
 	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));

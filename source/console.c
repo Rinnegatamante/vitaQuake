@@ -142,15 +142,13 @@ void Con_MessageMode2_f (void)
 	team_message = true;
 }
 
-
 /*
 ================
 Con_CheckResize
-
 If the line width has changed, reformat the buffer.
 ================
 */
-void Con_CheckResize (void)
+void Con_CheckResize(void)
 {
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	char	tbuf[CON_TEXTSIZE];
@@ -162,10 +160,10 @@ void Con_CheckResize (void)
 
 	if (width < 1)			// video hasn't been initialized yet
 	{
-		width = 38;
+		width = 78;
 		con_linewidth = width;
 		con_totallines = CON_TEXTSIZE / con_linewidth;
-		Q_memset (con_text, ' ', CON_TEXTSIZE);
+		memset(con_text, ' ', CON_TEXTSIZE);
 	}
 	else
 	{
@@ -183,20 +181,18 @@ void Con_CheckResize (void)
 		if (con_linewidth < numchars)
 			numchars = con_linewidth;
 
-		Q_memcpy (tbuf, con_text, CON_TEXTSIZE);
-		Q_memset (con_text, ' ', CON_TEXTSIZE);
+		memcpy(tbuf, con_text, CON_TEXTSIZE);
+		memset(con_text, ' ', CON_TEXTSIZE);
 
-		for (i=0 ; i<numlines ; i++)
+		for (i = 0; i<numlines; i++)
 		{
-			for (j=0 ; j<numchars ; j++)
+			for (j = 0; j<numchars; j++)
 			{
-				con_text[(con_totallines - 1 - i) * con_linewidth + j] =
-						tbuf[((con_current - i + oldtotallines) %
-							  oldtotallines) * oldwidth + j];
+				con_text[(con_totallines - 1 - i) * con_linewidth + j] = tbuf[((con_current - i + oldtotallines) % oldtotallines) * oldwidth + j];
 			}
 		}
 
-		Con_ClearNotify ();
+		Con_ClearNotify();
 	}
 
 	con_backscroll = 0;
@@ -231,8 +227,6 @@ void Con_Init (void)
 	con_linewidth = -1;
 	Con_CheckResize ();
 
-	Con_Printf ("Console initialized.\n");
-
 //
 // register our commands
 //
@@ -242,7 +236,9 @@ void Con_Init (void)
 	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
 	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
 	Cmd_AddCommand ("clear", Con_Clear_f);
+
 	con_initialized = true;
+	Con_Printf("Console initialized.\n");
 }
 
 
@@ -372,7 +368,7 @@ Con_Printf
 Handles cursor positioning, line wrapping, etc
 ================
 */
-#define	MAXPRINTMSG	4096
+#define	MAXPRINTMSG	16384
 // FIXME: make a buffer size safe vsprintf?
 void Con_Printf (char *fmt, ...)
 {
