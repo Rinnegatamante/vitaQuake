@@ -147,6 +147,19 @@ keyname_t keynames[] =
 */
 
 
+
+
+void Key_SendText(char *Text)
+{
+	Cbuf_AddText(Text);
+	Cbuf_AddText("\n");
+	Con_Printf("]%s\n", Text);
+	edit_line = (edit_line + 1) & 31;
+	history_line = edit_line;
+	key_lines[edit_line][0] = ']';
+	key_linepos = 1;
+}
+
 /*
 ====================
 Key_Console
@@ -158,22 +171,16 @@ void Key_Console (int key)
 {
 	char	*cmd;
 
-	if (key == K_END)
+	if (key == K_CROSS)
 	{
-		Cbuf_AddText (key_lines[edit_line]+1);	// skip the >
-		Cbuf_AddText ("\n");
-		Con_Printf ("%s\n",key_lines[edit_line]);
-		edit_line = (edit_line + 1) & 31;
-		history_line = edit_line;
-		key_lines[edit_line][0] = ']';
-		key_linepos = 1;
+		Key_SendText(key_lines[edit_line] + 1);
 		if (cls.state == ca_disconnected)
 			SCR_UpdateScreen ();	// force an update, because the command
 									// may take some time
 		return;
 	}
 
-	if (key == K_TAB)
+	if (key == K_RIGHTARROW)	// Was K_TAB
 	{	// command completion
 		cmd = Cmd_CompleteCommand (key_lines[edit_line]+1);
 		if (!cmd)
@@ -281,7 +288,7 @@ void Key_Message (int key)
 {
 	static int chat_bufferlen = 0;
 
-	if (key == K_START)
+	if (key == K_CROSS)
 	{
 		if (team_message)
 			Cbuf_AddText ("say_team \"");
@@ -296,7 +303,7 @@ void Key_Message (int key)
 		return;
 	}
 
-	if (key == K_ESCAPE)
+	if (key == K_START)
 	{
 		key_dest = key_game;
 		chat_bufferlen = 0;
@@ -307,7 +314,7 @@ void Key_Message (int key)
 	if (key < 32 || key > 127)
 		return;	// non printable
 
-	if (key == K_BACKSPACE)
+	if (key == K_LEFTARROW)
 	{
 		if (chat_bufferlen)
 		{
@@ -527,57 +534,24 @@ void Key_Init (void)
 	}
 	key_linepos = 1;
 
-//
-// init ascii characters in console mode
-//
-	for (i=32 ; i<128 ; i++)
-		consolekeys[i] = true;
-	consolekeys[K_START] = true;
-	consolekeys[K_ENTER] = true;
-	consolekeys[K_ESCAPE] = true;
+	//consolekeys[K_ENTER] = true;
 	consolekeys[K_TAB] = true;
-	consolekeys[K_LEFTARROW] = true;
-	consolekeys[K_RIGHTARROW] = true;
 	consolekeys[K_UPARROW] = true;
 	consolekeys[K_DOWNARROW] = true;
-	consolekeys[K_BACKSPACE] = true;
-	consolekeys[K_PGUP] = true;
-	consolekeys[K_PGDN] = true;
-	consolekeys[K_SHIFT] = true;
+	consolekeys[K_LEFTARROW] = true;
+	consolekeys[K_RIGHTARROW] = true;	// Now acts as TAB
+
+	// Add PSVita buttons to stop interfering in MP
+	consolekeys[K_START] = true;	// Toggles console
+	consolekeys[K_SELECT] = true;
 	consolekeys[K_LEFTTRIGGER] = true;
 	consolekeys[K_RIGHTTRIGGER] = true;
-	consolekeys['`'] = false;
-	consolekeys['~'] = false;
+	consolekeys[K_CROSS] = true;
+	consolekeys[K_TRIANGLE] = true;
+	consolekeys[K_SQUARE] = true;
+	consolekeys[K_CIRCLE] = true;
 
-	for (i=0 ; i<256 ; i++)
-		keyshift[i] = i;
-	for (i='a' ; i<='z' ; i++)
-		keyshift[i] = i - 'a' + 'A';
-	keyshift['1'] = '!';
-	keyshift['2'] = '@';
-	keyshift['3'] = '#';
-	keyshift['4'] = '$';
-	keyshift['5'] = '%';
-	keyshift['6'] = '^';
-	keyshift['7'] = '&';
-	keyshift['8'] = '*';
-	keyshift['9'] = '(';
-	keyshift['0'] = ')';
-	keyshift['-'] = '_';
-	keyshift['='] = '+';
-	keyshift[','] = '<';
-	keyshift['.'] = '>';
-	keyshift['/'] = '?';
-	keyshift[';'] = ':';
-	keyshift['\''] = '"';
-	keyshift['['] = '{';
-	keyshift[']'] = '}';
-	keyshift['`'] = '~';
-	keyshift['\\'] = '|';
-
-	menubound[K_ESCAPE] = true;
-	for (i=0 ; i<12 ; i++)
-		menubound[K_F1+i] = true;
+	menubound[K_START] = true;
 
 //
 // register our functions
@@ -585,8 +559,6 @@ void Key_Init (void)
 	Cmd_AddCommand ("bind",Key_Bind_f);
 	Cmd_AddCommand ("unbind",Key_Unbind_f);
 	Cmd_AddCommand ("unbindall",Key_Unbindall_f);
-
-
 }
 
 /*

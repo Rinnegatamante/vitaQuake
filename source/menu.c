@@ -1169,7 +1169,6 @@ void M_Options_Key (int k)
 			M_Menu_Keys_f ();
 			break;
 		case 1:
-			danzeff_load();
 			m_state = m_none;
 			Con_ToggleConsole_f ();
 			break;
@@ -1366,7 +1365,7 @@ void M_Keys_Key (int k)
 	if (bind_grab)
 	{	// defining a key
 		S_LocalSound ("misc/menu1.wav");
-		if (k == K_ESCAPE)
+		if (k == K_START) // Start cancels
 		{
 			bind_grab = false;
 		}
