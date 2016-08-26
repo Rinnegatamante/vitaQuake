@@ -102,26 +102,30 @@ void Cbuf_AddText (char *text)
 /*
 ============
 Cbuf_InsertText
-
 Adds command text immediately after the current command
 Adds a \n to the text
 FIXME: actually change the command buffer to do less copying
 ============
 */
-void Cbuf_InsertText (char *text)
+void Cbuf_InsertText(char *text)
 {
-	int len;
-	len = strlen(text);
-	if (cmd_text.cursize) {
-		if (cmd_text.cursize + len + 1 > cmd_text.maxsize)
-  		Sys_Error("%s: overflow", __func__);
-			/* move any commands still remaining in the exec buffer */
-		memmove(cmd_text.data + len + 1, cmd_text.data, cmd_text.cursize);
-		memcpy(cmd_text.data, text, len);
-		cmd_text.data[len] = '\n';
-		cmd_text.cursize += len + 1;
-	} else {
-		Cbuf_AddText(text);
+	char *temp = NULL;
+	int templen = cmd_text.cursize;
+
+	// copy off any commands still remaining in the exec buffer
+	if (templen) {
+		temp = Z_Malloc(templen);
+		memcpy(temp, cmd_text.data, templen);
+		SZ_Clear(&cmd_text);
+	}
+
+	// add the entire text of the file
+	Cbuf_AddText(text);
+
+	// add the copied off data
+	if (templen) {
+		SZ_Write(&cmd_text, temp, templen);
+		Z_Free(temp);
 	}
 }
 
@@ -130,57 +134,55 @@ void Cbuf_InsertText (char *text)
 Cbuf_Execute
 ============
 */
-void Cbuf_Execute (void)
+void Cbuf_Execute(void)
 {
-	int		i;
-	char	*text;
-	char	line[1024];
-	int		quotes;
+	int i;
+	char *text;
+	char line[1024];
+	int quotes;
+	int notcmd;	// JPG - so that the ENTIRE line can be forwarded
 
-	while (cmd_text.cursize)
-	{
-// find a \n or ; line break
+	while (cmd_text.cursize) {
+		// find a \n or ; line break
 		text = (char *)cmd_text.data;
 
 		quotes = 0;
-		for (i=0 ; i< cmd_text.cursize ; i++)
-		{
+		notcmd = strncmp(text, "cmd ", 4);  // JPG - so that the ENTIRE line can be forwarded
+		for (i = 0; i < cmd_text.cursize; i++) {
 			if (text[i] == '"')
 				quotes++;
-			if ( !(quotes&1) &&  text[i] == ';')
+			if (!(quotes & 1) && text[i] == ';' && notcmd) // JPG - added && cmd so that the ENTIRE line can be forwareded
 				break;	// don't break if inside a quoted string
 			if (text[i] == '\n')
 				break;
 		}
 
-
-		memcpy (line, text, i);
+		memmove(line, text, i);
 		line[i] = 0;
 
-// delete the text from the command buffer and move remaining commands down
-// this is necessary because commands (exec, alias) can insert data at the
-// beginning of the text buffer
+		// delete the text from the command buffer and move remaining commands down
+		// this is necessary because commands (exec, alias) can insert data at the
+		// beginning of the text buffer
 
 		if (i == cmd_text.cursize)
 			cmd_text.cursize = 0;
-		else
-		{
+		else {
 			i++;
 			cmd_text.cursize -= i;
-			Q_memcpy (text, text+i, cmd_text.cursize);
+			memmove(text, text + i, cmd_text.cursize);
 		}
 
-// execute the command line
-		Cmd_ExecuteString (line, src_command);
+		// execute the command line
+		Cmd_ExecuteString(line, src_command);
 
-		if (cmd_wait)
-		{	// skip out while text still remains in buffer, leaving it
-			// for next frame
+		if (cmd_wait) {
+			// skip out while text still remains in buffer, leaving it for next frame
 			cmd_wait = false;
 			break;
 		}
 	}
 }
+
 
 /*
 ==============================================================================

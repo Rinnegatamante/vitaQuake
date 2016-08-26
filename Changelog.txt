@@ -1,6 +1,9 @@
 ===
 Version 2.10
 ===
+- Increased the maximum text displayed on a single console line.
+- Fixed cshifts not correctly refreshed after dying on lava/slime/water.
+- Fixed a crash whenever you execute too many config files in a short time.
 - The console/text inputs are now using the IME keyboard, not danzeff anymore.
 - The front touchscreen can now be toggled between a camera or a button.
 - Added psvita_front_sensitivity_x , psvita_front_sensitivity_y , psvita_back_sensitivity_x , psvita_back_sensitivity_y CVARs for better accessibility.
@@ -13,7 +16,6 @@ Version 2.10
 - Reworked a bit the controls menu.
 - Fixed a BIT oversight, which made every element from the HUD out of place (invisible while invulnerable, etc...)
 - VitaQuake's version is displayed to 2.10, aswell as on the console.
-
 
 ===
 Version 2.00
