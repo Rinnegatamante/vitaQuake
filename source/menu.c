@@ -420,14 +420,6 @@ void M_SinglePlayer_Key (int key)
 		switch (m_singleplayer_cursor)
 		{
 		case 0:
-			/*if (sv.active)
-				if (!SCR_ModalMessage("Are you sure you want to\nstart a new game?\n"))
-				{
-					M_Menu_Main_f();
-					break;
-				}
-
-					break;*/
 			key_dest = key_game;
 			Cbuf_AddText ("disconnect\n");	// Ch0wW: Disconnect all the time to reset original NetQuake behaviour.
 			Cbuf_AddText ("maxplayers 1\n");

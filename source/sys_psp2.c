@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
-#include <psp2/ctrl.h>
 #include <psp2/types.h>
 #include <psp2/rtc.h>
 #include <psp2/common_dialog.h>
@@ -31,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
-
+#include <psp2/ctrl.h>
 #define u64 uint64_t
 
 extern int old_char;
@@ -58,54 +57,54 @@ FILE IO
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
-int             Sys_FindHandle (void)
+int             Sys_FindHandle(void)
 {
 	int             i;
 
-	for (i=1 ; i<MAX_HANDLES ; i++)
+	for (i = 1; i<MAX_HANDLES; i++)
 		if (!sys_handles[i])
 			return i;
-	Sys_Error ("out of handles");
+	Sys_Error("out of handles");
 	return -1;
 }
 
-void Log (const char *format, ...){
-	#ifdef DEBUG
+void Log(const char *format, ...) {
+#ifdef DEBUG
 	__gnuc_va_list arg;
 	int done;
-	va_start (arg, format);
+	va_start(arg, format);
 	char msg[512];
-	done = vsprintf (msg, format, arg);
-	va_end (arg);
+	done = vsprintf(msg, format, arg);
+	va_end(arg);
 	int i;
-	sprintf(msg,"%s\n",msg);
-	FILE* log = fopen("ux0:/data/Quake/log.txt","a+");
-	if (log != NULL){
-		fwrite(msg,1,strlen(msg),log);
+	sprintf(msg, "%s\n", msg);
+	FILE* log = fopen("ux0:/data/Quake/log.txt", "a+");
+	if (log != NULL) {
+		fwrite(msg, 1, strlen(msg), log);
 		fclose(log);
 	}
-	#endif
+#endif
 }
 
-int Sys_FileLength (FILE *f)
+int Sys_FileLength(FILE *f)
 {
 	int             pos;
 	int             end;
 
-	pos = ftell (f);
-	fseek (f, 0, SEEK_END);
-	end = ftell (f);
-	fseek (f, pos, SEEK_SET);
+	pos = ftell(f);
+	fseek(f, 0, SEEK_END);
+	end = ftell(f);
+	fseek(f, pos, SEEK_SET);
 
 	return end;
 }
 
-int Sys_FileOpenRead (char *path, int *hndl)
+int Sys_FileOpenRead(char *path, int *hndl)
 {
 	FILE    *f;
 	int             i;
 
-	i = Sys_FindHandle ();
+	i = Sys_FindHandle();
 
 	f = fopen(path, "rb");
 	if (!f)
@@ -119,43 +118,43 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	return Sys_FileLength(f);
 }
 
-int Sys_FileOpenWrite (char *path)
+int Sys_FileOpenWrite(char *path)
 {
 	FILE    *f;
 	int             i;
 
-	i = Sys_FindHandle ();
+	i = Sys_FindHandle();
 
 	f = fopen(path, "wb");
 	if (!f)
-		Sys_Error ("Error opening %s: %s", path,strerror(errno));
+		Sys_Error("Error opening %s: %s", path, strerror(errno));
 	sys_handles[i] = f;
 
 	return i;
 }
 
-void Sys_FileClose (int handle)
+void Sys_FileClose(int handle)
 {
-	fclose (sys_handles[handle]);
+	fclose(sys_handles[handle]);
 	sys_handles[handle] = NULL;
 }
 
-void Sys_FileSeek (int handle, int position)
+void Sys_FileSeek(int handle, int position)
 {
-	fseek (sys_handles[handle], position, SEEK_SET);
+	fseek(sys_handles[handle], position, SEEK_SET);
 }
 
-int Sys_FileRead (int handle, void *dest, int count)
+int Sys_FileRead(int handle, void *dest, int count)
 {
-	return fread (dest, 1, count, sys_handles[handle]);
+	return fread(dest, 1, count, sys_handles[handle]);
 }
 
-int Sys_FileWrite (int handle, void *data, int count)
+int Sys_FileWrite(int handle, void *data, int count)
 {
-	return fwrite (data, 1, count, sys_handles[handle]);
+	return fwrite(data, 1, count, sys_handles[handle]);
 }
 
-int     Sys_FileTime (char *path)
+int     Sys_FileTime(char *path)
 {
 	FILE    *f;
 
@@ -169,7 +168,7 @@ int     Sys_FileTime (char *path)
 	return -1;
 }
 
-void Sys_mkdir (char *path)
+void Sys_mkdir(char *path)
 {
 	sceIoMkdir(path, 0777);
 }
@@ -183,58 +182,58 @@ SYSTEM IO
 ===============================================================================
 */
 
-void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
+void Sys_MakeCodeWriteable(unsigned long startaddr, unsigned long length)
 {
 }
 
-void Sys_Quit (void)
+void Sys_Quit(void)
 {
 	Host_Shutdown();
 	sceKernelExitProcess(0);
 }
 
-void Sys_Error (char *error, ...)
+void Sys_Error(char *error, ...)
 {
 
 	va_list         argptr;
-	
+
 	char buf[256];
-	va_start (argptr, error);
-	vsnprintf (buf, sizeof(buf), error,argptr);
-	va_end (argptr);
-	sprintf(buf,"%s\n",buf);
-	FILE* f = fopen("ux0:/data/Quake/log.txt","a+");
-	fwrite(buf,1,strlen(buf),f);
+	va_start(argptr, error);
+	vsnprintf(buf, sizeof(buf), error, argptr);
+	va_end(argptr);
+	sprintf(buf, "%s\n", buf);
+	FILE* f = fopen("ux0:/data/Quake/log.txt", "a+");
+	fwrite(buf, 1, strlen(buf), f);
 	fclose(f);
 	Sys_Quit();
 }
 
-void Sys_Printf (char *fmt, ...)
+void Sys_Printf(char *fmt, ...)
 {
-	#ifdef DEBUG
-	if(hostInitialized)
+#ifdef DEBUG
+	if (hostInitialized)
 		return;
 
 	va_list argptr;
 	char buf[256];
-	va_start (argptr,fmt);
-	vsnprintf (buf, sizeof(buf), fmt,argptr);
-	va_end (argptr);
+	va_start(argptr, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, argptr);
+	va_end(argptr);
 	Log(buf);
-	#endif
-	
+#endif
+
 }
 
-char *Sys_ConsoleInput (void)
+char *Sys_ConsoleInput(void)
 {
 	return NULL;
 }
 
-void Sys_Sleep (void)
+void Sys_Sleep(void)
 {
 }
 
-double Sys_FloatTime (void)
+double Sys_FloatTime(void)
 {
 	u64 ticks;
 	sceRtcGetCurrentTick(&ticks);
@@ -299,7 +298,7 @@ void PSP2_KeyUp(int keys, int oldkeys) {
 	}
 }
 
-void Sys_SendKeyEvents (void)
+void Sys_SendKeyEvents(void)
 {
 	sceCtrlPeekBufferPositive(0, &pad, 1);
 	int kDown = pad.buttons;
@@ -316,6 +315,10 @@ void Sys_SendKeyEvents (void)
 		SceTouchData touch;
 		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
 		Key_Event(K_TOUCH, touch.reportNum > 0 ? true : false);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 978f6cda39f598f94fc654d15fa447c39bceb6c3
 	}
 	oldpad = pad;
 }
@@ -330,6 +333,7 @@ static uint16_t initial_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
 static uint16_t input_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
 char title_keyboard[256];
 
+<<<<<<< HEAD
 void ascii2utf(uint16_t* dst, char* src){
 	if(!src || !dst)return;
 	while(*src)*(dst++)=(*src++);
@@ -352,13 +356,40 @@ void simulateKeyPress(char* text){
 	}
 	
 	while (*text){
+=======
+void ascii2utf(uint16_t* dst, char* src) {
+	if (!src || !dst)return;
+	while (*src)*(dst++) = (*src++);
+	*dst = 0x00;
+}
+
+void utf2ascii(char* dst, uint16_t* src) {
+	if (!src || !dst)return;
+	while (*src)*(dst++) = (*(src++)) & 0xFF;
+	*dst = 0x00;
+}
+
+void simulateKeyPress(char* text) {
+
+	//We first delete the current text
+	int i;
+	for (i = 0; i<100; i++) {
+		Key_Event(K_BACKSPACE, true);
+		Key_Event(K_BACKSPACE, false);
+	}
+
+	while (*text) {
+>>>>>>> 978f6cda39f598f94fc654d15fa447c39bceb6c3
 		Key_Event(*text, true);
 		Key_Event(*text, false);
 		text++;
 	}
 }
 
+<<<<<<< HEAD
 int main (int argc, char **argv)
+=======
+>>>>>>> 978f6cda39f598f94fc654d15fa447c39bceb6c3
 #define		MAXCMDLINE	256	// If changed, don't forget to change it in keys.c too!!
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
@@ -374,34 +405,32 @@ int main(int argc, char **argv)
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
 	sceAppUtilInit(&(SceAppUtilInitParam){}, &(SceAppUtilBootParam){});
 	sceCommonDialogSetConfigParam(&(SceCommonDialogConfigParam){});
-	
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
 
 	parms.memsize = 40 * 1024 * 1024;
 	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
-	
+
 	// Mods support
 	FILE* f;
-	if ((f = fopen("ux0:/data/Quake/mods.txt","r")) != NULL){
+	if ((f = fopen("ux0:/data/Quake/mods.txt", "r")) != NULL) {
 		int int_argc = 3;
 		char* mod_path = malloc(256);
 		fread(mod_path, 1, 256, f);
 		fclose(f);
-		char* int_argv[] = {"", "-game", mod_path};
-		COM_InitArgv(3,int_argv);
-	}else COM_InitArgv(argc,argv);
-	
+		char* int_argv[] = { "", "-game", mod_path };
+		COM_InitArgv(3, int_argv);
+	}
+	else COM_InitArgv(argc, argv);
+
 	parms.argc = com_argc;
-	parms.argv = com_argv;	
-	
-	Host_Init (&parms);
+	parms.argv = com_argv;
+
+	Host_Init(&parms);
 	hostInitialized = 1;
-	//Sys_Init();
-	
-	// Setting player name to PSVITA nickname
-	char nickname[32];
+
+
 	SceAppUtilInitParam init_param;
 	SceAppUtilBootParam boot_param;
 	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
@@ -429,21 +458,20 @@ int main(int argc, char **argv)
 
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
-	
+
 	u64 lastTick;
 	sceRtcGetCurrentTick(&lastTick);
 
-		// Check the current system	
 	while (1)
 	{
 		// Prevent screen power-off
 		sceKernelPowerTick(0);
-		
+
 		// Rumble effect managing (PSTV only)
-		if (rumble_tick != 0){
+		if (rumble_tick != 0) {
 			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
 		}
-		
+
 		// OSK manage for Console / Input
 		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup)
 		{
@@ -494,7 +522,8 @@ int main(int argc, char **argv)
 						}
 						else if (m_state == m_setup) {
 							(setup_cursor == 0) ? sprintf(title_keyboard, "Insert hostname") : sprintf(title_keyboard, "Insert player name");
-						}else if (m_state == m_lanconfig){
+						}
+						else if (m_state == m_lanconfig) {
 							(lanConfig_cursor == 1) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");
 						}
 						ascii2utf(title, title_keyboard);
@@ -519,25 +548,21 @@ int main(int argc, char **argv)
 			}
 			oldpad = tmp_pad;
 		}
-		
+
 		// Get current frame
 		u64 tick;
 		sceRtcGetCurrentTick(&tick);
-		const unsigned int deltaTick  = tick - lastTick;
+		const unsigned int deltaTick = tick - lastTick;
 		const float   deltaSecond = deltaTick * tickRate;
-		
+
 		// Show frame
 		Host_Frame(deltaSecond);
 		lastTick = tick;
-		
-#if 0	
-		if (platform.value == 2)
-			Con_Printf("HOLD ON, YOU'RE ON A VITA?\n");
-#endif
+
 	}
-	
+
 	free(parms.membase);
 	if (mod_path != NULL) free(mod_path);
 	sceKernelExitProcess(0);
-	return 0; 
+	return 0;
 }
