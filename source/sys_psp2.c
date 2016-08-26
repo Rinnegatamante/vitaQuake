@@ -358,11 +358,9 @@ void simulateKeyPress(char* text) {
 	}
 }
 
-#define		MAXCMDLINE	256
+#define		MAXCMDLINE	256	// If changed, don't forget to change it in keys.c too!!
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
-extern	int		key_linepos;
-extern int		history_line;
 
 int main(int argc, char **argv)
 {
