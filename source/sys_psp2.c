@@ -358,17 +358,12 @@ void simulateKeyPress(char* text){
 	}
 }
 
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
 int main (int argc, char **argv)
-=======
-#define		MAXCMDLINE	256
+#define		MAXCMDLINE	256	// If changed, don't forget to change it in keys.c too!!
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
-extern	int		key_linepos;
-extern int		history_line;
 
 int main(int argc, char **argv)
->>>>>>> Improved text buttons and IME a bit.
 {
 
 	// Initializing stuffs
@@ -403,33 +398,15 @@ int main(int argc, char **argv)
 	
 	Host_Init (&parms);
 	hostInitialized = 1;
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
 	//Sys_Init();
 	
 	// Setting player name to PSVITA nickname
 	char nickname[32];
-=======
-
-
->>>>>>> Improved text buttons and IME a bit.
 	SceAppUtilInitParam init_param;
 	SceAppUtilBootParam boot_param;
 	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
 	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
 	sceAppUtilInit(&init_param, &boot_param);
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
-	sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, nickname, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
-	static char cmd[256];
-	sprintf(cmd,"_cl_name \"%s\"\n",nickname);
-	Cbuf_AddText (cmd);
-	IN_ResetInputs();
-	Cbuf_AddText ("exec config.cfg\n");
-
-	/*if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
-	{
-		Cvar_ForceSet("platform", "2");
-	}*/
-=======
 	
 	// Setting PSN Account if it's his first time
 	if (!strcmp(cl_name.string, "player"))
@@ -444,7 +421,6 @@ int main(int argc, char **argv)
 
 	IN_ResetInputs();
 	Cbuf_AddText("exec config.cfg\n");
->>>>>>> Improved text buttons and IME a bit.
 
 	/*if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
 	{
@@ -469,13 +445,6 @@ int main(int argc, char **argv)
 		}
 		
 		// OSK manage for Console / Input
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
-		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup){
-			if (old_char != 0) Key_Event(old_char, false);
-			SceCtrlData tmp_pad, oldpad;
-			sceCtrlPeekBufferPositive(0, &tmp_pad, 1);
-			if (isKeyboard){
-=======
 		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup)
 		{
 			if (old_char != 0) Key_Event(old_char, false);
@@ -483,21 +452,12 @@ int main(int argc, char **argv)
 			sceCtrlPeekBufferPositive(0, &tmp_pad, 1);
 			if (isKeyboard)
 			{
->>>>>>> Improved text buttons and IME a bit.
 				SceCommonDialogStatus status = sceImeDialogGetStatus();
 				if (status == 2) {
 					SceImeDialogResult result;
 					memset(&result, 0, sizeof(SceImeDialogResult));
 					sceImeDialogGetResult(&result);
 
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
-					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE) {
-						if (key_dest == key_console){
-							utf2ascii(title_keyboard, input_text);
-							sprintf(title_keyboard,"%s\n",title_keyboard);
-							Cbuf_AddText (title_keyboard);
-						}else{
-=======
 					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE)
 					{
 						if (key_dest == key_console)
@@ -507,7 +467,6 @@ int main(int argc, char **argv)
 							Key_SendText(key_lines[edit_line] + 1);
 						}
 						else {
->>>>>>> Improved text buttons and IME a bit.
 							utf2ascii(title_keyboard, input_text);
 							simulateKeyPress(title_keyboard);
 						}
@@ -521,18 +480,6 @@ int main(int argc, char **argv)
 					sceImeDialogTerm();
 					isKeyboard = false;
 				}
-<<<<<<< 4af5ebd4a1adf307156a777f1136abf5334b7c05
-			}else{
-				if ((tmp_pad.buttons & SCE_CTRL_START) && (!(oldpad.buttons & SCE_CTRL_START))){
-					if (key_dest == key_console) Con_ToggleConsole_f ();
-				}else if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT))){
-					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 1 || lanConfig_cursor == 3))){
-						memset(input_text,0,(SCE_IME_DIALOG_MAX_TEXT_LENGTH+1)<<1);
-						memset(initial_text,0,(SCE_IME_DIALOG_MAX_TEXT_LENGTH)<<1);
-						if (key_dest == key_console){
-							sprintf(title_keyboard,"Insert Quake command");
-						}else if (m_state == m_setup){
-=======
 			}
 			else {
 				if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT)))
@@ -546,7 +493,6 @@ int main(int argc, char **argv)
 							sprintf(title_keyboard, "Insert Quake command");
 						}
 						else if (m_state == m_setup) {
->>>>>>> Improved text buttons and IME a bit.
 							(setup_cursor == 0) ? sprintf(title_keyboard, "Insert hostname") : sprintf(title_keyboard, "Insert player name");
 						}else if (m_state == m_lanconfig){
 							(lanConfig_cursor == 1) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");

@@ -4,6 +4,7 @@ vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on w
 # Features
 - Software GPU rendering
 - Native 960x544 resolution
+- Native IME for inputing commands/text
 - Sound support
 - Analogs support for camera and movement
 - Right analogs sensibility interchangeable in Options menu
@@ -16,16 +17,15 @@ vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on w
 
 Priority: HIGH:
 - Switch to Hardware GPU rendering
-- Add different servers type support (DarkPlaces, Cheatfree, etc)
+- Increase engine limits (FitzQuake's protocol)
 
 Priority: LOW
 - Add support to gyroscope.
 - Enable multiplayer menu only if the user has WiFi on.
 - Add "Performances" submenu.
-- Make a more complete joystick configuration menu.
-- ProQuake's fullpitch seems clamped at . [BUG]
-- Rewrite CVAR support (partially done ATM)
-- Add a CVAR to separate commands/menus, depending on the hardware.
+- Customize joystick's X/Y sensitivity
+- Improve CVAR system
+- Separate menus according to your hardware (PSVita/PSTV)
 
 #Credits
 - idSoftware for winQuake sourcecode
@@ -33,3 +33,4 @@ Priority: LOW
 - xerpi for vita2dlib
 - EasyRPG Team for the audio decoder used for CDAudio support
 - Ch0wW for various improvements and code cleanup
+- JPG for ProQuake and some various fixes.
