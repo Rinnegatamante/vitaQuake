@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u16 uint16_t
 #define u8 uint8_t
 
+CVAR (vid_vsync, 1, CVAR_ARCHIVE)
+
 viddef_t	vid;				// global video state
 int isKeyboard = false;
 int old_char = 0;
@@ -92,6 +94,7 @@ void	VID_Init (unsigned char *palette)
 	
 	sprintf(res_string,"Current Resolution: %ld x %ld", widths[3], heights[3]);
 	Cvar_RegisterVariable (&res_val);
+	Cvar_RegisterVariable(&vid_vsync);
 	
 }
 
@@ -141,7 +144,9 @@ void	VID_Update (vrect_t *rects)
 	if (isKeyboard) vita2d_common_dialog_update();
 	vita2d_wait_rendering_done();
 	vita2d_swap_buffers();
-	sceDisplayWaitVblankStart();
+	
+	if (vid_vsync.value)
+		sceDisplayWaitVblankStart();
 	
 }
 
