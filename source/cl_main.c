@@ -181,6 +181,7 @@ CL_SignonReply
 An svc_signonnum has been received, perform a client side setup
 =====================
 */
+cshift_t	cshift_empty;
 void CL_SignonReply (void)
 {
 	char 	str[8192];
@@ -214,6 +215,7 @@ Con_DPrintf ("CL_SignonReply: %i\n", cls.signon);
 
 	case 4:
 		SCR_EndLoadingPlaque ();		// allow normal screen updates
+		cshift_empty.percent = 0;		// Ch0wW: Hacky fix for the TF screen fading to black.
 		break;
 	}
 }
