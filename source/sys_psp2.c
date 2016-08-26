@@ -378,8 +378,8 @@ int main(int argc, char **argv)
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
 
-	parms.memsize = 20*1024*1024;
-	parms.membase = malloc (parms.memsize);
+	parms.memsize = 40 * 1024 * 1024;
+	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
 	
 	// Mods support
