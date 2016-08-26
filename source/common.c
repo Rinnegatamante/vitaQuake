@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // common.c -- misc functions used in client and server
 
 #include "quakedef.h"
+#include <assert.h>
 
 CVAR (registered, 0, CVAR_ROM)
 CVAR (platform, 0, CVAR_ROM)
@@ -595,29 +596,36 @@ char *COM_SkipPath (char *pathname)
 COM_StripExtension
 ============
 */
-void COM_StripExtension (char *in, char *out)
+void COM_StripExtension(char *in, char *out)
 {
-	while (*in && *in != '.')
+	char	*dot;
+
+	if (!(dot = strrchr(in, '.')))
+	{
+		strlcpy(out, in, strlen(in) + 1);
+		return;
+	}
+
+	while (*in && in != dot)
 		*out++ = *in++;
+
 	*out = 0;
 }
 
 /*
 ============
-COM_FileExtension
+COM_FileExtension - Baker 3.76 - Stronger version from ezQuake 1.8
 ============
 */
-char *COM_FileExtension (char *in)
+char *COM_FileExtension(char *in)
 {
 	static char exten[8];
 	int             i;
 
-	while (*in && *in != '.')
-		in++;
-	if (!*in)
+	if (!(in = strrchr(in, '.')))
 		return "";
 	in++;
-	for (i=0 ; i<7 && *in ; i++,in++)
+	for (i = 0; i<7 && *in; i++, in++)
 		exten[i] = *in;
 	exten[i] = 0;
 	return exten;
@@ -650,6 +658,31 @@ void COM_FileBase (char *in, char *out)
 	}
 }
 
+/*
+==================
+COM_ForceExtension
+If path doesn't have an extension or has a different extension, append(!) specified extension
+Extension should include the .
+==================
+*/
+void COM_ForceExtension(char *path, char *extension)
+{
+	char *src;
+
+	src = path + strlen(path) - 1;
+
+	while (*src != '/' && src != path)
+	{
+		if (*src-- == '.')
+		{
+			COM_StripExtension(path, path);
+			strlcat(path, extension, sizeof(path));
+			return;
+		}
+	}
+
+	strlcat(path, extension, MAX_OSPATH);
+}
 
 /*
 ==================
@@ -1022,7 +1055,8 @@ typedef struct searchpath_s
 	struct searchpath_s *next;
 } searchpath_t;
 
-searchpath_t    *com_searchpaths;
+searchpath_t    *com_searchpaths = NULL;	// JPG 3.20 - added NULL
+searchpath_t	*com_verifypaths = NULL;	// JPG 3.20 - use original game directory for verify path
 
 /*
 ============
@@ -1053,23 +1087,25 @@ COM_WriteFile
 The filename will be prefixed by the current game directory
 ============
 */
-void COM_WriteFile (char *filename, void *data, int len)
+void COM_WriteFile(char *filename, void *data, int len)
 {
 	int             handle;
 	char    name[MAX_OSPATH];
 
-	sprintf (name, "%s/%s", com_gamedir, filename);
+	Sys_mkdir(com_gamedir); //johnfitz -- if we've switched to a nonexistant gamedir, create it now so we don't crash
 
-	handle = Sys_FileOpenWrite (name);
+	snprintf(name, sizeof(name), "%s/%s", com_gamedir, filename);
+
+	handle = Sys_FileOpenWrite(name);
 	if (handle == -1)
 	{
-		Sys_Printf ("COM_WriteFile: failed on %s\n", name);
+		Sys_Printf("COM_WriteFile: failed on %s\n", name);
 		return;
 	}
 
-	Sys_Printf ("COM_WriteFile: %s\n", name);
-	Sys_FileWrite (handle, data, len);
-	Sys_FileClose (handle);
+	Sys_Printf("COM_WriteFile: %s\n", name);
+	Sys_FileWrite(handle, data, len);
+	Sys_FileClose(handle);
 }
 
 
@@ -1197,7 +1233,7 @@ int COM_FindFile (char *filename, int *handle, FILE **file)
 					continue;
 			}
 
-			sprintf (netpath, "%s/%s",search->filename, filename);
+			snprintf(netpath, sizeof(netpath), "%s/%s", search->filename, filename);
 
 			findtime = Sys_FileTime (netpath);
 			if (findtime == -1)
@@ -1344,7 +1380,7 @@ byte *COM_LoadFile (char *path, int usehunk)
 	if (!buf)
 		Sys_Error ("COM_LoadFile: not enough space for %s", path);
 
-	buf[len] = 0;
+	((byte *)buf)[len] = 0;
 	Draw_BeginDisc ();
 	Sys_FileRead (h, buf, len);
 	COM_CloseFile (h);
@@ -1382,7 +1418,7 @@ byte *COM_LoadStackFile (char *path, void *buffer, int bufsize)
 
 /*
 =================
-COM_LoadPackFile
+COM_LoadPackFile -- johnfitz -- modified based on topaz's tutorial
 
 Takes an explicit (not game tree related) path to a pak file.
 
@@ -1390,7 +1426,7 @@ Loads the header and directory, adding the files at the beginning
 of the list so they override previous pack files.
 =================
 */
-pack_t *COM_LoadPackFile (char *packfile)
+pack_t *COM_LoadPackFile(char *packfile)
 {
 	dpackheader_t   header;
 	int                             i;
@@ -1398,103 +1434,102 @@ pack_t *COM_LoadPackFile (char *packfile)
 	int                             numpackfiles;
 	pack_t                  *pack;
 	int                             packhandle;
-	dpackfile_t             *info = malloc(sizeof(dpackfile_t)*MAX_FILES_IN_PACK);
+	dpackfile_t             info[MAX_FILES_IN_PACK];
 	unsigned short          crc;
 
-	if (Sys_FileOpenRead (packfile, &packhandle) == -1)
+	if (Sys_FileOpenRead(packfile, &packhandle) == -1)
 	{
-//              Con_Printf ("Couldn't open %s\n", packfile);
+		//              Con_Printf ("Couldn't open %s\n", packfile);
 		return NULL;
 	}
-	Sys_FileRead (packhandle, (void *)&header, sizeof(header));
-	if (header.id[0] != 'P' || header.id[1] != 'A'
-	|| header.id[2] != 'C' || header.id[3] != 'K')
-		Sys_Error ("%s is not a packfile", packfile);
-	header.dirofs = LittleLong (header.dirofs);
-	header.dirlen = LittleLong (header.dirlen);
+	Sys_FileRead(packhandle, (void *)&header, sizeof(header));
+	if (header.id[0] != 'P' || header.id[1] != 'A' || header.id[2] != 'C' || header.id[3] != 'K')
+		Sys_Error("%s is not a packfile", packfile);
+	header.dirofs = LittleLong(header.dirofs);
+	header.dirlen = LittleLong(header.dirlen);
 
 	numpackfiles = header.dirlen / sizeof(dpackfile_t);
 
 	if (numpackfiles > MAX_FILES_IN_PACK)
-		Sys_Error ("%s has %i files", packfile, numpackfiles);
+		Sys_Error("%s has %i files", packfile, numpackfiles);
 
 	if (numpackfiles != PAK0_COUNT)
 		com_modified = true;    // not the original file
 
-	newfiles = Hunk_AllocName (numpackfiles * sizeof(packfile_t), "packfile");
+								//johnfitz -- dynamic gamedir loading
+								//Hunk_AllocName (numpackfiles * sizeof(packfile_t), "packfile");
+	newfiles = Z_Malloc(numpackfiles * sizeof(packfile_t));
+	//johnfitz
 
-	Sys_FileSeek (packhandle, header.dirofs);
+	Sys_FileSeek(packhandle, header.dirofs);
+	Sys_FileRead(packhandle, (void *)info, header.dirlen);
 
-	Sys_FileRead (packhandle, (void *)info, header.dirlen);
-// crc the directory to check for modifications
-	CRC_Init (&crc);
-	for (i=0 ; i<header.dirlen ; i++)
-		CRC_ProcessByte (&crc, ((byte *)info)[i]);
+	// crc the directory to check for modifications
+	CRC_Init(&crc);
+	for (i = 0; i<header.dirlen; i++)
+		CRC_ProcessByte(&crc, ((byte *)info)[i]);
 	if (crc != PAK0_CRC)
 		com_modified = true;
 
-// parse the directory
-	for (i=0 ; i<numpackfiles ; i++)
+	// parse the directory
+	for (i = 0; i<numpackfiles; i++)
 	{
-		strcpy (newfiles[i].name, info[i].name);
+		strcpy(newfiles[i].name, info[i].name);
 		newfiles[i].filepos = LittleLong(info[i].filepos);
 		newfiles[i].filelen = LittleLong(info[i].filelen);
 	}
 
-	pack = Hunk_Alloc (sizeof (pack_t));
-	strcpy (pack->filename, packfile);
+	//johnfitz -- dynamic gamedir loading
+	//pack = Hunk_Alloc (sizeof (pack_t));
+	pack = Z_Malloc(sizeof(pack_t));
+	//johnfitz
+
+	strcpy(pack->filename, packfile);
 	pack->handle = packhandle;
 	pack->numfiles = numpackfiles;
 	pack->files = newfiles;
-	free(info);
-	Con_Printf ("Added packfile %s (%i files)\n", packfile, numpackfiles);
+
+	// FitzQuake has this commented out
+	Con_Printf("Added packfile %s (%i files)\n", packfile, numpackfiles);
 	return pack;
 }
 
 
 /*
 ================
-COM_AddGameDirectory
+COM_AddGameDirectory -- johnfitz -- modified based on topaz's tutorial
 
 Sets com_gamedir, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak ...
 ================
 */
-void COM_AddGameDirectory (char *dir)
+void COM_AddGameDirectory(char *dir)
 {
 	int                             i;
 	searchpath_t    *search;
 	pack_t                  *pak;
 	char                    pakfile[MAX_OSPATH];
 
-	strcpy (com_gamedir, dir);
-//
-// add the directory to the search path
-//
-	search = Hunk_Alloc (sizeof(searchpath_t));
-	strcpy (search->filename, dir);
+	strcpy(com_gamedir, dir);
+
+	// add the directory to the search path
+	search = Z_Malloc(sizeof(searchpath_t));
+	strcpy(search->filename, dir);
 	search->next = com_searchpaths;
 	com_searchpaths = search;
 
-//
-// add any pak files in the format pak0.pak pak1.pak, ...
-//
-	for (i=0 ; ; i++)
+	// add any pak files in the format pak0.pak pak1.pak, ...
+	for (i = 0; ; i++)
 	{
-		sprintf (pakfile, "%s/pak%i.pak", com_gamedir, i);
-		pak = COM_LoadPackFile (pakfile);
+		snprintf(pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
+		pak = COM_LoadPackFile(pakfile);
 		if (!pak)
 			break;
-		search = Hunk_Alloc (sizeof(searchpath_t));
+		search = Z_Malloc(sizeof(searchpath_t));
 		search->pack = pak;
 		search->next = com_searchpaths;
 		com_searchpaths = search;
 	}
-
-//
-// add the contents of the parms.txt file to the end of the command line
-//
-
 }
 
 /*
@@ -1600,4 +1635,98 @@ void COM_InitFilesystem (void)
 int COM_Clamp(int value, int min, int max)
 {
 	return value < min ? min : (value > max ? max : value);
+}
+
+//========================================================
+// strlcat and strlcpy, from OpenBSD
+
+/*
+* Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+*
+* Permission to use, copy, modify, and distribute this software for any
+* purpose with or without fee is hereby granted, provided that the above
+* copyright notice and this permission notice appear in all copies.
+*
+* THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+* WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+* MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+* ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+* WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+* ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+* OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
+
+/*	$OpenBSD: strlcat.c,v 1.11 2003/06/17 21:56:24 millert Exp $	*/
+/*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $	*/
+
+
+#ifndef HAVE_STRLCAT
+size_t
+strlcat(char *dst, const char *src, size_t siz)
+{
+	register char *d = dst;
+	register const char *s = src;
+	register size_t n = siz;
+	size_t dlen;
+
+	/* Find the end of dst and adjust bytes left but don't go past end */
+	while (n-- != 0 && *d != '\0')
+		d++;
+	dlen = d - dst;
+	n = siz - dlen;
+
+	if (n == 0)
+		return(dlen + strlen(s));
+	while (*s != '\0') {
+		if (n != 1) {
+			*d++ = *s;
+			n--;
+		}
+		s++;
+	}
+	*d = '\0';
+
+	return(dlen + (s - src));	/* count does not include NUL */
+}
+#endif  // #ifndef HAVE_STRLCAT
+
+
+#ifndef HAVE_STRLCPY
+size_t
+strlcpy(char *dst, const char *src, size_t siz)
+{
+	register char *d = dst;
+	register const char *s = src;
+	register size_t n = siz;
+
+	/* Copy as many bytes as will fit */
+	if (n != 0 && --n != 0) {
+		do {
+			if ((*d++ = *s++) == 0)
+				break;
+		} while (--n != 0);
+	}
+
+	/* Not enough room in dst, add NUL and traverse rest of src */
+	if (n == 0) {
+		if (siz != 0)
+			*d = '\0';		/* NUL-terminate dst */
+		while (*s++)
+			;
+	}
+
+	return(s - src - 1);	/* count does not include NUL */
+}
+
+#endif  // #ifndef HAVE_STRLCPY
+
+// Baker: strip leading spaces from string
+char *strltrim(char *s) {
+	char *t;
+
+	assert(s != NULL);
+	for (t = s; isspace(*t); ++t)
+		continue;
+	memmove(s, t, strlen(t) + 1);	/* +1 so that '\0' is moved too */
+	return s;
 }

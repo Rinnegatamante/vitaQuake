@@ -147,7 +147,6 @@ void	VID_Update (vrect_t *rects)
 	
 	if (vid_vsync.value)
 		sceDisplayWaitVblankStart();
-	
 }
 
 /*

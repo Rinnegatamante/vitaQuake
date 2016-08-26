@@ -910,6 +910,7 @@ Host_Name_f
 */
 void Host_Name_f (void)
 {
+	int a;
 	char	*newName;
 
 	if (Cmd_Argc () == 1)
@@ -922,6 +923,15 @@ void Host_Name_f (void)
 	else
 		newName = Cmd_Args();
 	newName[15] = 0;
+
+	// JPG 3.02 - remove bad characters
+	for (a = 0 ; newName[a] ; a++)
+	{
+		if (newName[a] == 10)
+			newName[a] = ' ';
+		else if (newName[a] == 13)
+			newName[a] += 128;
+	}
 
 	if (cmd_source == src_command)
 	{

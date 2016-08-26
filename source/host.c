@@ -99,7 +99,10 @@ void Host_EndGame (char *message, ...)
 		Sys_Error ("Host_EndGame: %s\n",string);	// dedicated servers exit
 
 	if (cls.demonum != -1)
-		CL_NextDemo ();
+	{
+		CL_StopPlayback();
+		CL_NextDemo();
+	}
 	else
 		CL_Disconnect ();
 
@@ -341,6 +344,9 @@ void SV_DropClient (bool crash)
 	int		i;
 	client_t *client;
 
+	if (!host_client->active)
+		return;
+
 	if (!crash)
 	{
 		// send any final messages (don't check for errors)
@@ -362,6 +368,9 @@ void SV_DropClient (bool crash)
 
 		Sys_Printf ("Client %s removed\n",host_client->name);
 	}
+
+	/*if (host_client->netconnection->proquake_connection == MOD_QSMACK)
+		qsmackActive = false;*/
 
 // break the net connection
 	NET_Close (host_client->netconnection);
@@ -593,6 +602,15 @@ void Host_ServerFrame (void)
 
 void Host_ServerFrame (void)
 {
+
+	static double port_time = 0;
+
+	if (port_time > sv.time + 1 || port_time < sv.time - 60)
+	{
+		port_time = sv.time;
+		Cmd_ExecuteString(va("port %d\n", net_hostport), src_command);
+	}
+
 // run the world state
 	pr_global_struct->frametime = host_frametime;
 
@@ -855,8 +873,10 @@ void Host_Init (quakeparms_t *parms)
 	Host_InitVCR (parms);
 	COM_Init (parms->basedir);
 	Host_InitLocal ();
+
 	W_LoadWadFile ("gfx.wad");
 	Key_Init ();
+
 	Con_Init ();
 	M_Init ();
 	PR_Init ();
