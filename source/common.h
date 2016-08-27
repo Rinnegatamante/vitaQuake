@@ -26,6 +26,13 @@ typedef unsigned char 		byte;
 #define BYTE_DEFINED 1
 #endif
 
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
 //============================================================================
 
 typedef struct sizebuf_s
@@ -176,6 +183,7 @@ byte *COM_LoadTempFile (char *path);
 byte *COM_LoadHunkFile (char *path);
 void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
 
+int COM_Clamp(int value, int min, int max);
 
 extern	struct cvar_s	registered;
 
