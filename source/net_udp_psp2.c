@@ -117,10 +117,8 @@ int socket(int domain, int type, int protocol){
 
 int recvfrom(int sockfd, void* buf, long len, int flags, struct sockaddr* src_addr, unsigned int* addrlen){
 	struct SceNetSockaddr tmp;
-	int res;
-	if (convertSockaddr(&tmp,src_addr) < 0) res = sceNetRecvfrom(sockfd, buf, len, flags, NULL, addrlen);
-	else res = sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
-	convertSceNetSockaddr(&tmp, src_addr);
+	int res = sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
+	if (src_addr != NULL) convertSceNetSockaddr(&tmp, src_addr);
 	return res;
 }
 
