@@ -79,3 +79,13 @@ unsigned short CRC_Value(unsigned short crcvalue)
 {
 	return crcvalue ^ CRC_XOR_VALUE;
 }
+
+unsigned short CRC_Block(byte *data, int size)
+{
+	unsigned short crc = CRC_INIT_VALUE;
+
+	while (size--)
+		crc = (crc << 8) ^ crctable[(crc >> 8) ^ (*data++)];
+
+	return crc ^ CRC_XOR_VALUE;
+}

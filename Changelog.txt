@@ -1,0 +1,54 @@
+===
+Version 2.10
+===
+- Increased the maximum text displayed on a single console line.
+- Fixed cshifts not correctly refreshed after dying on lava/slime/water.
+- Fixed a crash whenever you execute too many config files in a short time.
+- The console/text inputs are now using the IME keyboard, not danzeff anymore.
+- The front touchscreen can now be toggled between a camera or a button.
+- Added psvita_front_sensitivity_x , psvita_front_sensitivity_y , psvita_back_sensitivity_x , psvita_back_sensitivity_y CVARs for better accessibility.
+- Added new keys for menu: TRIANGLE to go back to the previous menu.
+- Fixed lots of Key problems related to other navigations.
+- Added L & R shoulders can be used to track back the console messages.
+- Adapted the ProQuake 3.40 protocol to join / create servers.
+- Fixed an unknown bug related to loading and deathmatch.
+- Added a "Previous Weapon" binding (bound to CIRCLE by default).
+- Reworked a bit the controls menu.
+- Fixed a BIT oversight, which made every element from the HUD out of place (invisible while invulnerable, etc...)
+- VitaQuake's version is displayed to 2.10, aswell as on the console.
+
+===
+Version 2.00
+===
+- Added "Show Framerate" in Options that will toggle an fps counter on screen.
+- Fixxed demos playback rotation. Now demos are correctly played in sequence.
+- Added "Rumble Effect" in Options that enable dualshock rumbling when you get hit (PSTV only).
+- Implemented MultiPlayer Locale / Online with support to native Quake and ProQuake servers.
+- Added an official server in "Join Game" window running under ProQuake and using only shareware maps.
+- Added support for mods and added a Mods Selector app to fast change in use mod directly from PSVITA.
+- Improved framerate with the usage of some compiler optimizations.
+- Code and menus cleanup.
+- Fixxed settings saving / loading. Now they are correctly saved and re-loaded at vitaQuake startup.
+- Added CDAudio (Soundtrack) support in both MP3 and OGG formats.
+- Re-added "BGM Volume" in Options to change volume of CDAudio track.
+- Now touchscreen is bind by default to "+showscores", will show Secrets/Monsters stats on singleplayer and players ranking on multiplayer.
+- Now hostname and playername are set by default to in use PSN account nickname.
+
+===
+Version 1.4
+===
+- Removed black screen on startup for 5 seconds.
+- Improved a bit framerate.
+- Added a rescaler in Options menu to change renderer resolution for fps enthusiasts.
+- Improved audio quality. Now audio shouldn't crackle anymore.
+- Fix for Always Run options and Run button (LTRIGGER). Now they both work as intended.
+- Increased analogs deadzone.
+- Changed default camera sensibility. Now should be less reactive and more usable.
+- Fixxed renderer aspect ratio. Before game was using a wrong aspect ratio (4:3 instead of 30:17).
+- Fixxed renderer. Now glitchy brown rects shouldn't appear anymore on screen randomly.
+- Fixxed touchscreen and retrotouch. Now they're both usable for camera movement like in v.1.2.
+
+===
+Version 1.3
+===
+- Adapted for HENkaku.

@@ -116,6 +116,11 @@ struct qsockaddr
 #define CCREP_PLAYER_INFO	0x84
 #define CCREP_RULE_INFO		0x85
 
+// ProQuake -- MOD Compatibility
+#define MOD_NONE			0x00 // NetQuake style
+#define MOD_PROQUAKE		0x01 // ProQuake style
+#define MOD_QSMACK			0x02 // QSmack style (?)
+
 typedef struct qsocket_s
 {
 	struct qsocket_s	*next;
@@ -145,7 +150,13 @@ typedef struct qsocket_s
 
 	struct qsockaddr	addr;
 	char				address[NET_NAMELEN];
-	byte            proquake_connection;
+
+	// ProQuake protocol additions
+	byte				proquake_connection;	// 0: NetQuake, 1: ProQuake, 2: QSmack (ProQuake)
+	byte				proquake_version;		// = floor(version * 10) (must fit in one byte) (ProQuake)
+	byte				proquake_flags;			// Connection flags (ProQuake 3 behaviour)
+	int					client_port;			// Client Port used (ProQuake 3 behaviour)
+	bool				net_wait;				// NAT Fix for servers (ProQuake 3.4)
 
 } qsocket_t;
 
