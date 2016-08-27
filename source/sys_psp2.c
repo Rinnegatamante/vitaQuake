@@ -354,14 +354,12 @@ void simulateKeyPress(char* text){
 	}
 }
 
-int main (int argc, char **argv)
 #define		MAXCMDLINE	256	// If changed, don't forget to change it in keys.c too!!
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
 
 int main(int argc, char **argv)
 {
-
 	// Initializing stuffs
 	scePowerSetArmClockFrequency(444);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
