@@ -95,7 +95,7 @@ int CL_GetMessage (void)
 	if	(cls.demoplayback)
 	{
 	// decide if it is time to grab the next message		
-		if (cls.signon == SIGNONS)	// allways grab until fully connected
+		if (cls.signon == SIGNONS)	// always grab until fully connected
 		{
 			if (cls.timedemo)
 			{
