@@ -27,11 +27,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/sysmodule.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
+#include <psp2/io/dirent.h>
 #include <psp2/touch.h>
 #include <psp2/system_param.h>
 #include <psp2/apputil.h>
 #include <psp2/ctrl.h>
 #define u64 uint64_t
+
+// Mods support
+int max_mod_idx = -1;
+extern bool CheckForPak(char* dir);
+extern int mod_selector();
+extern char* modname;
 
 extern int old_char;
 extern int setup_cursor;
@@ -360,7 +367,6 @@ void simulateKeyPress(char* text){
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
 
-
 int main(int argc, char **argv)
 {
 	// Initializing stuffs
@@ -378,18 +384,32 @@ int main(int argc, char **argv)
 	parms.memsize = 40 * 1024 * 1024;
 	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
-
-	// Mods support
-	FILE* f;
-	if ((f = fopen("ux0:/data/Quake/mods.txt", "r")) != NULL) {
-		int int_argc = 3;
-		char* mod_path = malloc(256);
-		fread(mod_path, 1, 256, f);
-		fclose(f);
-		char* int_argv[] = { "", "-game", mod_path };
-		COM_InitArgv(3, int_argv);
+	
+	// Initializing vita2d
+	vita2d_init();
+	
+	// Scanning main folder in search of mods
+	int dd = sceIoDopen("ux0:/data/Quake");
+	SceIoDirent entry;
+	int res;
+	while (sceIoDread(dd, &entry) > 0){
+		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
+			char fullpath[256];
+			sprintf(fullpath,"ux0:/data/Quake/%s",entry.d_name);
+			if (CheckForPak(fullpath)) max_mod_idx++;
+		}
 	}
-	else COM_InitArgv(argc, argv);
+	sceIoDclose(dd);
+	
+	// Check if we have at least one mod
+	if (max_mod_idx > 0) mod_selector();
+	
+	// Mods support
+	if (modname != NULL) {
+		int int_argc = 3;
+		char* int_argv[] = { "", "-game", modname };
+		COM_InitArgv(3, int_argv);
+	}else COM_InitArgv(argc, argv);
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
@@ -453,7 +473,7 @@ int main(int argc, char **argv)
 					memset(&result, 0, sizeof(SceImeDialogResult));
 					sceImeDialogGetResult(&result);
 
-					if (result.button != SCE_IME_DIALOG_BUTTON_CLOSE)
+					if (result.button == SCE_IME_DIALOG_BUTTON_ENTER)
 					{
 						if (key_dest == key_console)
 						{
@@ -465,11 +485,6 @@ int main(int argc, char **argv)
 							utf2ascii(title_keyboard, input_text);
 							simulateKeyPress(title_keyboard);
 						}
-					}
-					else // Just type in
-					{
-							utf2ascii(title_keyboard, input_text);
-							simulateKeyPress(title_keyboard);
 					}
 
 					sceImeDialogTerm();
@@ -528,6 +543,7 @@ int main(int argc, char **argv)
 	}
 
 	free(parms.membase);
+	free(modname);
 	if (mod_path != NULL) free(mod_path);
 	sceKernelExitProcess(0);
 	return 0;

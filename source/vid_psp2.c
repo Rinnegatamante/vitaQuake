@@ -68,9 +68,7 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	// Init GPU
-	vita2d_init();
-	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
+	// Configurating vita2d environment
 	vita2d_set_vblank_wait(0);
 	
 	tex_buffer = vita2d_create_empty_texture_format(widths[3], heights[3], SCE_GXM_TEXTURE_BASE_FORMAT_P8);

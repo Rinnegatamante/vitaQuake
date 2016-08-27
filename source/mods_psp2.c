@@ -1,3 +1,4 @@
+#include "quakedef.h"
 #include <psp2/io/dirent.h>
 #include <psp2/io/stat.h>
 #include <psp2/io/fcntl.h>
@@ -7,11 +8,10 @@
 #include <vita2d.h>
 #include <psp2/ctrl.h>
 #include <psp2/kernel/processmgr.h>
-
-struct ModsList{
+typedef struct ModsList{
 	char name[256];
-	ModsList* next;
-};
+	struct ModsList* next;
+}ModsList;
 
 bool CheckForPak(char* dir){
 	int dd = sceIoDopen(dir);
@@ -41,17 +41,19 @@ ModsList* addMod(char* name, ModsList* db){
 	}
 }
 
-int main(){
+char* modname = NULL;
+
+int mod_selector(){
 
 	// Initializing empty ModList
 	ModsList* mods = NULL;
 	int i = 0;
+	int max_idx = -1;
 	
 	// Scanning main folder in search of mods
 	int dd = sceIoDopen("ux0:/data/Quake");
 	SceIoDirent entry;
 	int res;
-	int max_idx = -1;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
 			char fullpath[256];
@@ -66,6 +68,7 @@ int main(){
 	
 	// Reading current used mod
 	char cur_mod[256];
+	modname = malloc(256);
 	FILE* f;
 	if ((f = fopen("ux0:/data/Quake/mods.txt", "r")) != NULL){
 		char tmp[256];
@@ -75,11 +78,11 @@ int main(){
 		fread(tmp, 1, len, f);
 		fclose(f);
 		tmp[len] = 0;
-		sprintf(cur_mod, "Current in use mod: %s", tmp);
-	}else strcpy(cur_mod,"Current in use mod: id1");
+		sprintf(modname, "%s", tmp);
+		sprintf(cur_mod, "Current in use mod: %s - Press START to launch vitaQuake core", tmp);
+	}else strcpy(cur_mod,"Current in use mod: id1 - Press START to launch vitaQuake core");
 	
 	// Initializing graphics stuffs
-	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
 	vita2d_pgf* debug_font = vita2d_load_default_pgf();
 	uint32_t white = RGBA8(0xFF, 0xFF, 0xFF, 0xFF);
@@ -114,7 +117,7 @@ int main(){
 				tmp = tmp->next;
 				z++;
 			}
-			sprintf(cur_mod,"Current in use mod: %s", tmp->name);
+			sprintf(cur_mod,"Current in use mod: %s - Press START to launch vitaQuake core", tmp->name);
 			if (strcmp(tmp->name, "id1") == 0) sceIoRemove("ux0:/data/Quake/mods.txt");
 			else{
 				f = fopen("ux0:/data/Quake/mods.txt", "w");
@@ -143,8 +146,6 @@ int main(){
 		free(tmp);
 		tmp = tmp2;
 	}
-	vita2d_fini();
-	
-	sceKernelExitProcess(0);
+
 	return 0;
 }

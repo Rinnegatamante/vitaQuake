@@ -81,7 +81,8 @@ COMMON_OBJS =	chase.o \
 	vid_psp2.o \
 	net_bsd.o \
 	net_udp_psp2.o \
-	in_psp2.o
+	in_psp2.o \
+	mods_psp2.o
 	
 CPPSOURCES	:= audiodec
 
@@ -93,7 +94,7 @@ OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -Wl,-q -O3 -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
+CFLAGS  = -Wl,-q -O3 -g -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
@@ -109,6 +110,7 @@ $(TARGET).vpk: $(TARGET).velf
 	#-------------------------------------------------------------------
 	
 %.velf: %.elf
+	cp $< $<.unstripped.elf
 	$(PREFIX)-strip -g $<
 	vita-elf-create $< $@
 
@@ -116,7 +118,4 @@ $(TARGET).elf: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
 
 clean:
-	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS)
-
-run: $(TARGET).velf
-	@sh run_homebrew_unity.sh $(TARGET).velf
+	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf
