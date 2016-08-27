@@ -479,7 +479,7 @@ int main(int argc, char **argv)
 			else {
 				if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT)))
 				{
-					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 1 || lanConfig_cursor == 3)))
+					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 0 || lanConfig_cursor == 2)))
 					{
 						memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
 						memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
@@ -490,7 +490,7 @@ int main(int argc, char **argv)
 						else if (m_state == m_setup) {
 							(setup_cursor == 0) ? sprintf(title_keyboard, "Insert hostname") : sprintf(title_keyboard, "Insert player name");
 						}else if (m_state == m_lanconfig){
-							(lanConfig_cursor == 1) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");
+							(lanConfig_cursor == 0) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");
 						}
 						ascii2utf(title, title_keyboard);
 						isKeyboard = true;
@@ -498,9 +498,9 @@ int main(int argc, char **argv)
 						sceImeDialogParamInit(&param);
 						param.supportedLanguages = 0x0001FFFF;
 						param.languagesForced = SCE_TRUE;
-						param.type = (m_state == m_lanconfig && lanConfig_cursor == 1) ? SCE_IME_TYPE_NUMBER : SCE_IME_TYPE_BASIC_LATIN;
+						param.type = (m_state == m_lanconfig && lanConfig_cursor == 0) ? SCE_IME_TYPE_NUMBER : SCE_IME_TYPE_BASIC_LATIN;
 						param.title = title;
-						param.maxTextLength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+						param.maxTextLength = (m_state == m_lanconfig && lanConfig_cursor == 0) ? 5 : SCE_IME_DIALOG_MAX_TEXT_LENGTH;
 						/*if (key_dest == key_console)
 						{
 							Q_strcpy(initial_text, key_lines[edit_line] + 1);
