@@ -29,8 +29,7 @@ CVAR(chase_right,	0,	CVAR_NONE)
 //----------------------------------------------
 
 vec3_t	chase_pos;
-vec3_t	chase_angles;
-
+vec3_t	chase_angles;	
 vec3_t	chase_dest;
 vec3_t	chase_dest_angles;
 

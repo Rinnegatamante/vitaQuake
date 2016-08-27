@@ -862,10 +862,9 @@ if (!strcmp(com_token, "light"))
 		if (keyname[0] == '_')
 			continue;
 		
-		key = ED_FindField (keyname);
-		if (!key)
-		{
-			Con_Printf ("'%s' is not a field\n", keyname);
+		if (!(key = ED_FindField(keyname))) {
+			if (strcmp(keyname, "sky") && strcmp(keyname, "fog")) // Now supported in worldspawn
+				Con_SafePrintf("'%s' is not a field\n", keyname);
 			continue;
 		}
 

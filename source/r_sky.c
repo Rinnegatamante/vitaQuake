@@ -33,7 +33,6 @@ float		skytime;
 byte		*r_skysource;
 
 int r_skymade;
-int r_skydirect;		// not used?
 
 
 // TODO: clean up these routines

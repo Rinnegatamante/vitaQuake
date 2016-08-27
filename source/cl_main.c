@@ -140,9 +140,6 @@ void CL_Disconnect_f (void)
 	CL_Disconnect ();
 	if (sv.active)
 		Host_ShutdownServer (false);
-
-	if (cls.netcon && cls.netcon->proquake_connection)
-	cls.netcon->proquake_connection = false;	// Ch0wW: Hacky fix to restore original NetQuake protocol.
 }
 
 
@@ -184,6 +181,7 @@ CL_SignonReply
 An svc_signonnum has been received, perform a client side setup
 =====================
 */
+cshift_t	cshift_empty;
 void CL_SignonReply (void)
 {
 	char 	str[8192];
@@ -217,6 +215,7 @@ Con_DPrintf ("CL_SignonReply: %i\n", cls.signon);
 
 	case 4:
 		SCR_EndLoadingPlaque ();		// allow normal screen updates
+		cshift_empty.percent = 0;		// Ch0wW: Hacky fix for the TF screen fading to black.
 		break;
 	}
 }

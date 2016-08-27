@@ -257,3 +257,5 @@ void SV_SpawnServer (char *server, char *startspot);
 #else
 void SV_SpawnServer (char *server);
 #endif
+
+void Host_Version_f (void);
