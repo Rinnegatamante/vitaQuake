@@ -510,6 +510,7 @@ void Key_WriteBindings (FILE *f)
 {
 	int		i;
 
+	fprintf(f, "// Key bindings\n");
 	for (i=0 ; i<256 ; i++)
 		if (keybindings[i])
 			if (*keybindings[i])

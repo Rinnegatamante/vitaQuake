@@ -143,10 +143,8 @@ void	VID_Update (vrect_t *rects)
 	vita2d_end_drawing();
 	if (isKeyboard) vita2d_common_dialog_update();
 	vita2d_wait_rendering_done();
-	vita2d_swap_buffers();
-	
-	if (vid_vsync.value)
-		sceDisplayWaitVblankStart();
+	vita2d_swap_buffers();	
+	if (vid_vsync.value) sceDisplayWaitVblankStart();
 }
 
 /*

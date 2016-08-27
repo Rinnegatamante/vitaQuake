@@ -420,9 +420,6 @@ void M_SinglePlayer_Key (int key)
 		switch (m_singleplayer_cursor)
 		{
 		case 0:
-			/*if (sv.active)
-				if (!SCR_ModalMessage("Are you sure you want to\nstart a new game?\n"))
-					break;*/
 			key_dest = key_game;
 			Cbuf_AddText ("disconnect\n");	// Ch0wW: Disconnect all the time to reset original NetQuake behaviour.
 			Cbuf_AddText ("maxplayers 1\n");
@@ -1657,8 +1654,6 @@ void M_Menu_LanConfig_f (void)
 	{
 		if (JoiningGame && TCPIPConfig)
 			lanConfig_cursor = 3;
-		else
-			lanConfig_cursor = 1;
 	}
 	if (StartingGame && lanConfig_cursor >= 2)
 		lanConfig_cursor = 1;
