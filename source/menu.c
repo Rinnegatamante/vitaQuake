@@ -43,6 +43,7 @@ void M_Menu_Main_f (void);
 	void M_Menu_MultiPlayer_f (void);
 		void M_Menu_Setup_f (void);
 		void M_Menu_Net_f (void);
+			void M_Menu_OnlineServerList_f (void);
 	void M_Menu_Options_f (void);
 		void M_Menu_Keys_f (void);
 		void M_Menu_Video_f (void);
@@ -60,6 +61,7 @@ void M_Main_Draw (void);
 	void M_MultiPlayer_Draw (void);
 		void M_Setup_Draw (void);
 		void M_Net_Draw (void);
+			void M_OnlineServerList_Draw (void);
 	void M_Options_Draw (void);
 		void M_Keys_Draw (void);
 		void M_Video_Draw (void);
@@ -77,6 +79,7 @@ void M_Main_Key (int key);
 	void M_MultiPlayer_Key (int key);
 		void M_Setup_Key (int key);
 		void M_Net_Key (int key);
+			void M_OnlineServerList_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
 		void M_Video_Key (int key);
@@ -1707,7 +1710,7 @@ void M_LanConfig_Draw (void)
 		M_Print (basex, 108, "Join game at:");
 		M_DrawTextBox (basex+8, lanConfig_cursor_table[2]-8, 22, 1);
 		M_Print (basex+16, lanConfig_cursor_table[2], lanConfig_joinname);
-		M_Print (basex, 138, "Join official vitaQuake server");
+		M_Print (basex, 138, "Join an online server");
 	}
 	else
 	{
@@ -1789,14 +1792,7 @@ void M_LanConfig_Key (int key)
 		
 		if (lanConfig_cursor == 3)
 		{
-			if (StartingGame)
-				break;
-			
-			m_return_state = m_state;
-			m_return_onerror = true;
-			key_dest = key_game;
-			m_state = m_none;
-			Cbuf_AddText ("connect 212.24.100.151\n");
+			M_Menu_OnlineServerList_f ();
 			break;
 		}
 
@@ -1855,6 +1851,103 @@ void M_LanConfig_Key (int key)
 	else
 		lanConfig_port = l;
 	sprintf(lanConfig_portname, "%u", lanConfig_port);
+}
+
+//=============================================================================
+/* ONLINE SERVERLIST MENU */
+
+int		onlineServerList_cursor = 0;
+
+void M_Menu_OnlineServerList_f (void)
+{
+	key_dest = key_menu;
+	m_state = m_onlineserverlist;
+	m_entersound = true;
+	m_return_onerror = false;
+	m_return_reason[0] = 0;
+}
+
+#define NUM_SERVERS 2
+
+void M_OnlineServerList_Draw (void)
+{
+	qpic_t	*p;
+	int		basex;
+
+	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
+	p = Draw_CachePic ("gfx/p_multi.lmp");
+	basex = (320-p->width)/2;
+	M_DrawPic (basex, 4, p);
+
+	M_Print (basex, 32, "EU Official Server (Shareware Only)");
+	M_Print (basex, 40, "EU Official Server (Deatmatch Maps)");
+	M_Print (basex, 48, "NCTech Spaceball1 Server");
+	M_Print (basex, 56, "Shmack Practice Mode Server");
+	M_Print (basex, 64, "Clan HDZ DM Server");
+	
+	M_DrawCharacter (basex-8, 32+onlineServerList_cursor*8, 12+((int)(realtime*4)&1));
+		
+	if (*m_return_reason)
+		M_PrintWhite (basex, 148, m_return_reason);
+}
+
+
+void M_OnlineServerList_Key (int key)
+{
+	int		l;
+
+	switch (key)
+	{
+	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
+		M_Menu_MultiPlayer_f ();
+		break;
+
+	case K_UPARROW:
+		S_LocalSound ("misc/menu1.wav");
+		onlineServerList_cursor--;
+		if (onlineServerList_cursor < 0)
+			onlineServerList_cursor = NUM_SERVERS-1;
+		break;
+
+	case K_DOWNARROW:
+		S_LocalSound ("misc/menu1.wav");
+		onlineServerList_cursor++;
+		if (onlineServerList_cursor >= NUM_SERVERS)
+			onlineServerList_cursor = 0;
+		break;
+
+	case K_CIRCLE:
+	case K_CROSS:
+		m_return_state = m_state;
+		m_return_onerror = true;
+		key_dest = key_game;
+		m_state = m_none;
+		Cbuf_AddText ("stopdemo\n");
+		
+		if (onlineServerList_cursor == 0)
+			net_hostport = 26000;
+			Cbuf_AddText ("connect 212.24.100.151\n");
+		if (onlineServerList_cursor == 1){
+			net_hostport = 27000;
+			Cbuf_AddText ("connect 212.24.100.151\n");
+		}
+		if (onlineServerList_cursor == 2){
+			net_hostport = 26000;
+			Cbuf_AddText ("connect quake.nctech.ca\n");
+		}
+		if (onlineServerList_cursor == 3){
+			net_hostport = 26002;
+			Cbuf_AddText ("connect quake.shmack.net\n");
+		}
+		if (onlineServerList_cursor == 2){
+			net_hostport = 26000;
+			Cbuf_AddText ("connect dm.clanhdz.com\n");
+		}
+
+		break;
+	}
 }
 
 //=============================================================================
@@ -2599,6 +2692,10 @@ void M_Draw (void)
 	case m_slist:
 		M_ServerList_Draw ();
 		break;
+	
+	case m_onlineserverlist:
+		M_OnlineServerList_Draw();
+		break;
 	}
 
 	if (m_entersound)
@@ -2683,6 +2780,10 @@ void M_Keydown (int key)
 	case m_slist:
 		M_ServerList_Key (key);
 		return;
+		
+	case m_onlineserverlist:
+		M_OnlineServerList_Key (key);
+		break;
 	}
 }
 
@@ -2692,11 +2793,7 @@ void M_ConfigureNetSubsystem(void)
 // enable/disable net systems to match desired config
 
 	Cbuf_AddText ("stopdemo\n");
-	if (SerialConfig || DirectConfig)
-	{
-		Cbuf_AddText ("com1 enable\n");
-	}
 
-	if (IPXConfig || TCPIPConfig)
+	//if (IPXConfig || TCPIPConfig)
 		net_hostport = lanConfig_port;
 }
