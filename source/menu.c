@@ -32,6 +32,7 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
 extern cvar_t	show_fps;
+extern cvar_t	vid_vsync;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -1038,7 +1039,11 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("show_fps", !show_fps.value);
 		break;
 		
-	case 16:	// change res
+	case 16:	// vsync
+		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
+		break;
+		
+	case 17:	// change res
 		res_val.value += dir * 0.333;
 		if (res_val.value < 0)
 			res_val.value = 0;
@@ -1135,11 +1140,14 @@ void M_Options_Draw (void)
 	M_Print (16, 152, "        Show Framerate");
 	M_DrawCheckbox (220, 152, show_fps.value);
 	
-	//if (vid_menudrawfn)
-	M_Print (16, 160, "       Game Resolution");
-	M_DrawSlider (220, 160, res_val.value);
+	M_Print (16, 160, "                 VSync");
+	M_DrawCheckbox (220, 160, vid_vsync.value);
 	
-	M_Print (50, 174, res_string);
+	//if (vid_menudrawfn)
+	M_Print (16, 168, "       Game Resolution");
+	M_DrawSlider (220, 168, res_val.value);
+	
+	M_Print (50, 182, res_string);
 
 // cursor
 	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
@@ -1188,13 +1196,13 @@ void M_Options_Key (int k)
 		S_LocalSound ("misc/menu1.wav");
 		options_cursor--;
 		if (options_cursor < 0)
-			options_cursor = OPTIONS_ITEMS-1;
+			options_cursor = OPTIONS_ITEMS;
 		break;
 
 	case K_DOWNARROW:
 		S_LocalSound ("misc/menu1.wav");
 		options_cursor++;
-		if (options_cursor >= OPTIONS_ITEMS)
+		if (options_cursor > OPTIONS_ITEMS)
 			options_cursor = 0;
 		break;
 
@@ -1207,10 +1215,10 @@ void M_Options_Key (int k)
 		break;
 	}
 
-	if (options_cursor == 17)
+	if (options_cursor > OPTIONS_ITEMS)
 	{
 		if (k == K_UPARROW)
-			options_cursor = 16;
+			options_cursor = OPTIONS_ITEMS;
 		else
 			options_cursor = 0;
 	}
