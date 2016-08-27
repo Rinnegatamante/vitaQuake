@@ -405,7 +405,7 @@ int main(int argc, char **argv)
 	if (max_mod_idx > 0) mod_selector();
 	
 	// Mods support
-	if (modname != NULL) {
+	if (modname != NULL && strcmp(modname,"id1")) {
 		int int_argc = 3;
 		char* int_argv[] = { "", "-game", modname };
 		COM_InitArgv(3, int_argv);

@@ -1645,7 +1645,7 @@ void M_Quit_Draw (void)
 //=============================================================================
 /* LAN CONFIG MENU */
 
-int		lanConfig_cursor = -1;
+int		lanConfig_cursor = 1;
 int		lanConfig_cursor_table [] = {72, 92, 124,138};
 #define NUM_LANCONFIG_CMDS	3
 
