@@ -1867,7 +1867,7 @@ void M_Menu_OnlineServerList_f (void)
 	m_return_reason[0] = 0;
 }
 
-#define NUM_SERVERS 2
+#define NUM_SERVERS 5
 
 void M_OnlineServerList_Draw (void)
 {
@@ -1941,7 +1941,7 @@ void M_OnlineServerList_Key (int key)
 			net_hostport = 26002;
 			Cbuf_AddText ("connect quake.shmack.net\n");
 		}
-		if (onlineServerList_cursor == 2){
+		if (onlineServerList_cursor == 4){
 			net_hostport = 26000;
 			Cbuf_AddText ("connect dm.clanhdz.com\n");
 		}
