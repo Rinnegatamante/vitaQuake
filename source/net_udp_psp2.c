@@ -81,7 +81,7 @@ struct sockaddr {
     char              sa_data[14];  // 14 bytes of protocol address
 };
 
-int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* dst){
+inline int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* dst){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sin_family = src->sin_family;
 	dst->sin_port = src->sin_port;
@@ -89,7 +89,7 @@ int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* ds
 	return 0;
 }
 
-int convertSockaddrIn(struct SceNetSockaddrIn* dst, struct sockaddr_in* src){
+inline int convertSockaddrIn(struct SceNetSockaddrIn* dst, struct sockaddr_in* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sin_family = src->sin_family;
 	dst->sin_port = src->sin_port;
@@ -97,32 +97,32 @@ int convertSockaddrIn(struct SceNetSockaddrIn* dst, struct sockaddr_in* src){
 	return 0;
 }
 
-int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* dst){
+inline int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* dst){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sa_family = src->sa_family;
 	memcpy(dst->sa_data,src->sa_data,14);
 	return 0;
 }
 
-int convertSockaddr(struct SceNetSockaddr* dst, struct sockaddr* src){
+inline int convertSockaddr(struct SceNetSockaddr* dst, struct sockaddr* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sa_family = src->sa_family;
 	memcpy(dst->sa_data,src->sa_data,14);
 	return 0;
 }
 
-int socket(int domain, int type, int protocol){
+inline int socket(int domain, int type, int protocol){
 	return sceNetSocket("Socket", domain, type, protocol);
 }
 
-int recvfrom(int sockfd, void* buf, long len, int flags, struct sockaddr* src_addr, unsigned int* addrlen){
+inline int recvfrom(int sockfd, void* buf, long len, int flags, struct sockaddr* src_addr, unsigned int* addrlen){
 	struct SceNetSockaddr tmp;
 	int res = sceNetRecvfrom(sockfd, buf, len, flags, &tmp, addrlen);
 	if (src_addr != NULL) convertSceNetSockaddr(&tmp, src_addr);
 	return res;
 }
 
-int getsockname(int sockfd, struct sockaddr *addr, unsigned int *addrlen){
+inline int getsockname(int sockfd, struct sockaddr *addr, unsigned int *addrlen){
 	struct SceNetSockaddr tmp;
 	convertSockaddr(&tmp, addr);
 	int res = sceNetGetsockname(sockfd, &tmp, addrlen);
@@ -130,21 +130,21 @@ int getsockname(int sockfd, struct sockaddr *addr, unsigned int *addrlen){
 	return res;
 }
 
-int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen){
+inline int bind(int sockfd, const struct sockaddr* addr, unsigned int addrlen){
 	struct SceNetSockaddr tmp;
 	convertSockaddr(&tmp, addr);
 	return sceNetBind(sockfd, &tmp, addrlen);
 }
 
-int close(int sockfd){
+inline int close(int sockfd){
 	return sceNetSocketClose(sockfd);
 }
 
-int setsockopt(int sockfd, int level, int optname, const void *optval, unsigned int optlen){
+inline int setsockopt(int sockfd, int level, int optname, const void *optval, unsigned int optlen){
 	return sceNetSetsockopt(sockfd, level, optname, optval, optlen);
 }
 
-unsigned int sendto(int sockfd, const void *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, unsigned int addrlen){
+inline unsigned int sendto(int sockfd, const void *buf, unsigned int len, int flags, const struct sockaddr *dest_addr, unsigned int addrlen){
 	struct SceNetSockaddr tmp;
 	convertSockaddr(&tmp, dest_addr);
 	return sceNetSendto(sockfd, buf, len, flags, &tmp, addrlen);
