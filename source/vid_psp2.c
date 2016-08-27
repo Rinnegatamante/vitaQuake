@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u16 uint16_t
 #define u8 uint8_t
 
+CVAR (vid_vsync, 1, CVAR_ARCHIVE)
+
 viddef_t	vid;				// global video state
 int isKeyboard = false;
 int old_char = 0;
@@ -66,7 +68,6 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	
 	// Init GPU
 	vita2d_init();
 	vita2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xFF));
@@ -93,6 +94,7 @@ void	VID_Init (unsigned char *palette)
 	
 	sprintf(res_string,"Current Resolution: %ld x %ld", widths[3], heights[3]);
 	Cvar_RegisterVariable (&res_val);
+	Cvar_RegisterVariable(&vid_vsync);
 	
 }
 
@@ -115,7 +117,7 @@ void VID_ChangeRes(float scale){
 	
 	// Forcing a palette restoration
 	fixpalette = v_gamma.value;
-	Cvar_SetValue ("gamma", 0.1);
+	Cvar_SetValue ("v_gamma", 0.1);
 	
 	// Changing scale value
 	rend_scale = scales[idx];
@@ -133,7 +135,7 @@ void	VID_Update (vrect_t *rects)
 {
 	
 	if (fixpalette > 0){
-		Cvar_SetValue ("gamma", fixpalette);
+		Cvar_SetValue ("v_gamma", fixpalette);
 		fixpalette = 0;
 	}
 	vita2d_start_drawing();
@@ -141,9 +143,8 @@ void	VID_Update (vrect_t *rects)
 	vita2d_end_drawing();
 	if (isKeyboard) vita2d_common_dialog_update();
 	vita2d_wait_rendering_done();
-	vita2d_swap_buffers();
-	sceDisplayWaitVblankStart();
-	
+	vita2d_swap_buffers();	
+	if (vid_vsync.value) sceDisplayWaitVblankStart();
 }
 
 /*
