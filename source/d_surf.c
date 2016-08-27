@@ -301,17 +301,13 @@ surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel)
 //
 	if (!cache)     // if a texture just animated, don't reallocate it
 	{
-		cache = D_SCAlloc (r_drawsurf.surfwidth,
-						   r_drawsurf.surfwidth * r_drawsurf.surfheight);
+		cache = D_SCAlloc (r_drawsurf.surfwidth, r_drawsurf.surfwidth * r_drawsurf.surfheight);
 		surface->cachespots[miplevel] = cache;
 		cache->owner = &surface->cachespots[miplevel];
 		cache->mipscale = surfscale;
 	}
 	
-	if (surface->dlightframe == r_framecount)
-		cache->dlight = 1;
-	else
-		cache->dlight = 0;
+	cache->dlight = (surface->dlightframe == r_framecount) ? 1 : 0;
 
 	r_drawsurf.surfdat = (pixel_t *)cache->data;
 	

@@ -27,6 +27,7 @@ enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_
 
 #define ENGINE_NAME			"VitaQuake"
 #define	VERSION				2.1
+#define VERSION_PROQUAKE	3.50
 
 //define	PARANOID			// speed sapping error checking
 
@@ -243,12 +244,8 @@ typedef struct
 #include "progs.h"
 #include "server.h"
 
-#ifdef GLQUAKE
-#include "gl_model.h"
-#else
 #include "model.h"
 #include "d_iface.h"
-#endif
 
 #include "input.h"
 #include "world.h"
@@ -259,9 +256,6 @@ typedef struct
 #include "crc.h"
 #include "cdaudio.h"
 
-#ifdef GLQUAKE
-#include "glquake.h"
-#endif
 
 //=============================================================================
 

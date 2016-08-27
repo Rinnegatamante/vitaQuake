@@ -24,7 +24,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 CVAR (m_filter,		0, CVAR_ARCHIVE)
 CVAR (pstv_rumble,	1, CVAR_ARCHIVE | CVAR_PSTV)
-CVAR (retrotouch,	0, CVAR_ARCHIVE | CVAR_PSVITA)
+
+CVAR (retrotouch,					0, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (psvita_touchmode,				0, CVAR_ARCHIVE | CVAR_PSVITA)	// 0: as a button / 1: as a joystick
+CVAR (psvita_front_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (psvita_front_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (psvita_back_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (psvita_back_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
+
 extern cvar_t always_run, inverted;
 
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
@@ -34,14 +41,38 @@ SceCtrlData oldanalogs, analogs;
 
 void IN_Init (void)
 {
-  if ( COM_CheckParm ("-nomouse") )
-    return;
-
   Cvar_RegisterVariable (&m_filter);
   Cvar_RegisterVariable (&retrotouch);
   Cvar_RegisterVariable (&always_run);
   Cvar_RegisterVariable (&inverted);
   Cvar_RegisterVariable (&pstv_rumble);
+  Cvar_RegisterVariable(&psvita_touchmode);
+
+  //Touchscreen sensitivity
+  Cvar_RegisterVariable(&psvita_front_sensitivity_x);
+  Cvar_RegisterVariable(&psvita_front_sensitivity_y);
+  Cvar_RegisterVariable(&psvita_back_sensitivity_x);
+  Cvar_RegisterVariable(&psvita_back_sensitivity_y);
+
+}
+
+void IN_ResetInputs(void)
+{
+	// Set default PSVITA controls
+	Cbuf_AddText("unbindall\n");
+	Cbuf_AddText("bind CROSS \"impulse 12\"\n"); // Cross
+	Cbuf_AddText("bind SQUARE +attack\n"); // Square
+	Cbuf_AddText("bind CIRCLE +jump\n"); // Circle
+	Cbuf_AddText("bind TRIANGLE \"impulse 10\"\n"); // Triangle
+	Cbuf_AddText("bind LTRIGGER +speed\n"); // Left Trigger
+	Cbuf_AddText("bind RTRIGGER +attack\n"); // Right Trigger
+	Cbuf_AddText("bind UPARROW +moveup\n"); // Up
+	Cbuf_AddText("bind DOWNARROW +movedown\n"); // Down
+	Cbuf_AddText("bind LEFTARROW +moveleft\n"); // Left
+	Cbuf_AddText("bind RIGHTARROW +moveright\n"); // Right
+	Cbuf_AddText("bind TOUCH +showscores\n"); // Touchscreen
+	Cbuf_AddText("bind SELECT pause\n"); // Touchscreen
+	Cbuf_AddText("sensitivity 5\n"); // Right Analog Sensitivity
 }
 
 void IN_Shutdown (void)
@@ -73,9 +104,7 @@ void IN_StopRumble (void)
 
 void IN_Move (usercmd_t *cmd)
 {
-
 	// ANALOGS
-	
 	if ((in_speed.state & 1) || always_run.value){
 		cl_forwardspeed.value = 400;
 		cl_backspeed.value = 400;
@@ -117,8 +146,8 @@ void IN_Move (usercmd_t *cmd)
 			int raw_y = lerp(touch.report[0].y, 1087, 544);
 			int touch_x = raw_x - 480;
 			int touch_y = raw_y - 272;
-			x_cam = abs(touch_x) < 20 ? 0 : touch_x * sensitivity.value * 0.008;
-			y_cam = abs(touch_y) < 20 ? 0 : touch_y * sensitivity.value * 0.008;
+			x_cam = abs(touch_x) < 20 ? 0 : touch_x * psvita_back_sensitivity_x.value * 0.008;
+			y_cam = abs(touch_y) < 20 ? 0 : touch_y * psvita_back_sensitivity_x.value * 0.008;
 			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
 			if (inverted.value) cl.viewangles[PITCH] -= y_cam;
@@ -126,19 +155,25 @@ void IN_Move (usercmd_t *cmd)
 		}
 	}
 	
+	if (psvita_touchmode.value == 1)
+	{
+		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
+		if (touch.reportNum > 0) {
+			int raw_x = lerp(touch.report[0].x, 1919, 960);
+			int raw_y = lerp(touch.report[0].y, 1087, 544);
+			int touch_x = raw_x - 480;
+			int touch_y = raw_y - 272;
+			x_cam = abs(touch_x) < 20 ? 0 : touch_x * psvita_front_sensitivity_x.value * 0.008;
+			y_cam = abs(touch_y) < 20 ? 0 : touch_y * psvita_front_sensitivity_y.value * 0.008;
+			cl.viewangles[YAW] -= x_cam;
+			V_StopPitchDrift();
+			if (inverted.value) cl.viewangles[PITCH] -= y_cam;
+			else cl.viewangles[PITCH] += y_cam;
+		}
+	}
+
 	if (pq_fullpitch.value)
-	{
-		if (cl.viewangles[PITCH] > 90)
-			cl.viewangles[PITCH] = 90;
-		if (cl.viewangles[PITCH] < -90)
-			cl.viewangles[PITCH] = -90;
-	}
+		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);
 	else
-	{
-		if (cl.viewangles[PITCH] > 80)
-			cl.viewangles[PITCH] = 80;
-		if (cl.viewangles[PITCH] < -70)
-			cl.viewangles[PITCH] = -70;
-	}
-	
+		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -70, 80);
 }

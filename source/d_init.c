@@ -31,7 +31,7 @@ CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 #define NUM_MIPS	4
 
 surfcache_t		*d_initial_rover;
-bool		d_roverwrapped;
+bool			d_roverwrapped;
 int				d_minmip;
 float			d_scalemip[NUM_MIPS-1];
 
@@ -49,9 +49,6 @@ D_Init
 */
 void D_Init (void)
 {
-
-	r_skydirect = 1;
-
 	Cvar_RegisterVariable (&d_subdiv16);
 	Cvar_RegisterVariable (&d_mipcap);
 	Cvar_RegisterVariable (&d_mipscale);

@@ -310,6 +310,8 @@ void M_Main_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		key_dest = key_game;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -329,8 +331,8 @@ void M_Main_Key (int key)
 			m_main_cursor = MAIN_ITEMS - 1;
 		break;
 
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		m_entersound = true;
 
 		switch (m_main_cursor)
@@ -394,6 +396,8 @@ void M_SinglePlayer_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Main_f ();
 		break;
 
@@ -409,16 +413,13 @@ void M_SinglePlayer_Key (int key)
 			m_singleplayer_cursor = SINGLEPLAYER_ITEMS - 1;
 		break;
 
-	case K_AUX1: // Cross		
-	case K_AUX4: // Circle
+	case K_CROSS: // Cross		
+	case K_CIRCLE: // Circle
 		m_entersound = true;
 
 		switch (m_singleplayer_cursor)
 		{
 		case 0:
-			/*if (sv.active)
-				if (!SCR_ModalMessage("Are you sure you want to\nstart a new game?\n"))
-					break;*/
 			key_dest = key_game;
 			Cbuf_AddText ("disconnect\n");	// Ch0wW: Disconnect all the time to reset original NetQuake behaviour.
 			Cbuf_AddText ("maxplayers 1\n");
@@ -535,11 +536,13 @@ void M_Load_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_SinglePlayer_f ();
 		break;
 
-	case K_AUX4: // Circle
-	case K_AUX1: // Cross
+	case K_CIRCLE: // Circle
+	case K_CROSS: // Cross
 		S_LocalSound ("misc/menu2.wav");
 		if (!loadable[load_cursor])
 			return;
@@ -578,11 +581,13 @@ void M_Save_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_SinglePlayer_f ();
 		break;
 		
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		m_state = m_none;
 		key_dest = key_game;
 		Cbuf_AddText (va("save s%i\n", load_cursor));
@@ -646,6 +651,8 @@ void M_MultiPlayer_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Main_f ();
 		break;
 
@@ -661,8 +668,8 @@ void M_MultiPlayer_Key (int key)
 			m_multiplayer_cursor = MULTIPLAYER_ITEMS - 1;
 		break;
 
-	case K_AUX4: // Circle
-	case K_AUX1: // Cross
+	case K_CIRCLE: // Circle
+	case K_CROSS: // Cross
 		m_entersound = true;
 		switch (m_multiplayer_cursor)
 		{
@@ -756,6 +763,8 @@ void M_Setup_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_MultiPlayer_f ();
 		break;
 
@@ -793,8 +802,8 @@ forward:
 			setup_bottom = setup_bottom + 1;
 		break;
 	
-	case K_AUX4: // Circle
-	case K_AUX1: // Cross
+	case K_CIRCLE: // Circle
+	case K_CROSS: // Cross
 		if (setup_cursor == 0 || setup_cursor == 1)
 			return;
 
@@ -965,7 +974,7 @@ void M_AdjustSliders (int dir)
 			v_gamma.value = 0.5;
 		if (v_gamma.value > 1)
 			v_gamma.value = 1;
-		Cvar_SetValue ("gamma", v_gamma.value);
+		Cvar_SetValue ("v_gamma", v_gamma.value);
 		break;
 	case 5:	// mouse speed
 		sensitivity.value += dir * 0.5;
@@ -998,12 +1007,11 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("volume", volume.value);
 		break;
 
-	case 9:	// allways run
+	case 9:	// always run
 		Cvar_SetValue ("always_run", !always_run.value);
 		break;
 
 	case 10:	// invert mouse
-		//Cvar_SetValue ("m_pitch", -m_pitch.value); Hotfix for PSVITA
 		Cvar_SetValue ("invert_camera", !inverted.value);
 		break;
 
@@ -1062,15 +1070,9 @@ void M_DrawSlider (int x, int y, float range)
 void M_DrawCheckbox (int x, int y, int on)
 {
 #if 0
-	if (on)
-		M_DrawCharacter (x, y, 131);
-	else
-		M_DrawCharacter (x, y, 129);
+		M_DrawCharacter (x, y, on ? 131 : 129);
 #endif
-	if (on)
-		M_Print (x, y, "on");
-	else
-		M_Print (x, y, "off");
+		M_Print (x, y, on ? "on" : "off");
 }
 
 void M_Options_Draw (void)
@@ -1094,7 +1096,7 @@ void M_Options_Draw (void)
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 64, r);
 
-	M_Print (16, 72, "    Camera Sensibility");
+	M_Print (16, 72, "    Camera Sensitivity");
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
@@ -1149,11 +1151,13 @@ void M_Options_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Main_f ();
 		break;
 	
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		m_entersound = true;
 		switch (options_cursor)
 		{
@@ -1167,19 +1171,7 @@ void M_Options_Key (int k)
 		case 2:
 			Cbuf_AddText ("exec default.cfg\n");
 			
-			// Set default PSVITA controls
-			Cbuf_AddText ("unbindall\n");
-			Cbuf_AddText ("bind CROSS +jump\n"); // Cross
-			Cbuf_AddText ("bind SQUARE +attack\n"); // Square
-			Cbuf_AddText ("bind CIRCLE +jump\n"); // Circle
-			Cbuf_AddText ("bind TRIANGLE \"impulse 10\"\n"); // Triangle
-			Cbuf_AddText ("bind LTRIGGER +speed\n"); // Left Trigger
-			Cbuf_AddText ("bind RTRIGGER +attack\n"); // Right Trigger
-			Cbuf_AddText ("bind UPARROW +moveup\n"); // Up
-			Cbuf_AddText ("bind DOWNARROW +movedown\n"); // Down
-			Cbuf_AddText ("bind LEFTARROW +moveleft\n"); // Left
-			Cbuf_AddText ("bind RIGHTARROW +moveright\n"); // Right
-			Cbuf_AddText ("sensitivity 5\n"); // Right Analog Sensitivity
+			IN_ResetInputs();
 			d_mipscale.value = 1;
 			Cvar_SetValue ("d_mipscale", d_mipscale.value);
 			fov.value = 90;
@@ -1228,26 +1220,28 @@ void M_Options_Key (int k)
 //=============================================================================
 /* KEYS MENU */
 
+#define BIND_BINDABLE 0
+#define BIND_SEPARATOR 1
+
 char *bindnames[][2] =
 {
 {"+attack", 		"attack"},
-{"impulse 10", 		"change weapon"},
+{"impulse 10", 		"next weapon"},
+{"impulse 12",	 	"previous weapon" },
 {"+jump", 			"jump / swim up"},
-{"+forward", 		"walk forward"},
-{"+back", 			"backpedal"},
+{"+forward", 		"move forward"},
+{"+back", 			"move back"},
+{"+moveleft", 		"move left" },
+{"+moveright", 		"move right" },
+{"+speed", 			"run" },
+{"+moveup",			"swim up" },
+{"+movedown",		"swim down" },
+{"centerview", 		"center view"},
 {"+left", 			"turn left"},
 {"+right", 			"turn right"},
-{"+speed", 			"run"},
-{"+moveleft", 		"step left"},
-{"+moveright", 		"step right"},
 {"+strafe", 		"sidestep"},
 {"+lookup", 		"look up"},
-{"+lookdown", 		"look down"},
-{"centerview", 		"center view"},
-{"+mlook", 			"mouse look"},
-{"+klook", 			"keyboard look"},
-{"+moveup",			"swim up"},
-{"+movedown",		"swim down"}
+{"+lookdown", 		"look down"}
 };
 
 #define	NUMCOMMANDS	(sizeof(bindnames)/sizeof(bindnames[0]))
@@ -1367,7 +1361,7 @@ void M_Keys_Key (int k)
 	if (bind_grab)
 	{	// defining a key
 		S_LocalSound ("misc/menu1.wav");
-		if (k == K_ESCAPE)
+		if (k == K_START) // Start cancels
 		{
 			bind_grab = false;
 		}
@@ -1384,6 +1378,8 @@ void M_Keys_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Options_f ();
 		break;
 
@@ -1403,8 +1399,8 @@ void M_Keys_Key (int k)
 			keys_cursor = 0;
 		break;
 	
-	case K_AUX4:		// go into bind mode
-	case K_AUX1:		// go into bind mode
+	case K_CIRCLE:		// go into bind mode
+	case K_CROSS:		// go into bind mode
 		M_FindKeysForCommand (bindnames[keys_cursor][0], keys);
 		S_LocalSound ("misc/menu2.wav");
 		if (keys[1] != -1)
@@ -1412,7 +1408,7 @@ void M_Keys_Key (int k)
 		bind_grab = true;
 		break;
 
-	case K_ESCAPE:				// delete bindings
+	case K_SELECT:				// delete bindings
 		S_LocalSound ("misc/menu2.wav");
 		M_UnbindCommand (bindnames[keys_cursor][0]);
 		break;
@@ -1469,6 +1465,8 @@ void M_Help_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Main_f ();
 		break;
 
@@ -1519,6 +1517,11 @@ char *quitMessage [] =
   "   for trying to quit!  ",
   "     Press X to get     ",
   "      smacked out.      ",
+
+  " What, you want to stop ",
+  "   playing VitaQuake?   ",
+  "     Press X or O to    ",
+  "   return to LiveArea.  ",
  
   " Press X to quit like a ",
   "   big loser in life.   ",
@@ -1559,7 +1562,8 @@ void M_Quit_Key (int key)
 {
 	switch (key)
 	{
-	case K_ESCAPE:
+	case K_TRIANGLE:
+	case K_SELECT:
 	case 'n':
 	case 'N':
 		if (wasInMenus)
@@ -1574,8 +1578,8 @@ void M_Quit_Key (int key)
 		}
 		break;
 
-	case K_AUX1:
-	case K_AUX4:
+	case K_CROSS:
+	case K_CIRCLE:
 		key_dest = key_console;
 		Host_Quit_f ();
 		break;
@@ -1597,7 +1601,7 @@ void M_Quit_Draw (void)
 		m_state = m_quit;
 	}
 
-#ifdef _WIN32
+#ifdef _WIN32	// ToDo: Move this to a Credits subsection
 	M_DrawTextBox (0, 0, 38, 23);
 	M_PrintWhite (16, 12,  "  Quake version 1.09 by id Software\n\n");
 	M_PrintWhite (16, 28,  "Programming        Art \n");
@@ -1650,8 +1654,6 @@ void M_Menu_LanConfig_f (void)
 	{
 		if (JoiningGame && TCPIPConfig)
 			lanConfig_cursor = 3;
-		else
-			lanConfig_cursor = 1;
 	}
 	if (StartingGame && lanConfig_cursor >= 2)
 		lanConfig_cursor = 1;
@@ -1725,6 +1727,8 @@ void M_LanConfig_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_MultiPlayer_f ();
 		break;
 
@@ -1745,8 +1749,8 @@ void M_LanConfig_Key (int key)
 			lanConfig_cursor = 0;
 		break;
 
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		if (lanConfig_cursor == 0)
 			break;
 
@@ -2246,6 +2250,8 @@ void M_GameOptions_Key (int key)
 	switch (key)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_Net_f ();
 		break;
 
@@ -2277,8 +2283,8 @@ void M_GameOptions_Key (int key)
 		M_NetStart_Change (1);
 		break;
 
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		S_LocalSound ("misc/menu2.wav");
 		if (gameoptions_cursor == 0)
 		{
@@ -2427,6 +2433,8 @@ void M_ServerList_Key (int k)
 	switch (k)
 	{
 	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
 		M_Menu_LanConfig_f ();
 		break;
 
@@ -2450,8 +2458,8 @@ void M_ServerList_Key (int k)
 			slist_cursor = 0;
 		break;
 
-	case K_AUX4:
-	case K_AUX1:
+	case K_CIRCLE:
+	case K_CROSS:
 		S_LocalSound ("misc/menu2.wav");
 		m_return_state = m_state;
 		m_return_onerror = true;
