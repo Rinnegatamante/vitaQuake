@@ -31,11 +31,7 @@ enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_
 
 //define	PARANOID			// speed sapping error checking
 
-#ifdef QUAKE2
-#define	GAMENAME	"id1"		// directory to look in by default
-#else
-#define	GAMENAME	"id1"
-#endif
+#define	GAMENAME_DIR	"id1"
 
 #include <math.h>
 #include <string.h>

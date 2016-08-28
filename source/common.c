@@ -1438,10 +1438,8 @@ pack_t *COM_LoadPackFile(char *packfile)
 	unsigned short          crc;
 
 	if (Sys_FileOpenRead(packfile, &packhandle) == -1)
-	{
-		//              Con_Printf ("Couldn't open %s\n", packfile);
 		return NULL;
-	}
+	
 	Sys_FileRead(packhandle, (void *)&header, sizeof(header));
 	if (header.id[0] != 'P' || header.id[1] != 'A' || header.id[2] != 'C' || header.id[3] != 'K')
 		Sys_Error("%s is not a packfile", packfile);
@@ -1580,9 +1578,9 @@ void COM_InitFilesystem (void)
 		com_cachedir[0] = 0;
 
 //
-// start up with GAMENAME by default (id1)
+// start up with GAMENAME by default (referenced by GAMENAME_DIR)
 //
-	COM_AddGameDirectory (va("%s/"GAMENAME, basedir) );
+	COM_AddGameDirectory (va("%s/"GAMENAME_DIR, basedir) );
 
 	if (COM_CheckParm ("-rogue"))
 		COM_AddGameDirectory (va("%s/rogue", basedir) );
@@ -1661,8 +1659,7 @@ int COM_Clamp(int value, int min, int max)
 
 
 #ifndef HAVE_STRLCAT
-size_t
-strlcat(char *dst, const char *src, size_t siz)
+size_t strlcat(char *dst, const char *src, size_t siz)
 {
 	register char *d = dst;
 	register const char *s = src;
@@ -1690,36 +1687,6 @@ strlcat(char *dst, const char *src, size_t siz)
 }
 #endif  // #ifndef HAVE_STRLCAT
 
-
-#ifndef HAVE_STRLCPY
-size_t
-strlcpy(char *dst, const char *src, size_t siz)
-{
-	register char *d = dst;
-	register const char *s = src;
-	register size_t n = siz;
-
-	/* Copy as many bytes as will fit */
-	if (n != 0 && --n != 0) {
-		do {
-			if ((*d++ = *s++) == 0)
-				break;
-		} while (--n != 0);
-	}
-
-	/* Not enough room in dst, add NUL and traverse rest of src */
-	if (n == 0) {
-		if (siz != 0)
-			*d = '\0';		/* NUL-terminate dst */
-		while (*s++)
-			;
-	}
-
-	return(s - src - 1);	/* count does not include NUL */
-}
-
-#endif  // #ifndef HAVE_STRLCPY
-
 // Baker: strip leading spaces from string
 char *strltrim(char *s) {
 	char *t;
@@ -1728,5 +1695,18 @@ char *strltrim(char *s) {
 	for (t = s; isspace(*t); ++t)
 		continue;
 	memmove(s, t, strlen(t) + 1);	/* +1 so that '\0' is moved too */
+	return s;
+}
+
+// Lower string
+char* strtolower(char* s) {
+	assert(s != NULL);
+
+	char* p = s;
+	while (*p != '\0') {
+		*p = tolower(*p);
+		p++;
+	}
+
 	return s;
 }

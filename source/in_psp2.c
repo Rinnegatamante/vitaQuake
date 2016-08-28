@@ -60,19 +60,19 @@ void IN_ResetInputs(void)
 {
 	// Set default PSVITA controls
 	Cbuf_AddText("unbindall\n");
-	Cbuf_AddText("bind CROSS \"impulse 12\"\n"); // Cross
+	Cbuf_AddText("bind CROSS +jump\n"); // Cross
 	Cbuf_AddText("bind SQUARE +attack\n"); // Square
-	Cbuf_AddText("bind CIRCLE +jump\n"); // Circle
+	Cbuf_AddText("bind CIRCLE \"impulse 12\"\n"); // Circle
 	Cbuf_AddText("bind TRIANGLE \"impulse 10\"\n"); // Triangle
-	Cbuf_AddText("bind LTRIGGER +speed\n"); // Left Trigger
+	Cbuf_AddText("bind LTRIGGER +jump\n"); // Left Trigger
 	Cbuf_AddText("bind RTRIGGER +attack\n"); // Right Trigger
-	Cbuf_AddText("bind UPARROW +moveup\n"); // Up
-	Cbuf_AddText("bind DOWNARROW +movedown\n"); // Down
+	Cbuf_AddText("bind UPARROW +forward\n"); // Up
+	Cbuf_AddText("bind DOWNARROW +back\n"); // Down
 	Cbuf_AddText("bind LEFTARROW +moveleft\n"); // Left
 	Cbuf_AddText("bind RIGHTARROW +moveright\n"); // Right
 	Cbuf_AddText("bind TOUCH +showscores\n"); // Touchscreen
-	Cbuf_AddText("bind SELECT pause\n"); // Touchscreen
-	Cbuf_AddText("sensitivity 5\n"); // Right Analog Sensitivity
+	Cbuf_AddText("bind SELECT +showscores\n"); // Touchscreen
+	Cbuf_AddText("sensitivity 3.5\n"); // Right Analog Sensitivity
 }
 
 void IN_Shutdown (void)

@@ -166,8 +166,7 @@ void CDAudio_Play(byte track, bool looping)
 {
 	CDAudio_Stop();
 	char fname[256];
-	if (mod_path == NULL) sprintf(fname,"ux0:/data/Quake/id1/cdtracks/track");
-	else sprintf(fname,"ux0:/data/Quake/%s/cdtracks/track",mod_path);
+	sprintf (fname, "%s/%s/cdtracks/track", host_parms.basedir, (mod_path == NULL) ? GAMENAME_DIR : mod_path);
 	if (track < 100){
 		sprintf(fname, "%s0", fname);
 		if (track < 10){
@@ -177,14 +176,7 @@ void CDAudio_Play(byte track, bool looping)
 	sprintf(fname,"%s%d",fname,track);
 	char tmp[256];
 	sprintf(tmp,"%s.ogg",fname);
-	
-	// Debug log
-	/*FILE* logf = fopen("ux0:/data/Quake/log.txt","a+");
-	char log[256];
-	sprintf(log,"%s\n",tmp);
-	fwrite(log,1,strlen(log),logf);
-	fclose(logf);*/
-	
+		
 	FILE* fd = fopen(tmp,"rb");
 	if (fd == NULL){
 		sprintf(tmp,"%s.mp3",fname);

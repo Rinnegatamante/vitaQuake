@@ -8,21 +8,31 @@
 #include <vita2d.h>
 #include <psp2/ctrl.h>
 #include <psp2/kernel/processmgr.h>
+
+#include <ctype.h>
+
+#define MOD_FILE "mods.txt"
+
 typedef struct ModsList{
 	char name[256];
 	struct ModsList* next;
 }ModsList;
 
-bool CheckForPak(char* dir){
+/*
+================
+CheckForPak
+================
+*/
+bool CheckForPak(char* dir)
+{
 	int dd = sceIoDopen(dir);
 	SceIoDirent entry;
 	int res;
 	bool ret = false;
-	while ((res = sceIoDread(dd, &entry)) > 0 && (!ret)){
-		int len = strlen(entry.d_name);
-		if (strstr(entry.d_name,".pak") != NULL) ret = true;
-		if (strstr(entry.d_name,".PAK") != NULL) ret = true;
-	}
+
+	while ((res = sceIoDread(dd, &entry)) > 0 && (!ret))
+		if (strstr(strtolower(entry.d_name),".pak") != NULL) ret = true;
+	
 	sceIoDclose(dd);
 	return ret;
 }
@@ -43,7 +53,32 @@ ModsList* addMod(char* name, ModsList* db){
 
 char* modname = NULL;
 
-int mod_selector(){
+void MOD_SelectModMenu(char *basedir){
+
+	SceCtrlData pad, oldpad;
+	sceCtrlPeekBufferPositive(0, &pad, 1);
+
+	// Ch0wW: Enable the mod menu once the R trigger is hold on startup.
+	if (!(pad.buttons & SCE_CTRL_RTRIGGER))
+	{
+		// Reading current used mod
+		char cur_mod[64];
+		modname = malloc(64);
+		FILE* f;
+		if ((f = fopen( va("%s/%s", basedir, MOD_FILE), "r")) != NULL) {
+			char tmp[256];
+			fseek(f, 0, SEEK_END);
+			int len = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			fread(tmp, 1, len, f);
+			fclose(f);
+			tmp[len] = 0;
+			sprintf(modname, "%s", tmp);
+		}
+		else
+			modname = NULL;
+		return;
+	}
 
 	// Initializing empty ModList
 	ModsList* mods = NULL;
@@ -51,14 +86,12 @@ int mod_selector(){
 	int max_idx = -1;
 	
 	// Scanning main folder in search of mods
-	int dd = sceIoDopen("ux0:/data/Quake");
+	int dd = sceIoDopen(basedir);
 	SceIoDirent entry;
 	int res;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			char fullpath[256];
-			sprintf(fullpath,"ux0:/data/Quake/%s",entry.d_name);
-			if (CheckForPak(fullpath)){
+			if (CheckForPak( va("%s/%s", basedir, entry.d_name))){
 				mods = addMod(entry.d_name, mods);
 				max_idx++;
 			}
@@ -67,10 +100,10 @@ int mod_selector(){
 	sceIoDclose(dd);
 	
 	// Reading current used mod
-	char cur_mod[256];
-	modname = malloc(256);
+	char cur_mod[64];
+	modname = malloc(64);
 	FILE* f;
-	if ((f = fopen("ux0:/data/Quake/mods.txt", "r")) != NULL){
+	if ((f = fopen(va("%s/%s", basedir, MOD_FILE), "r")) != NULL) {
 		char tmp[256];
 		fseek(f, 0, SEEK_END);
 		int len = ftell(f);
@@ -88,7 +121,6 @@ int mod_selector(){
 	uint32_t white = RGBA8(0xFF, 0xFF, 0xFF, 0xFF);
 	uint32_t green = RGBA8(0x00, 0xFF, 0x00, 0xFF);
 	uint32_t red = RGBA8(0xFF, 0x00, 0x00, 0xFF);
-	SceCtrlData pad, oldpad;
 	
 	// Main loop
 	while (max_idx >= 0){
@@ -118,11 +150,16 @@ int mod_selector(){
 				z++;
 			}
 			sprintf(cur_mod,"Current in use mod: %s - Press START to launch vitaQuake core", tmp->name);
-			if (strcmp(tmp->name, "id1") == 0) sceIoRemove("ux0:/data/Quake/mods.txt");
+			if (!strcmp(tmp->name, "id1"))
+			{
+				sceIoRemove( va("%s/%s", basedir, MOD_FILE) );
+				modname = NULL;
+			}
 			else{
-				f = fopen("ux0:/data/Quake/mods.txt", "w");
+				f = fopen(va("%s/%s", basedir, MOD_FILE), "w");
 				fwrite(tmp->name,1,strlen(tmp->name),f);
 				fclose(f);
+				strcpy(modname, tmp->name);	// Refresh the mod directory.
 			}
 		}else if ((pad.buttons & SCE_CTRL_UP) && (!(oldpad.buttons & SCE_CTRL_UP))){
 			i--;
@@ -147,5 +184,5 @@ int mod_selector(){
 		tmp = tmp2;
 	}
 
-	return 0;
+	return;
 }
