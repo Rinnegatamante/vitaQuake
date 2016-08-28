@@ -875,10 +875,8 @@ R_EdgeDrawing
 */
 void R_EdgeDrawing (void)
 {
-	edge_t	*ledges = malloc(sizeof(edge_t) * NUMSTACKEDGES +
-				((CACHE_SIZE - 1) / sizeof(edge_t)) + 1);
-	surf_t	*lsurfs = malloc(sizeof(surf_t) * NUMSTACKSURFACES +
-				((CACHE_SIZE - 1) / sizeof(surf_t)) + 1);
+	static edge_t	ledges[NUMSTACKEDGES + ((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
+	static surf_t	lsurfs[NUMSTACKSURFACES + ((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
 
 	if (auxedges)
 	{
@@ -941,8 +939,6 @@ void R_EdgeDrawing (void)
 		R_ScanEdges ();
 	}
 
-	free(ledges);
-	free(lsurfs);
 }
 
 
@@ -955,7 +951,7 @@ r_refdef must be set before the first call
 */
 void R_RenderView_ (void)
 {
-	byte	*warpbuffer = malloc(sizeof(byte)*(WARP_WIDTH * WARP_HEIGHT));
+	static byte	warpbuffer[WARP_WIDTH * WARP_HEIGHT];
 
 	r_warpbuffer = warpbuffer;
 
@@ -1043,7 +1039,6 @@ SetVisibilityByPassages ();
 
 // back to high floating-point precision
 	Sys_HighFPPrecision ();
-	free(warpbuffer);
 }
 
 void R_RenderView (void)
