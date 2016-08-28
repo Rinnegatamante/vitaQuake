@@ -139,73 +139,73 @@ void InsertLinkAfter (link_t *l, link_t *after)
 ============================================================================
 */
 
-void Q_memset (void *dest, int fill, int count)
+inline void Q_memset (void *dest, int fill, int count)
 {
 	memset(dest, fill, count);
 }
 
-void Q_memcpy (void *dest, void *src, int count)
+inline void Q_memcpy (void *dest, void *src, int count)
 {
 	memcpy(dest, src, count);
 }
 
-int Q_memcmp (void *m1, void *m2, int count)
+inline int Q_memcmp (void *m1, void *m2, int count)
 {
 	return memcmp(m1, m2, count);
 }
 
-void Q_strcpy (char *dest, char *src)
+inline void Q_strcpy (char *dest, char *src)
 {
 	strcpy(dest, src);
 }
 
-void Q_strncpy (char *dest, char *src, int count)
+inline void Q_strncpy (char *dest, char *src, int count)
 {
 	strncpy(dest, src, count);
 }
 
-int Q_strlen (char *str)
+inline int Q_strlen (char *str)
 {
 	return strlen(str);
 }
 
-char *Q_strrchr(char *s, char c)
+inline char *Q_strrchr(char *s, char c)
 {
     return strrchr(s, c);
 }
 
-void Q_strcat (char *dest, char *src)
+inline void Q_strcat (char *dest, char *src)
 {
 	strcat(dest, src);
 }
 
-int Q_strcmp (char *s1, char *s2)
+inline int Q_strcmp (char *s1, char *s2)
 {
 	return strcmp(s1, s2);
 }
 
-int Q_strncmp (char *s1, char *s2, int count)
+inline int Q_strncmp (char *s1, char *s2, int count)
 {
 	return strncmp(s1, s2, count);
 }
 
-int Q_strncasecmp (char *s1, char *s2, int n)
+inline int Q_strncasecmp (char *s1, char *s2, int n)
 {
 	return strncasecmp(s1, s2, n);
 }
 
-int Q_strcasecmp (char *s1, char *s2)
+inline int Q_strcasecmp (char *s1, char *s2)
 {
 	return strcasecmp (s1, s2);
 }
 
-int Q_atoi (char *str)
+inline int Q_atoi (char *str)
 {
 	return atoi(str);
 }
 
 
-float Q_atof (char *str)
+inline float Q_atof (char *str)
 {
 	return atof(str);
 }
@@ -227,32 +227,32 @@ int     (*LittleLong) (int l);
 float   (*BigFloat) (float l);
 float   (*LittleFloat) (float l);
 
-short   ShortSwap (short l)
+inline short   ShortSwap (short l)
 {
 	return __builtin_bswap16(l);
 }
 
-short   ShortNoSwap (short l)
+inline short   ShortNoSwap (short l)
 {
 	return l;
 }
 
-int    LongSwap (int l)
+inline int    LongSwap (int l)
 {
 	return __builtin_bswap32(l);
 }
 
-int     LongNoSwap (int l)
+inline int     LongNoSwap (int l)
 {
 	return l;
 }
 
-float FloatSwap (float f)
+inline float FloatSwap (float f)
 {
 	return __builtin_bswap32(f);
 }
 
-float FloatNoSwap (float f)
+inline float FloatNoSwap (float f)
 {
 	return f;
 }
