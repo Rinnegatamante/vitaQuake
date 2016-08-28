@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
 CVAR (d_mipcap,		0, CVAR_ARCHIVE)
 CVAR (d_mipscale,	1, CVAR_ARCHIVE)
+CVAR (d_dither,		0, CVAR_ARCHIVE)
 
 //----------------------------------------------
 
@@ -52,6 +53,7 @@ void D_Init (void)
 	Cvar_RegisterVariable (&d_subdiv16);
 	Cvar_RegisterVariable (&d_mipcap);
 	Cvar_RegisterVariable (&d_mipscale);
+	Cvar_RegisterVariable (&d_dither);
 
 	r_drawpolys = false;
 	r_worldpolysbacktofront = false;
