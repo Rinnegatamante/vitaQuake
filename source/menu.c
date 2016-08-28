@@ -1926,25 +1926,11 @@ void M_OnlineServerList_Key (int key)
 		m_state = m_none;
 		Cbuf_AddText ("stopdemo\n");
 		
-		if (onlineServerList_cursor == 0)
-			net_hostport = 26000;
-			Cbuf_AddText ("connect 212.24.100.151\n");
-		if (onlineServerList_cursor == 1){
-			net_hostport = 27000;
-			Cbuf_AddText ("connect 212.24.100.151\n");
-		}
-		if (onlineServerList_cursor == 2){
-			net_hostport = 26000;
-			Cbuf_AddText ("connect quake.nctech.ca\n");
-		}
-		if (onlineServerList_cursor == 3){
-			net_hostport = 26002;
-			Cbuf_AddText ("connect quake.shmack.net\n");
-		}
-		if (onlineServerList_cursor == 4){
-			net_hostport = 26000;
-			Cbuf_AddText ("connect dm.clanhdz.com\n");
-		}
+		if (onlineServerList_cursor == 0) Cbuf_AddText ("connect 212.24.100.151\n");	
+		if (onlineServerList_cursor == 1) Cbuf_AddText ("connect 212.24.100.151:27000\n");
+		if (onlineServerList_cursor == 2) Cbuf_AddText ("connect quake.nctech.ca\n");
+		if (onlineServerList_cursor == 3) Cbuf_AddText ("connect quake.shmack.net:26002\n");
+		if (onlineServerList_cursor == 4) Cbuf_AddText ("connect dm.clanhdz.com\n");
 
 		break;
 	}
