@@ -253,11 +253,11 @@ int UDP_Init (void)
 
 	UDP_GetSocketAddr (net_controlsocket, &addr);
 	Q_strcpy(my_tcpip_address,  UDP_AddrToString (&addr));
+
 	colon = Q_strrchr (my_tcpip_address, ':');
 	if (colon)
 		*colon = 0;
 	
-
 	Con_Printf("UDP Initialized as IP %s\n", my_tcpip_address);
 	tcpipAvailable = true;
 
