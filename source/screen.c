@@ -430,6 +430,42 @@ void SCR_DrawFPS (void)
 	Draw_String(x, y, st);
 }
 
+// Benchmark
+int max_fps = 0;
+int average_fps = 0; // TODO: Add this
+int min_fps = 999;
+void SCR_DrawBenchmark (void)
+
+{
+	static double lastframetime;
+	double t;
+	extern int fps_count;
+	static int lastfps;
+	int x, y;
+	char st[80],st2[80],st3[80],st4[80];
+
+	t = Sys_FloatTime ();
+
+	if ((t - lastframetime) >= 1.0) {
+		lastfps = fps_count;
+		fps_count = 0;
+		lastframetime = t;
+
+	}
+	sprintf(st,  "Current: %3d", lastfps);
+	if (lastfps > max_fps) max_fps = lastfps;
+	if (lastfps < min_fps) min_fps = lastfps;
+	sprintf(st2, "    Max: %3d", max_fps);
+	sprintf(st3, "    Min: %3d", min_fps);
+	
+	x = vid.width - strlen(st) * 16 - 16;
+	y = 0 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
+	Draw_String(x, y, st);
+	Draw_String(x, y+8, st2);
+	Draw_String(x, y+16, st3);
+	Draw_String(80, y+80, "Benchmark in progress, please wait...");
+}
+
 /*
 ==============
 DrawPause
@@ -679,6 +715,7 @@ WARNING: be very careful calling this from elsewhere, because the refresh
 needs almost the entire 256k of stack space!
 ==================
 */
+extern bool benchmark;
 void SCR_UpdateScreen (void)
 {
 	static float	oldscr_viewsize;
@@ -797,7 +834,8 @@ void SCR_UpdateScreen (void)
 		SCR_DrawRam ();
 		SCR_DrawNet ();
 		SCR_DrawTurtle ();
-		SCR_DrawFPS ();
+		if (benchmark) SCR_DrawBenchmark ();
+		else SCR_DrawFPS ();
 		SCR_DrawPause ();
 		SCR_CheckDrawCenterString ();
 		Sbar_Draw ();

@@ -696,6 +696,46 @@ void M_MultiPlayer_Key (int key)
 }
 
 //=============================================================================
+/* BENCHMARK MENU */
+
+void M_Menu_Benchmark_f (void)
+{
+	key_dest = key_menu;
+	m_state = m_benchmark;
+	m_entersound = true;
+}
+
+extern int max_fps;
+extern int min_fps;
+extern int average_fps;
+void M_Benchmark_Draw (void)
+{
+	char s[80],s1[80],s2[80];
+	sprintf(s, "    Max FPS: %3d", max_fps);
+	sprintf(s1, "    Min FPS: %3d", min_fps);
+	sprintf(s2, "Average FPS: %3d", average_fps);
+	M_Print(30, 20, "Benchmark results");
+	M_Print (64, 40, s);
+	M_Print (64, 48, s1);
+	M_Print (64, 56, s2);
+}
+
+
+void M_Benchmark_Key (int key)
+{
+	switch (key)
+	{
+	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
+	case K_CIRCLE: // Circle
+	case K_CROSS: // Cross
+		M_Menu_Options_f ();
+		break;
+	}
+}
+
+//=============================================================================
 /* SETUP MENU */
 
 int		setup_cursor = 4;
@@ -937,7 +977,7 @@ void M_Net_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 17
+#define	OPTIONS_ITEMS 18
 
 #define	SLIDER_RANGE 10
 
@@ -948,13 +988,6 @@ void M_Menu_Options_f (void)
 	key_dest = key_menu;
 	m_state = m_options;
 	m_entersound = true;
-
-#ifdef _WIN32
-	if ((options_cursor == 13) && (modestate != MS_WINDOWED))
-	{
-		options_cursor = 0;
-	}
-#endif
 }
 
 
@@ -1055,6 +1088,13 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("render_res",res_val.value);
 		VID_ChangeRes(res_val.value);
 		break;
+		
+	case 18:	// performance test
+		key_dest = key_benchmark;
+		m_state = m_none;
+		cls.demonum = m_save_demonum;
+		Cbuf_AddText("benchmark demo1\n");
+		break;
 
 	}
 }
@@ -1151,9 +1191,12 @@ void M_Options_Draw (void)
 	M_DrawSlider (220, 168, res_val.value);
 	
 	M_Print (50, 182, res_string);
-
+	
+	M_Print (16, 190, "      Test Performance");
+	
 // cursor
-	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 190, 12+((int)(realtime*4)&1));
+	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
 
@@ -1929,7 +1972,7 @@ void M_OnlineServerList_Key (int key)
 		if (onlineServerList_cursor == 0) Cbuf_AddText ("connect 212.24.100.151\n");	
 		if (onlineServerList_cursor == 1) Cbuf_AddText ("connect 212.24.100.151:27000\n");
 		if (onlineServerList_cursor == 2) Cbuf_AddText ("connect quake.nctech.ca\n");
-		if (onlineServerList_cursor == 3) Cbuf_AddText ("connect quake.shmack.net:26002\n");
+		if (onlineServerList_cursor == 3) Cbuf_AddText ("connect quake.shmack.net\n");
 		if (onlineServerList_cursor == 4) Cbuf_AddText ("connect dm.clanhdz.com\n");
 
 		break;
@@ -2682,6 +2725,10 @@ void M_Draw (void)
 	case m_onlineserverlist:
 		M_OnlineServerList_Draw();
 		break;
+		
+	case m_benchmark:
+		M_Benchmark_Draw();
+		break;
 	}
 
 	if (m_entersound)
@@ -2769,6 +2816,10 @@ void M_Keydown (int key)
 		
 	case m_onlineserverlist:
 		M_OnlineServerList_Key (key);
+		break;
+	
+	case m_benchmark:
+		M_Benchmark_Key (key);
 		break;
 	}
 }

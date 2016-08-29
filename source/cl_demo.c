@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+bool benchmark = false;
 void CL_FinishTimeDemo (void);
 
 /*
@@ -104,8 +105,9 @@ int CL_GetMessage (void)
 				cls.td_lastframe = host_framecount;
 			// if this is the second frame, grab the real td_starttime
 			// so the bogus time on the first frame doesn't count
-				if (host_framecount == cls.td_startframe + 1)
+				if (host_framecount == cls.td_startframe + 1){
 					cls.td_starttime = realtime;
+				}else if (host_framecount == cls.td_startframe + 30 && key_dest == key_benchmark) benchmark = true; // Ignore first sec for the benchmark
 			}
 			else if ( /* cl.time > 0 && */ cl.time <= cl.mtime[0])
 			{
@@ -322,6 +324,7 @@ CL_FinishTimeDemo
 
 ====================
 */
+extern int average_fps;
 void CL_FinishTimeDemo (void)
 {
 	int		frames;
@@ -334,7 +337,12 @@ void CL_FinishTimeDemo (void)
 	time = realtime - cls.td_starttime;
 	if (!time)
 		time = 1;
-	Con_Printf ("%i frames %5.1f seconds %5.1f fps\n", frames, time, frames/time);
+	if (benchmark){
+		average_fps = frames/time;
+		key_dest = key_menu;
+		m_state = m_benchmark;
+		benchmark = false;
+	}else Con_Printf ("%i frames %5.1f seconds %5.1f fps\n", frames, time, frames/time);
 }
 
 /*
@@ -359,6 +367,40 @@ void CL_TimeDemo_f (void)
 	
 // cls.td_starttime will be grabbed at the second frame of the demo, so
 // all the loading time doesn't get counted
+	
+	cls.timedemo = true;
+	cls.td_startframe = host_framecount;
+	cls.td_lastframe = -1;		// get a new message this frame
+}
+
+/*
+====================
+CL_Benchmark_f
+
+benchmark [demoname]
+====================
+*/
+extern int max_fps;
+extern int min_fps;
+void CL_Benchmark_f (void)
+{
+	if (cmd_source != src_command)
+		return;
+
+	if (Cmd_Argc() != 2)
+	{
+		Con_Printf ("benchmark <demoname> : starts a demo benchmark\n");
+		return;
+	}
+
+	CL_PlayDemo_f ();
+	
+	// cls.td_starttime will be grabbed at the second frame of the demo, so
+	// all the loading time doesn't get counted
+	
+	// resetting fps counters
+	max_fps = 0;
+	min_fps = 999;
 	
 	cls.timedemo = true;
 	cls.td_startframe = host_framecount;

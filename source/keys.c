@@ -621,6 +621,8 @@ void Key_Event (int key, bool down)
 		case key_console:
 			M_ToggleMenu_f ();
 			break;
+		case key_benchmark:
+			break;
 		default:
 			Sys_Error ("Bad key_dest");
 		}
@@ -707,6 +709,8 @@ void Key_Event (int key, bool down)
 	case key_game:
 	case key_console:
 		Key_Console (key);
+		break;
+	case key_benchmark:
 		break;
 	default:
 		Sys_Error ("Bad key_dest");
