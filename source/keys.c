@@ -711,6 +711,7 @@ void Key_Event (int key, bool down)
 		Key_Console (key);
 		break;
 	case key_benchmark:
+		CL_Disconnect();
 		break;
 	default:
 		Sys_Error ("Bad key_dest");

@@ -406,13 +406,15 @@ Determines the fraction between the last two messages that the objects
 should be put at.
 ===============
 */
+extern bool benchmark;
+
 float	CL_LerpPoint (void)
 {
 	float	f, frac;
 
 	f = cl.mtime[0] - cl.mtime[1];
 
-	if (!f || cl_nolerp.value || cls.timedemo || sv.active)
+	if (!f || cl_nolerp.value || (cls.timedemo && !benchmark) || sv.active)
 	{
 		cl.time = cl.mtime[0];
 		return 1;

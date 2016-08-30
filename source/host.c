@@ -506,7 +506,7 @@ extern bool benchmark;
 bool Host_FilterTime (float time)
 {
 	realtime += time;
-	if ((!cls.timedemo || benchmark) && realtime - oldrealtime < 1.0/72.0)
+	if ( ( (!cls.timedemo || !benchmark) || (cls.timedemo && benchmark) ) && realtime - oldrealtime < 1.0/72.0)
 		return false;		// framerate is too high
 
 	host_frametime = realtime - oldrealtime;
