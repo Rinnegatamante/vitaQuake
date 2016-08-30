@@ -126,7 +126,6 @@ void R_DrawPolyList (void);
 // current entity info
 //
 extern	bool		insubmodel;
-extern	vec3_t			r_worldmodelorg;
 
 
 void R_DrawSprite (void);

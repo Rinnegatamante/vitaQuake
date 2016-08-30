@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 D_Sky_uv_To_st
 =================
 */
-void D_Sky_uv_To_st (int u, int v, fixed16_t *s, fixed16_t *t)
+static void D_Sky_uv_To_st (int u, int v, fixed16_t *s, fixed16_t *t)
 {
 	float	wu, wv, temp;
 	vec3_t	end;

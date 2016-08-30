@@ -35,8 +35,6 @@ vec3_t			r_entorigin;	// the currently rendering entity in world
 
 float			entity_rotation[3][3];
 
-vec3_t			r_worldmodelorg;
-
 int				r_currentbkey;
 
 typedef enum {touchessolid, drawnode, nodrawnode} solidstate_t;
@@ -653,7 +651,7 @@ void R_RenderWorld (void)
 
 	pbtofpolys = btofpolys;
 
-	currententity = &cl_entities[0];
+	currententity = &r_worldentity;
 	VectorCopy (r_origin, modelorg);
 	clmodel = currententity->model;
 	r_pcurrentvertbase = clmodel->vertexes;

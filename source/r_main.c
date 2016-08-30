@@ -55,6 +55,8 @@ byte		*r_stack_start;
 
 bool	r_fov_greater_than_90;
 
+entity_t r_worldentity;
+
 //
 // view origin
 //
@@ -246,6 +248,9 @@ R_NewMap
 void R_NewMap (void)
 {
 	int		i;
+
+	memset(&r_worldentity, 0, sizeof(r_worldentity));
+	r_worldentity.model = cl.worldmodel;
 
 // clear out efrags in case the level hasn't been reloaded
 // FIXME: is this one short?
@@ -781,8 +786,6 @@ void R_DrawBEntitiesOnList (void)
 			{
 				VectorCopy (currententity->origin, r_entorigin);
 				VectorSubtract (r_origin, r_entorigin, modelorg);
-			// FIXME: is this needed?
-				VectorCopy (modelorg, r_worldmodelorg);
 
 				r_pcurrentvertbase = clmodel->vertexes;
 
@@ -971,7 +974,7 @@ SetVisibilityByPassages ();
 // done in screen.c
 	Sys_LowFPPrecision ();
 
-	if (!cl_entities[0].model || !cl.worldmodel)
+	if (!r_worldentity.model || !cl.worldmodel)
 		Sys_Error ("R_RenderView: NULL worldmodel");
 
 	if (!r_dspeeds.value)

@@ -86,7 +86,7 @@ void R_DrawCulledPolys (void)
 	surf_t			*s;
 	msurface_t		*pface;
 
-	currententity = &cl_entities[0];
+	currententity = &r_worldentity;
 
 	if (r_worldpolysbacktofront)
 	{
@@ -457,126 +457,103 @@ void R_TrailingEdge (surf_t *surf, edge_t *edge)
 R_LeadingEdge
 ==============
 */
-void R_LeadingEdge (edge_t *edge)
+void
+R_LeadingEdge(edge_t *edge)
 {
-	espan_t			*span;
-	surf_t			*surf, *surf2;
-	int				iu;
-	double			fu, newzi, testzi, newzitop, newzibottom;
+	espan_t *span;
+	surf_t *surf, *surf2;
+	int iu;
+	double fu, newzi, testzi, newzitop, newzibottom;
 
-	if (edge->surfs[1])
-	{
+	if (!edge->surfs[1])
+		return;
+
 	// it's adding a new surface in, so find the correct place
-		surf = &surfaces[edge->surfs[1]];
+	surf = &surfaces[edge->surfs[1]];
 
 	// don't start a span if this is an inverted span, with the end
 	// edge preceding the start edge (that is, we've already seen the
 	// end edge)
-		if (++surf->spanstate == 1)
-		{
-			if (surf->insubmodel)
-				r_bmodelactive++;
+	if (++surf->spanstate != 1)
+		return;
 
-			surf2 = surfaces[1].next;
+	if (surf->insubmodel)
+		r_bmodelactive++;
 
-			if (surf->key < surf2->key)
-				goto newtop;
+	surf2 = surfaces[1].next;
 
-		// if it's two surfaces on the same plane, the one that's already
-		// active is in front, so keep going unless it's a bmodel
-			if (surf->insubmodel && (surf->key == surf2->key))
-			{
-			// must be two bmodels in the same leaf; sort on 1/z
-				fu = (float)(edge->u - 0xFFFFF) * (1.0 / 0x100000);
-				newzi = surf->d_ziorigin + fv*surf->d_zistepv +
-						fu*surf->d_zistepu;
-				newzibottom = newzi * 0.99;
+	if (surf->key < surf2->key)
+		goto newtop;
 
-				testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
-						fu*surf2->d_zistepu;
+	// if it's two surfaces on the same plane, the one that's already
+	// active is in front, so keep going unless it's a bmodel
+	if (surf->insubmodel && (surf->key == surf2->key)) {
+		// must be two bmodels in the same leaf; sort on 1/z
+		fu = (float)(edge->u - 0xFFFFF) * (1.0 / 0x100000);
+		newzi = surf->d_ziorigin + fv * surf->d_zistepv + fu * surf->d_zistepu;
+		newzibottom = newzi * 0.99;
 
-				if (newzibottom >= testzi)
-				{
-					goto newtop;
-				}
+		testzi = surf2->d_ziorigin + fv * surf2->d_zistepv +
+			fu * surf2->d_zistepu;
 
-				newzitop = newzi * 1.01;
-				if (newzitop >= testzi)
-				{
-					if (surf->d_zistepu >= surf2->d_zistepu)
-					{
-						goto newtop;
-					}
-				}
-			}
+		if (newzibottom >= testzi)
+			goto newtop;
+
+		newzitop = newzi * 1.01;
+		if (newzitop >= testzi && surf->d_zistepu >= surf2->d_zistepu)
+			goto newtop;
+	}
 
 continue_search:
 
-			do
-			{
-				surf2 = surf2->next;
-			} while (surf->key > surf2->key);
+	do {
+		surf2 = surf2->next;
+	} while (surf->key > surf2->key);
 
-			if (surf->key == surf2->key)
-			{
-			// if it's two surfaces on the same plane, the one that's already
-			// active is in front, so keep going unless it's a bmodel
-				if (!surf->insubmodel)
-					goto continue_search;
+	if (surf->key != surf2->key)
+		goto gotposition;
 
-			// must be two bmodels in the same leaf; sort on 1/z
-				fu = (float)(edge->u - 0xFFFFF) * (1.0 / 0x100000);
-				newzi = surf->d_ziorigin + fv*surf->d_zistepv +
-						fu*surf->d_zistepu;
-				newzibottom = newzi * 0.99;
+	// if it's two surfaces on the same plane, the one that's already
+	// active is in front, so keep going unless it's a bmodel
+	if (!surf->insubmodel)
+		goto continue_search;
 
-				testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
-						fu*surf2->d_zistepu;
+	// must be two bmodels in the same leaf; sort on 1/z
+	fu = (float)(edge->u - 0xFFFFF) * (1.0 / 0x100000);
+	newzi = surf->d_ziorigin + fv * surf->d_zistepv + fu * surf->d_zistepu;
+	newzibottom = newzi * 0.99;
 
-				if (newzibottom >= testzi)
-				{
-					goto gotposition;
-				}
+	testzi = surf2->d_ziorigin + fv * surf2->d_zistepv + fu * surf2->d_zistepu;
+	if (newzibottom >= testzi)
+		goto gotposition;
 
-				newzitop = newzi * 1.01;
-				if (newzitop >= testzi)
-				{
-					if (surf->d_zistepu >= surf2->d_zistepu)
-					{
-						goto gotposition;
-					}
-				}
+	newzitop = newzi * 1.01;
+	if (newzitop >= testzi && surf->d_zistepu >= surf2->d_zistepu)
+		goto gotposition;
 
-				goto continue_search;
-			}
-
-			goto gotposition;
+	goto continue_search;
 
 newtop:
-		// emit a span (obscures current top)
-			iu = edge->u >> 20;
+	// emit a span (obscures current top)
+	iu = edge->u >> 20;
 
-			if (iu > surf2->last_u)
-			{
-				span = span_p++;
-				span->u = surf2->last_u;
-				span->count = iu - span->u;
-				span->v = current_iv;
-				span->pnext = surf2->spans;
-				surf2->spans = span;
-			}
-
-			// set last_u on the new span
-			surf->last_u = iu;
+	if (iu > surf2->last_u) {
+		span = span_p++;
+		span->u = surf2->last_u;
+		span->count = iu - span->u;
+		span->v = current_iv;
+		span->pnext = surf2->spans;
+		surf2->spans = span;
+	}
+	// set last_u on the new span
+	surf->last_u = iu;
 
 gotposition:
-		// insert before surf2
-			surf->next = surf2;
-			surf->prev = surf2->prev;
-			surf2->prev->next = surf;
-			surf2->prev = surf;
-		}
-	}
+	// insert before surf2
+	surf->next = surf2;
+	surf->prev = surf2->prev;
+	surf2->prev->next = surf;
+	surf2->prev = surf;
 }
 
 
@@ -697,7 +674,7 @@ void R_ScanEdges (void)
 	edge_aftertail.prev = &edge_tail;
 
 // FIXME: do we need this now that we clamp x in r_draw.c?
-	edge_sentinel.u = 2000 << 24;		// make sure nothing sorts past this
+	edge_sentinel.u = FIXED16_MAX;		// make sure nothing sorts past this
 	edge_sentinel.prev = &edge_aftertail;
 
 //

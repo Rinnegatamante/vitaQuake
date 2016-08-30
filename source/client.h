@@ -68,7 +68,7 @@ typedef struct
 
 #define	SIGNONS		4			// signon messages to receive before connected
 
-#define	MAX_DLIGHTS		32
+#define	MAX_DLIGHTS		128
 typedef struct
 {
 	vec3_t	origin;

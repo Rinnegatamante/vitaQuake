@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 model_t	*loadmodel;
 char	loadname[32];	// for hunk tags
+static aliashdr_t *pheader;
 
 void Mod_LoadSpriteModel(model_t *mod, void *buffer);
 void Mod_LoadBrushModel(model_t *mod, void *buffer);
@@ -376,10 +377,10 @@ void Mod_LoadTextures(lump_t *l)
 		if (m->dataofs[i] == -1)
 			continue;
 		mt = (miptex_t *)((byte *)m + m->dataofs[i]);
-		mt->width = LittleLong(mt->width);
-		mt->height = LittleLong(mt->height);
+		mt->width = (uint32_t)LittleLong(mt->width);
+		mt->height = (uint32_t)LittleLong(mt->height);
 		for (j = 0; j<MIPLEVELS; j++)
-			mt->offsets[j] = LittleLong(mt->offsets[j]);
+			mt->offsets[j] = (uint32_t)LittleLong(mt->offsets[j]);
 
 		if ((mt->width & 15) || (mt->height & 15))
 			Sys_Error("Texture %s is not 16 aligned", mt->name);
@@ -415,7 +416,6 @@ void Mod_LoadTextures(lump_t *l)
 		memset(altanims, 0, sizeof(altanims));
 
 		max = tx->name[1];
-		altmax = 0;
 		if (max >= 'a' && max <= 'z')
 			max -= 'a' - 'A';
 		if (max >= '0' && max <= '9')
@@ -630,8 +630,8 @@ void Mod_LoadEdges(lump_t *l)
 
 	for (i = 0; i<count; i++, in++, out++)
 	{
-		out->v[0] = (unsigned short)LittleShort(in->v[0]);
-		out->v[1] = (unsigned short)LittleShort(in->v[1]);
+		out->v[0] = (uint16_t)LittleShort(in->v[0]);
+		out->v[1] = (uint16_t)LittleShort(in->v[1]);
 	}
 }
 
@@ -672,12 +672,6 @@ void Mod_LoadTexinfo(lump_t *l)
 			out->mipadjust = 2;
 		else
 			out->mipadjust = 1;
-#if 0
-		if (len1 + len2 < 0.001)
-			out->mipadjust = 1;		// don't crash
-		else
-			out->mipadjust = 1 / floorf((len1 + len2) / 2 + 0.1);
-#endif
 
 		miptex = LittleLong(in->miptex);
 		out->flags = LittleLong(in->flags);
@@ -863,8 +857,8 @@ void Mod_LoadNodes(lump_t *l)
 	{
 		for (j = 0; j<3; j++)
 		{
-			out->minmaxs[j] = LittleShort(in->mins[j]);
-			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+			out->minmaxs[j] = (uint16_t)LittleShort(in->mins[j]);
+			out->minmaxs[3 + j] = (uint16_t)LittleShort(in->maxs[j]);
 		}
 
 		p = LittleLong(in->planenum);
@@ -918,8 +912,8 @@ void Mod_LoadLeafs(lump_t *l)
 		out->contents = p;
 
 		out->firstmarksurface = loadmodel->marksurfaces +
-			LittleShort(in->firstmarksurface);
-		out->nummarksurfaces = LittleShort(in->nummarksurfaces);
+			(uint16_t)LittleShort(in->firstmarksurface);
+		out->nummarksurfaces = (uint16_t)LittleShort(in->nummarksurfaces);
 
 		p = LittleLong(in->visofs);
 		out->compressed_vis = (p == -1) ? NULL : loadmodel->visdata + p;
@@ -1029,7 +1023,7 @@ Mod_LoadMarksurfaces
 void Mod_LoadMarksurfaces(lump_t *l)
 {
 	int		i, j, count;
-	short		*in;
+	unsigned short		*in;
 	msurface_t **out;
 
 	in = (void *)(mod_base + l->fileofs);
@@ -1043,7 +1037,7 @@ void Mod_LoadMarksurfaces(lump_t *l)
 
 	for (i = 0; i<count; i++)
 	{
-		j = LittleShort(in[i]);
+		j = (uint16_t)LittleShort(in[i]);
 		if (j >= loadmodel->numsurfaces)
 			Sys_Error("Mod_ParseMarksurfaces: bad surface number");
 		out[i] = loadmodel->surfaces + j;
@@ -1123,7 +1117,7 @@ float RadiusFromBounds(vec3_t mins, vec3_t maxs)
 
 	for (i = 0; i<3; i++)
 	{
-		corner[i] = fabsf(mins[i]) > fabsf(maxs[i]) ? fabsf(mins[i]) : fabsf(maxs[i]);
+		corner[i] = max(fabs(mins[i]), fabs(maxs[i]));
 	}
 
 	return Length(corner);
@@ -1227,7 +1221,7 @@ Mod_LoadAliasFrame
 =================
 */
 void * Mod_LoadAliasFrame(void * pin, int *pframeindex, int numv,
-	trivertx_t *pbboxmin, trivertx_t *pbboxmax, aliashdr_t *pheader, char *name)
+	trivertx_t *pbboxmin, trivertx_t *pbboxmax, char *name)
 {
 	trivertx_t		*pframe, *pinframe;
 	int				i, j;
@@ -1250,19 +1244,12 @@ void * Mod_LoadAliasFrame(void * pin, int *pframeindex, int numv,
 
 	*pframeindex = (byte *)pframe - (byte *)pheader;
 
-	for (j = 0; j<numv; j++)
-	{
-		int		k;
-
+	for (i = 0; i < numv; i++) {
 		// these are all byte values, so no need to deal with endianness
-		pframe[j].lightnormalindex = pinframe[j].lightnormalindex;
-
-		for (k = 0; k<3; k++)
-		{
-			pframe[j].v[k] = pinframe[j].v[k];
-		}
+		pframe[i].lightnormalindex = pinframe[i].lightnormalindex;
+		for (j = 0; j < 3; j++)
+			pframe[i].v[j] = pinframe[i].v[j];
 	}
-
 	pinframe += numv;
 
 	return (void *)pinframe;
@@ -1275,7 +1262,7 @@ Mod_LoadAliasGroup
 =================
 */
 void * Mod_LoadAliasGroup(void * pin, int *pframeindex, int numv,
-	trivertx_t *pbboxmin, trivertx_t *pbboxmax, aliashdr_t *pheader, char *name)
+	trivertx_t *pbboxmin, trivertx_t *pbboxmax, char *name)
 {
 	daliasgroup_t		*pingroup;
 	maliasgroup_t		*paliasgroup;
@@ -1325,7 +1312,7 @@ void * Mod_LoadAliasGroup(void * pin, int *pframeindex, int numv,
 			numv,
 			&paliasgroup->frames[i].bboxmin,
 			&paliasgroup->frames[i].bboxmax,
-			pheader, name);
+			name);
 	}
 
 	return ptemp;
@@ -1337,8 +1324,7 @@ void * Mod_LoadAliasGroup(void * pin, int *pframeindex, int numv,
 Mod_LoadAliasSkin
 =================
 */
-void * Mod_LoadAliasSkin(void * pin, int *pskinindex, int skinsize,
-	aliashdr_t *pheader)
+void * Mod_LoadAliasSkin(void * pin, int *pskinindex, int skinsize)
 {
 	byte	*pskin, *pinskin;
 
@@ -1372,8 +1358,7 @@ void * Mod_LoadAliasSkin(void * pin, int *pskinindex, int skinsize,
 Mod_LoadAliasSkinGroup
 =================
 */
-void * Mod_LoadAliasSkinGroup(void * pin, int *pskinindex, int skinsize,
-	aliashdr_t *pheader)
+void * Mod_LoadAliasSkinGroup(void * pin, int *pskinindex, int skinsize)
 {
 	daliasskingroup_t		*pinskingroup;
 	maliasskingroup_t		*paliasskingroup;
@@ -1413,7 +1398,7 @@ void * Mod_LoadAliasSkinGroup(void * pin, int *pskinindex, int skinsize,
 	ptemp = (void *)pinskinintervals;
 
 	for (i = 0; i<numskins; i++)
-		ptemp = Mod_LoadAliasSkin(ptemp, &paliasskingroup->skindescs[i].skin, skinsize, pheader);
+		ptemp = Mod_LoadAliasSkin(ptemp, &paliasskingroup->skindescs[i].skin, skinsize);
 
 
 	return ptemp;
@@ -1430,7 +1415,6 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer)
 	int					i;
 	mdl_t				*pmodel, *pinmodel;
 	stvert_t			*pstverts, *pinstverts;
-	aliashdr_t			*pheader;
 	mtriangle_t			*ptri;
 	dtriangle_t			*pintriangles;
 	int					version, numframes, numskins;
@@ -1539,14 +1523,14 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer)
 			pskintype = (daliasskintype_t *)
 				Mod_LoadAliasSkin(pskintype + 1,
 					&pskindesc[i].skin,
-					skinsize, pheader);
+					skinsize);
 		}
 		else
 		{
 			pskintype = (daliasskintype_t *)
 				Mod_LoadAliasSkinGroup(pskintype + 1,
 					&pskindesc[i].skin,
-					skinsize, pheader);
+					skinsize);
 		}
 	}
 
@@ -1610,7 +1594,7 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer)
 					pmodel->numverts,
 					&pheader->frames[i].bboxmin,
 					&pheader->frames[i].bboxmax,
-					pheader, pheader->frames[i].name);
+					pheader->frames[i].name);
 		}
 		else
 		{
@@ -1620,7 +1604,7 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer)
 					pmodel->numverts,
 					&pheader->frames[i].bboxmin,
 					&pheader->frames[i].bboxmax,
-					pheader, pheader->frames[i].name);
+					pheader->frames[i].name);
 		}
 	}
 
@@ -1782,7 +1766,6 @@ void Mod_LoadSpriteModel(model_t *mod, void *buffer)
 	size = sizeof(msprite_t) + (numframes - 1) * sizeof(psprite->frames);
 
 	psprite = Hunk_AllocName(size, loadname);
-
 	mod->cache.data = psprite;
 
 	psprite->type = LittleLong(pin->type);
