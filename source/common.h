@@ -188,3 +188,12 @@ int COM_Clamp(int value, int min, int max);
 extern	struct cvar_s	registered;
 
 extern bool		standard_quake, rogue, hipnotic;
+
+//============================================================================
+
+#ifndef HAVE_STRLCAT
+size_t strlcat(char *dst, const char *src, size_t siz);
+#endif
+
+char *strltrim(char *s);
+char* strtolower(char* s);

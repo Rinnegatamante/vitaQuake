@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-bool benchmark = false;
+bool benchmark;
 void CL_FinishTimeDemo (void);
 
 /*
@@ -53,7 +53,7 @@ void CL_StopPlayback (void)
 	cls.demofile = NULL;
 	cls.state = ca_disconnected;
 
-	if (cls.timedemo)
+	if (cls.timedemo || benchmark)
 		CL_FinishTimeDemo ();
 }
 
@@ -88,6 +88,8 @@ CL_GetMessage
 Handles recording and playback of demos, on top of NET_ code
 ====================
 */
+
+extern bool bBenchmarkStarted;
 int CL_GetMessage (void)
 {
 	int		r, i;
@@ -98,16 +100,17 @@ int CL_GetMessage (void)
 	// decide if it is time to grab the next message		
 		if (cls.signon == SIGNONS)	// always grab until fully connected
 		{
-			if (cls.timedemo)
+			if (cls.timedemo && !benchmark)
 			{
 				if (host_framecount == cls.td_lastframe)
 					return 0;		// already read this frame's message
 				cls.td_lastframe = host_framecount;
 			// if this is the second frame, grab the real td_starttime
 			// so the bogus time on the first frame doesn't count
-				if (host_framecount == cls.td_startframe + 1){
+				if (host_framecount == cls.td_startframe + 1 && !benchmark){
 					cls.td_starttime = realtime;
-				}else if (host_framecount == cls.td_startframe + 30 && key_dest == key_benchmark) benchmark = true; // Ignore first sec for the benchmark
+				}
+				else if (host_framecount == cls.td_startframe + 30 && key_dest == key_benchmark) { bBenchmarkStarted = true; benchmark = true; }// Ignore first sec for the benchmark
 			}
 			else if ( /* cl.time > 0 && */ cl.time <= cl.mtime[0])
 			{
@@ -402,6 +405,7 @@ void CL_Benchmark_f (void)
 	max_fps = 0;
 	min_fps = 999;
 	
+	//benchmark = true;
 	cls.timedemo = true;
 	cls.td_startframe = host_framecount;
 	cls.td_lastframe = -1;		// get a new message this frame

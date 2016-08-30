@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Mods support
 int max_mod_idx = -1;
 extern bool CheckForPak(char* dir);
-extern int mod_selector();
+extern void MOD_SelectModMenu(char *basedir);
 extern char* modname;
 
 extern int old_char;
@@ -389,25 +389,33 @@ int main(int argc, char **argv)
 	vita2d_init();
 	
 	// Scanning main folder in search of mods
-	int dd = sceIoDopen("ux0:/data/Quake");
+	int dd = sceIoDopen(parms.basedir);
 	SceIoDirent entry;
 	int res;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			char fullpath[256];
-			sprintf(fullpath,"ux0:/data/Quake/%s",entry.d_name);
-			if (CheckForPak(fullpath)) max_mod_idx++;
+			if (CheckForPak(va("%s/%s", parms.basedir, entry.d_name))) max_mod_idx++;
 		}
 	}
 	sceIoDclose(dd);
 	
-	// Check if we have at least one mod
-	if (max_mod_idx > 0) mod_selector();
+	// Do we have at least a mod running here?
+	if (max_mod_idx > 0) 
+		MOD_SelectModMenu(parms.basedir);
 	
 	// Mods support
 	if (modname != NULL && strcmp(modname,"id1")) {
 		int int_argc = 3;
-		char* int_argv[] = { "", "-game", modname };
+		char* int_argv[3];
+		int_argv[0] = int_argv[2] = "";
+
+		// Special check for official missionpacks.
+		if (!strcmp(modname, "hipnotic"))	int_argv[1] = "-hipnotic";
+		else if (!strcmp(modname, "rogue")) int_argv[1] = "-rogue";
+		else {
+			int_argv[1] = "-game";
+			int_argv[2] = modname;
+		}
 		COM_InitArgv(3, int_argv);
 	}else COM_InitArgv(argc, argv);
 
@@ -416,7 +424,6 @@ int main(int argc, char **argv)
 
 	Host_Init(&parms);
 	hostInitialized = 1;
-
 
 	SceAppUtilInitParam init_param;
 	SceAppUtilBootParam boot_param;

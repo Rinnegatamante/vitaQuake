@@ -88,6 +88,26 @@ extern bool m_return_onerror;
 extern char m_return_reason[32];
 
 
+// JPG - recognize ip:port
+void Strip_Port(char *ch)
+{
+	if ((ch = strchr(ch, ':')))
+	{
+		int old_port = net_hostport;
+
+		sscanf(ch + 1, "%d", &net_hostport);
+		for (; ch[-1] == ' '; ch--);
+		*ch = 0;
+		if (net_hostport != old_port)
+			Con_Printf("Setting port to %d\n", net_hostport);
+	}
+	else //R00k if not specifying port then use default port
+	{
+		net_hostport = DEFAULTnet_hostport;
+		Con_Printf("Using port %d\n", net_hostport);
+	}
+}
+
 #ifdef DEBUG
 char *StrAddr (struct qsockaddr *addr)
 {
@@ -1456,6 +1476,7 @@ qsocket_t *Datagram_Connect (char *host)
 {
 	qsocket_t *ret = NULL;
 
+	Strip_Port(host);
 	for (net_landriverlevel = 0; net_landriverlevel < net_numlandrivers; net_landriverlevel++)
 		if (net_landrivers[net_landriverlevel].initialized)
 			if ((ret = _Datagram_Connect (host)) != NULL)

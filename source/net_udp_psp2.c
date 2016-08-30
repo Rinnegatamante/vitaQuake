@@ -232,7 +232,7 @@ int UDP_Init (void)
 	sceNetInetPton(SCE_NET_AF_INET, info.ip_address, &myAddr);
 	
 	// if the quake hostname isn't set, set it to player nickname
-	if (Q_strcmp(hostname.string, "UNNAMED") == 0)
+	if (!Q_strcmp(hostname.string, "UNNAMED"))
 	{
 		SceAppUtilInitParam init_param;
 		SceAppUtilBootParam boot_param;
@@ -253,12 +253,12 @@ int UDP_Init (void)
 
 	UDP_GetSocketAddr (net_controlsocket, &addr);
 	Q_strcpy(my_tcpip_address,  UDP_AddrToString (&addr));
+
 	colon = Q_strrchr (my_tcpip_address, ':');
 	if (colon)
 		*colon = 0;
 	
-	Log("UDP Initialized!");
-	Con_Printf("UDP Initialized\n");
+	Con_Printf("UDP Initialized as IP %s\n", my_tcpip_address);
 	tcpipAvailable = true;
 
 	return net_controlsocket;
@@ -313,8 +313,9 @@ int UDP_OpenSocket (int port)
 	if (setsockopt(newsocket, SOL_SOCKET, SO_NBIO, (char *)&_true, sizeof(uint32_t)) == -1)
 		goto ErrorReturn;
 
+	memset(&address, 0, sizeof(struct sockaddr_in)); // JPG 1.05 - fix by JDC
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_addr.s_addr = myAddr;
 	address.sin_port = sceNetHtons(port);
 	if( bind(newsocket, (void*)&address, sizeof(address)) == -1)
 		goto ErrorReturn;
@@ -413,9 +414,9 @@ int UDP_CheckNewConnections (void)
 	if (net_acceptsocket == -1)
 		return -1;
 
-	if (recvfrom(net_acceptsocket, buf, 4096, MSG_PEEK, NULL, NULL) > 0)
+	if (recvfrom(net_acceptsocket, buf, sizeof(buf), MSG_PEEK, NULL, NULL) >= 0)
 		return net_acceptsocket;
-		
+
 	return -1;
 }
 
@@ -539,17 +540,6 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 
 int UDP_GetNameFromAddr (struct qsockaddr *addr, char *name)
 {
-	// Slow and useless - Rinnegatamante
-	/*struct hostent *hostentry;
-
-	hostentry = gethostbyaddr ((char *)&((struct sockaddr_in *)addr)->sin_addr, sizeof(struct in_addr), AF_INET);
-	Log("UDP_GetNameFromAddr returned %s",name);
-	if (hostentry)
-	{
-		Q_strncpy (name, (char *)hostentry->h_name, NET_NAMELEN - 1);
-		return 0;
-	}*/
-
 	Q_strcpy (name, UDP_AddrToString (addr));
 	return 0;
 }

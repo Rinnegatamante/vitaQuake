@@ -148,28 +148,34 @@ void D_PolysetDraw (void)
 D_PolysetDrawFinalVerts
 ================
 */
-void D_PolysetDrawFinalVerts (finalvert_t *fv, int numverts)
+void
+D_PolysetDrawFinalVerts(finalvert_t *fv, int numverts)
 {
-	int		i, z;
-	short	*zbuf;
+	int i, z;
+	short *zbuf;
 
-	for (i=0 ; i<numverts ; i++, fv++)
+	for (i = 0; i < numverts; i++, fv++)
 	{
-	// valid triangle coordinates for filling can include the bottom and
-	// right clip edges, due to the fill rule; these shouldn't be drawn
+		// valid triangle coordinates for filling can include the bottom and
+		// right clip edges, due to the fill rule; these shouldn't be drawn
 		if ((fv->v[0] < r_refdef.vrectright) &&
 			(fv->v[1] < r_refdef.vrectbottom))
 		{
-			z = fv->v[5]>>16;
-			zbuf = zspantable[fv->v[1]] + fv->v[0];
-			if (z >= *zbuf)
+			/* Baker - in very rare occassions, these may have
+			* negative values and can result in a memory access violation */
+			if (fv->v[0] >= 0 && fv->v[1] >= 0)
 			{
-				int		pix;
+				z = fv->v[5] >> 16;
+				zbuf = zspantable[fv->v[1]] + fv->v[0];
+				if (z >= *zbuf)
+				{
+					int pix;
 
-				*zbuf = z;
-				pix = skintable[fv->v[3]>>16][fv->v[2]>>16];
-				pix = ((byte *)acolormap)[pix + (fv->v[4] & 0xFF00) ];
-				d_viewbuffer[d_scantable[fv->v[1]] + fv->v[0]] = pix;
+					*zbuf = z;
+					pix = skintable[fv->v[3] >> 16][fv->v[2] >> 16];
+					pix = ((byte *)acolormap)[pix + (fv->v[4] & 0xFF00)];
+					d_viewbuffer[d_scantable[fv->v[1]] + fv->v[0]] = pix;
+				}
 			}
 		}
 	}
@@ -529,62 +535,57 @@ void D_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 D_PolysetCalcGradients
 ================
 */
-void D_PolysetCalcGradients (int skinwidth)
+void
+D_PolysetCalcGradients(int skinwidth)
 {
-	float	xstepdenominv, ystepdenominv, t0, t1;
-	float	p01_minus_p21, p11_minus_p21, p00_minus_p20, p10_minus_p20;
-
-	p00_minus_p20 = r_p0[0] - r_p2[0];
-	p01_minus_p21 = r_p0[1] - r_p2[1];
-	p10_minus_p20 = r_p1[0] - r_p2[0];
-	p11_minus_p21 = r_p1[1] - r_p2[1];
+	static float
+		xstepdenominv
+		, ystepdenominv
+		, t0
+		, t1
+		, p01_minus_p21
+		, p11_minus_p21
+		, p00_minus_p20
+		, p10_minus_p20
+		;
 
 	xstepdenominv = 1.0 / (float)d_xdenom;
-
 	ystepdenominv = -xstepdenominv;
 
-// ceil () for light so positive steps are exaggerated, negative steps
-// diminished,  pushing us away from underflow toward overflow. Underflow is
-// very visible, overflow is very unlikely, because of ambient lighting
-	t0 = r_p0[4] - r_p2[4];
-	t1 = r_p1[4] - r_p2[4];
-	r_lstepx = (int)
-			ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lstepy = (int)
-			ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	// mankrip - optimization
+	p00_minus_p20 = (r_p0[0] - r_p2[0]) * ystepdenominv;
+	p01_minus_p21 = (r_p0[1] - r_p2[1]) * xstepdenominv;
+	p10_minus_p20 = (r_p1[0] - r_p2[0]) * ystepdenominv;
+	p11_minus_p21 = (r_p1[1] - r_p2[1]) * xstepdenominv;
 
 	t0 = r_p0[2] - r_p2[2];
 	t1 = r_p1[2] - r_p2[2];
-	r_sstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
-			xstepdenominv);
-	r_sstepy = (int)((t1 * p00_minus_p20 - t0* p10_minus_p20) *
-			ystepdenominv);
+	r_sstepx = (int)(t1 * p01_minus_p21 - t0 * p11_minus_p21);
+	r_sstepy = (int)(t1 * p00_minus_p20 - t0 * p10_minus_p20);
 
 	t0 = r_p0[3] - r_p2[3];
 	t1 = r_p1[3] - r_p2[3];
-	r_tstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
-			xstepdenominv);
-	r_tstepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) *
-			ystepdenominv);
+	r_tstepx = (int)(t1 * p01_minus_p21 - t0 * p11_minus_p21);
+	r_tstepy = (int)(t1 * p00_minus_p20 - t0 * p10_minus_p20);
+
+	// ceil () for light so positive steps are exaggerated, negative steps diminished,
+	// pushing us away from underflow toward overflow.
+	// Underflow is very visible, overflow is very unlikely, because of ambient lighting
+	t0 = r_p0[4] - r_p2[4];
+	t1 = r_p1[4] - r_p2[4];
+	r_lstepx = (int)ceil(t1 * p01_minus_p21 - t0 * p11_minus_p21);
+	r_lstepy = (int)ceil(t1 * p00_minus_p20 - t0 * p10_minus_p20);
 
 	t0 = r_p0[5] - r_p2[5];
 	t1 = r_p1[5] - r_p2[5];
-	r_zistepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
-			xstepdenominv);
-	r_zistepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) *
-			ystepdenominv);
+	r_zistepx = (int)(t1 * p01_minus_p21 - t0 * p11_minus_p21);
+	r_zistepy = (int)(t1 * p00_minus_p20 - t0 * p10_minus_p20);
 
-#if	id386
-	a_sstepxfrac = r_sstepx << 16;
-	a_tstepxfrac = r_tstepx << 16;
-#else
 	a_sstepxfrac = r_sstepx & 0xFFFF;
 	a_tstepxfrac = r_tstepx & 0xFFFF;
-#endif
 
 	a_ststepxwhole = skinwidth * (r_tstepx >> 16) + (r_sstepx >> 16);
 }
-
 #endif	// !id386
 
 

@@ -163,8 +163,15 @@ void CL_EstablishConnection (char *host)
 	CL_Disconnect ();
 
 	cls.netcon = NET_Connect (host);
+
 	if (!cls.netcon)
-		Host_Error ("CL_Connect: connect failed\n");
+	{
+		Con_Printf("\nsyntax: connect server:port (port is optional)\n");//r00k added
+		if (net_hostport != 26000)
+			Con_Printf("\nTry using port 26000\n");//r00k added
+		Host_Error("connect failed");
+	}
+
 	Con_DPrintf ("CL_EstablishConnection: connected to %s\n", host);
 
 	cls.demonum = -1;			// not in the demo loop now
@@ -399,13 +406,15 @@ Determines the fraction between the last two messages that the objects
 should be put at.
 ===============
 */
+extern bool benchmark;
+
 float	CL_LerpPoint (void)
 {
 	float	f, frac;
 
 	f = cl.mtime[0] - cl.mtime[1];
 
-	if (!f || cl_nolerp.value || cls.timedemo || sv.active)
+	if (!f || cl_nolerp.value || (cls.timedemo && !benchmark) || sv.active)
 	{
 		cl.time = cl.mtime[0];
 		return 1;

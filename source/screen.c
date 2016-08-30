@@ -425,17 +425,19 @@ void SCR_DrawFPS (void)
 	}
 	sprintf(st, "%3d FPS", lastfps);
 
-	x = vid.width - strlen(st) * 16 - 16;
-	y = 0 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
+	x = vid.width - strlen(st) * 8 - 16;
+	y = 8 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
 	Draw_String(x, y, st);
 }
 
 // Benchmark
 int max_fps = 0;
 int average_fps = 0; // TODO: Add this
-int min_fps = 999;
-void SCR_DrawBenchmark (void)
+int min_fps = 72;
+bool bBenchmarkStarted;
+bool bBlinkBenchmark;
 
+void SCR_DrawBenchmark (void)
 {
 	static double lastframetime;
 	double t;
@@ -450,20 +452,29 @@ void SCR_DrawBenchmark (void)
 		lastfps = fps_count;
 		fps_count = 0;
 		lastframetime = t;
-
+		bBlinkBenchmark = !bBlinkBenchmark;
 	}
+
 	sprintf(st,  "Current: %3d", lastfps);
-	if (lastfps > max_fps) max_fps = lastfps;
-	if (lastfps < min_fps) min_fps = lastfps;
-	sprintf(st2, "    Max: %3d", max_fps);
-	sprintf(st3, "    Min: %3d", min_fps);
-	
-	x = vid.width - strlen(st) * 16 - 16;
-	y = 0 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
+
+	if (bBenchmarkStarted)
+	{
+		if (lastfps > max_fps) max_fps = lastfps;
+		if (lastfps < min_fps) min_fps = lastfps;
+		sprintf(st2, "    Max: %3d", max_fps);
+		sprintf(st3, "    Min: %3d", min_fps);	// <-- Dat Result really feels cheated
+	}
+
+	x = vid.width - strlen(st) * 8 - 16;
+	y = (vid.height * 0.2);
 	Draw_String(x, y, st);
 	Draw_String(x, y+8, st2);
 	Draw_String(x, y+16, st3);
-	Draw_String(80, y+80, "Benchmark in progress, please wait...");
+
+	if (bBlinkBenchmark) {	// Neato messaji
+		char *msg = "Benchmark in progress, please wait...";
+		Draw_String((vid.width / 2) - (strlen(msg) * 4), vid.height*0.25, msg);
+	}
 }
 
 /*
