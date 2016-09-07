@@ -900,8 +900,6 @@ void V_RenderView (void)
 
 		vid.buffer += vid.rowbytes>>1;
 
-		R_PushDlights ();
-
 		r_refdef.viewangles[YAW] += lcd_yaw.value*2;
 		for (i=0 ; i<3 ; i++)
 			r_refdef.vieworg[i] += 2*right[i]*lcd_x.value;

@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // mathlib.h
 
+#include <limits.h>
+
 typedef float vec_t;
 typedef vec_t vec3_t[3];
 typedef vec_t vec5_t[5];
@@ -26,6 +28,7 @@ typedef vec_t vec5_t[5];
 typedef	int	fixed4_t;
 typedef	int	fixed8_t;
 typedef	int	fixed16_t;
+#define FIXED16_MAX INT_MAX;
 
 #define DEG2RAD(a) ((a * M_PI) / 180.0f)
 

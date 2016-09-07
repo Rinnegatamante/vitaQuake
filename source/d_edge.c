@@ -36,18 +36,6 @@ extern void			R_TransformFrustum (void);
 vec3_t		transformed_modelorg;
 
 /*
-==============
-D_DrawPoly
-
-==============
-*/
-void D_DrawPoly (void)
-{
-// this driver takes spans, not polygons
-}
-
-
-/*
 =============
 D_MipLevelForScale
 =============
@@ -80,7 +68,7 @@ D_DrawSolidSurface
 
 // FIXME: clean this up
 
-void D_DrawSolidSurface (surf_t *surf, int color)
+static void D_DrawSolidSurface (surf_t *surf, int color)
 {
 	espan_t	*span;
 	byte	*pdest;
@@ -120,7 +108,7 @@ void D_DrawSolidSurface (surf_t *surf, int color)
 D_CalcGradients
 ==============
 */
-void D_CalcGradients (msurface_t *pface)
+static void D_CalcGradients (msurface_t *pface)
 {
 	mplane_t	*pplane;
 	float		mipscale;
@@ -158,9 +146,7 @@ void D_CalcGradients (msurface_t *pface)
 			((pface->texturemins[1] << 16) >> miplevel)
 			+ pface->texinfo->vecs[1][3]*t;
 
-//
-// -1 (-epsilon) so we never wander off the edge of the texture
-//
+	// -1 (-epsilon) so we never wander off the edge of the texture
 	bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
 	bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
 }
@@ -179,7 +165,7 @@ void D_DrawSurfaces (void)
 	vec3_t			world_transformed_modelorg;
 	vec3_t			local_modelorg;
 
-	currententity = &cl_entities[0];
+	currententity = &r_worldentity;
 	TransformVector (modelorg, transformed_modelorg);
 	VectorCopy (transformed_modelorg, world_transformed_modelorg);
 
@@ -267,7 +253,7 @@ void D_DrawSurfaces (void)
 				// FIXME: we don't want to do this every time!
 				// TODO: speed up
 				//
-					currententity = &cl_entities[0];
+					currententity = &r_worldentity;
 					VectorCopy (world_transformed_modelorg,
 								transformed_modelorg);
 					VectorCopy (base_vpn, vpn);
@@ -303,9 +289,7 @@ void D_DrawSurfaces (void)
 				cachewidth = pcurrentcache->width;
 
 				D_CalcGradients (pface);
-
-				(*d_drawspans) (s->spans);
-
+				(*d_drawspans) (s->spans);	// Optimise that as a function?
 				D_DrawZSpans (s->spans);
 
 				if (s->insubmodel)
@@ -315,7 +299,7 @@ void D_DrawSurfaces (void)
 				// FIXME: we don't want to do this every time!
 				// TODO: speed up
 				//
-					currententity = &cl_entities[0];
+					currententity = &r_worldentity;
 					VectorCopy (world_transformed_modelorg,
 								transformed_modelorg);
 					VectorCopy (base_vpn, vpn);

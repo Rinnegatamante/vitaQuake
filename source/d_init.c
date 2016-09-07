@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "d_local.h"
 
-CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
-CVAR (d_mipcap,		0, CVAR_ARCHIVE)
+STATIC_CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
+STATIC_CVAR (d_mipcap,		0, CVAR_ARCHIVE)
 CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 CVAR (d_dither,		0, CVAR_ARCHIVE)
 
@@ -68,18 +68,7 @@ void D_Init (void)
 D_CopyRects
 ===============
 */
-void D_CopyRects (vrect_t *prects, int transparent)
-{
-
-// this function is only required if the CPU doesn't have direct access to the
-// back buffer, and there's some driver interface function that the driver
-// doesn't support and requires Quake to do in software (such as drawing the
-// console); Quake will then draw into wherever the driver points vid.buffer
-// and will call this function before swapping buffers
-
-	UNUSED(prects);
-	UNUSED(transparent);
-}
+void D_CopyRects (vrect_t *prects, int transparent) {}
 
 
 /*
@@ -164,11 +153,5 @@ void D_SetupFrame (void)
 D_UpdateRects
 ===============
 */
-void D_UpdateRects (vrect_t *prect)
-{
-
-// the software driver draws these directly to the vid buffer
-
-	UNUSED(prect);
-}
+void D_UpdateRects (vrect_t *prect) {}
 
