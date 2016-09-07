@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "d_local.h"
 
-CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
-CVAR (d_mipcap,		0, CVAR_ARCHIVE)
+STATIC_CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
+STATIC_CVAR (d_mipcap,		0, CVAR_ARCHIVE)
 CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 CVAR (d_dither,		0, CVAR_ARCHIVE)
 

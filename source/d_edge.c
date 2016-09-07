@@ -36,18 +36,6 @@ extern void			R_TransformFrustum (void);
 vec3_t		transformed_modelorg;
 
 /*
-==============
-D_DrawPoly
-
-==============
-*/
-void D_DrawPoly (void)
-{
-// this driver takes spans, not polygons
-}
-
-
-/*
 =============
 D_MipLevelForScale
 =============

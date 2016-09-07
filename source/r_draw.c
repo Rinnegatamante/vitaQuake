@@ -30,19 +30,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FULLY_CLIPPED_CACHED	0x80000000
 #define FRAMECOUNT_MASK			0x7FFFFFFF
 
-unsigned int	cacheoffset;
-
 int			c_faceclip;					// number of faces clipped
-
-zpointdesc_t	r_zpointdesc;
-
+unsigned int	cacheoffset;
 polydesc_t		r_polydesc;
 
-
-
-clipplane_t	*entity_clipplanes;
 clipplane_t	view_clipplanes[4];
-clipplane_t	world_clipplanes[16];
 
 medge_t			*r_pedge;
 
@@ -55,12 +47,6 @@ int		intsintable[SIN_BUFFER_SIZE];
 
 mvertex_t	r_leftenter, r_leftexit;
 mvertex_t	r_rightenter, r_rightexit;
-
-typedef struct
-{
-	float	u,v;
-	int		ceilv;
-} evert_t;
 
 int				r_emitted;
 float			r_nearzi;
@@ -360,11 +346,22 @@ void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 R_EmitCachedEdge
 ================
 */
-void R_EmitCachedEdge (void)
+static bool R_EmitCachedEdge (void)
 {
 	edge_t		*pedge_t;
 
-	pedge_t = (edge_t *)((unsigned long)r_edges + r_pedge->cachededgeoffset);
+	/* If fully clipped, no action necessary */
+	if (r_pedge->cachededgeoffset & FULLY_CLIPPED_CACHED)
+		return (r_pedge->cachededgeoffset & FRAMECOUNT_MASK) == r_framecount;
+
+	/* It's cached if the cached edge is valid and is owned by this medge_t */
+	if ((byte *)edge_p - (byte *)r_edges <= r_pedge->cachededgeoffset)
+		return false;
+
+	pedge_t = (edge_t *)((byte *)r_edges + r_pedge->cachededgeoffset);
+
+	if (pedge_t->owner != r_pedge)
+		return false;
 
 	if (!pedge_t->surfs[0])
 		pedge_t->surfs[0] = surface_p - surfaces;
@@ -375,6 +372,8 @@ void R_EmitCachedEdge (void)
 		r_nearzi = pedge_t->nearzi;
 
 	r_emitted = 1;
+
+	return true;
 }
 
 
@@ -438,29 +437,9 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 			r_pedge = &pedges[lindex];
 
 		// if the edge is cached, we can just reuse the edge
-			if (!insubmodel)
-			{
-				if (r_pedge->cachededgeoffset & FULLY_CLIPPED_CACHED)
-				{
-					if ((r_pedge->cachededgeoffset & FRAMECOUNT_MASK) ==
-						r_framecount)
-					{
-						r_lastvertvalid = false;
-						continue;
-					}
-				}
-				else
-				{
-					if ((((unsigned long)edge_p - (unsigned long)r_edges) >
-						 r_pedge->cachededgeoffset) &&
-						(((edge_t *)((unsigned long)r_edges +
-						 r_pedge->cachededgeoffset))->owner == r_pedge))
-					{
-						R_EmitCachedEdge ();
-						r_lastvertvalid = false;
-						continue;
-					}
-				}
+			if (!insubmodel && R_EmitCachedEdge()) {
+				r_lastvertvalid = false;
+				continue;
 			}
 
 		// assume it's cacheable
@@ -482,31 +461,9 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 			lindex = -lindex;
 			r_pedge = &pedges[lindex];
 		// if the edge is cached, we can just reuse the edge
-			if (!insubmodel)
-			{
-				if (r_pedge->cachededgeoffset & FULLY_CLIPPED_CACHED)
-				{
-					if ((r_pedge->cachededgeoffset & FRAMECOUNT_MASK) ==
-						r_framecount)
-					{
-						r_lastvertvalid = false;
-						continue;
-					}
-				}
-				else
-				{
-				// it's cached if the cached edge is valid and is owned
-				// by this medge_t
-					if ((((unsigned long)edge_p - (unsigned long)r_edges) >
-						 r_pedge->cachededgeoffset) &&
-						(((edge_t *)((unsigned long)r_edges +
-						 r_pedge->cachededgeoffset))->owner == r_pedge))
-					{
-						R_EmitCachedEdge ();
-						r_lastvertvalid = false;
-						continue;
-					}
-				}
+			if (!insubmodel && R_EmitCachedEdge()) {
+				r_lastvertvalid = false;
+				continue;
 			}
 
 		// assume it's cacheable
@@ -866,9 +823,6 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 	r_polydesc.nearzi = r_nearzi;
 	r_polydesc.pcurrentface = fa;
 	r_polydesc.pverts = pverts;
-
-// draw the polygon
-	D_DrawPoly ();
 }
 
 

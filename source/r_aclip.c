@@ -233,7 +233,7 @@ int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
 R_AliasClipTriangle
 ================
 */
-void R_AliasClipTriangle (mtriangle_t *ptri)
+void R_AliasClipTriangle (mtriangle_t *ptri, finalvert_t *pfinalverts, auxvert_t *pauxverts)
 {
 	int				i, k, pingpong;
 	mtriangle_t		mtri;
@@ -346,5 +346,6 @@ void R_AliasClipTriangle (mtriangle_t *ptri)
 		mtri.vertindex[2] = i+1;
 		D_PolysetDraw ();
 	}
+	r_affinetridesc.ptriangles = NULL;
 }
 

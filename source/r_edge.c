@@ -46,7 +46,8 @@ surf_t	*surfaces, *surface_p, *surf_max;
 edge_t	*newedges[MAXHEIGHT];
 edge_t	*removeedges[MAXHEIGHT];
 
-espan_t	*span_p, *max_span_p;
+espan_t *span_p;
+static espan_t *max_span_p;
 
 int		r_currentkey;
 

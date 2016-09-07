@@ -157,7 +157,7 @@ void R_DrawSolidClippedSubmodelPolygons (model_t *pmodel);
 
 void R_AddPolygonEdges (emitpoint_t *pverts, int numverts, int miplevel);
 surf_t *R_GetSurf (void);
-void R_AliasDrawModel (alight_t *plighting);
+void R_AliasDrawModel (entity_t *e, alight_t *plighting);
 void R_BeginEdgeFrame (void);
 void R_ScanEdges (void);
 void D_DrawSurfaces (void);
@@ -225,16 +225,11 @@ void	R_ZDrawSubmodelPolys (model_t *clmodel);
 
 extern int				numverts;
 extern int				a_skinwidth;
-extern mtriangle_t		*ptriangles;
 extern int				numtriangles;
-extern aliashdr_t		*paliashdr;
-extern mdl_t			*pmdl;
 extern float			leftclip, topclip, rightclip, bottomclip;
 extern int				r_acliptype;
-extern finalvert_t		*pfinalverts;
-extern auxvert_t		*pauxverts;
 
-bool R_AliasCheckBBox (void);
+bool R_AliasCheckBBox (entity_t *e);
 
 //=========================================================
 // turbulence stuff
@@ -278,7 +273,7 @@ extern int		r_outofedges;
 extern mvertex_t	*r_pcurrentvertbase;
 extern int			r_maxvalidedgeoffset;
 
-void R_AliasClipTriangle (mtriangle_t *ptri);
+void R_AliasClipTriangle (mtriangle_t *ptri, finalvert_t *pfinalverts, auxvert_t *pauxverts);
 
 extern float	r_time1;
 extern float	dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_time2;
@@ -295,7 +290,6 @@ extern vec3_t	r_emins, r_emaxs;
 extern mnode_t	*r_pefragtopnode;
 extern int		r_clipflags;
 extern int		r_dlightframecount;
-extern bool	r_fov_greater_than_90;
 
 void R_StoreEfrags (efrag_t **ppefrag);
 void R_TimeRefresh_f (void);

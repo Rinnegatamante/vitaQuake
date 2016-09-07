@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define WARP_WIDTH		320
 #define WARP_HEIGHT		200
 
-#define MAX_LBM_HEIGHT	480
+#define MAX_LBM_HEIGHT	200
 
 typedef struct
 {
@@ -99,13 +99,6 @@ typedef struct
 	float			nearzi;
 } spritedesc_t;
 
-typedef struct
-{
-	int		u, v;
-	float	zi;
-	int		color;
-} zpointdesc_t;
-
 extern cvar_t	r_drawflat;
 extern int		d_spanpixcount;
 extern int		r_framecount;		// sequence # of current frame since Quake
@@ -131,7 +124,6 @@ extern bool	r_dowarp;
 
 extern affinetridesc_t	r_affinetridesc;
 extern spritedesc_t		r_spritedesc;
-extern zpointdesc_t		r_zpointdesc;
 extern polydesc_t		r_polydesc;
 
 extern int		d_con_indirect;	// if 0, Quake will draw console directly
@@ -149,10 +141,8 @@ void D_EndDirectRect (int x, int y, int width, int height);
 void D_PolysetDraw (void);
 void D_PolysetDrawFinalVerts (finalvert_t *fv, int numverts);
 void D_DrawParticle (particle_t *pparticle);
-void D_DrawPoly (void);
 void D_DrawSprite (void);
 void D_DrawSurfaces (void);
-void D_DrawZPoint (void);
 void D_EnableBackBufferAccess (void);
 void D_EndParticles (void);
 void D_Init (void);

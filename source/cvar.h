@@ -73,6 +73,7 @@ typedef struct cvar_s
 } cvar_t;
 
 #define CVAR(name, defaultvalue, flags) cvar_t name = {#name, #defaultvalue, flags};
+#define STATIC_CVAR(name, defaultvalue, flags) static cvar_t name = {#name, #defaultvalue, flags};
 
 void 	Cvar_RegisterVariable (cvar_t *variable);
 // registers a cvar that already has the name, string, and optionally the

@@ -41,9 +41,9 @@ model_t	mod_known[MAX_MOD_KNOWN];
 int		mod_numknown;
 
 // values for model_t's needload
-#define NL_PRESENT		0
+/*#define NL_PRESENT		0
 #define NL_NEEDS_LOADED	1
-#define NL_UNREFERENCED	2
+#define NL_UNREFERENCED	2*/
 
 /*
 ===============
@@ -120,8 +120,7 @@ byte *Mod_DecompressVis(byte *in, model_t *model)
 	row = (model->numleafs + 7) >> 3;
 	out = decompressed;
 
-	if (!in)
-	{	// no vis info, so make all visible
+	if (!in) {	// no vis info, so make all visible
 		while (row)
 		{
 			*out++ = 0xff;
@@ -130,8 +129,7 @@ byte *Mod_DecompressVis(byte *in, model_t *model)
 		return decompressed;
 	}
 
-	do
-	{
+	do {
 		if (*in)
 		{
 			*out++ = *in++;
@@ -169,7 +167,8 @@ void Mod_ClearAll(void)
 
 
 	for (i = 0, mod = mod_known; i<mod_numknown; i++, mod++) {
-		mod->needload = NL_UNREFERENCED;
+		if (mod->type != mod_alias)
+			mod->needload = true;
 		//FIX FOR CACHE_ALLOC ERRORS:
 		if (mod->type == mod_sprite) mod->cache.data = NULL;
 	}
@@ -197,29 +196,18 @@ model_t *Mod_FindName(char *name)
 	{
 		if (!strcmp(mod->name, name))
 			break;
-		if (mod->needload == NL_UNREFERENCED)
+		/*if (mod->needload == NL_UNREFERENCED)
 			if (!avail || mod->type != mod_alias)
-				avail = mod;
+				avail = mod;*/
 	}
 
 	if (i == mod_numknown)
 	{
 		if (mod_numknown == MAX_MOD_KNOWN)
-		{
-			if (avail)
-			{
-				mod = avail;
-				if (mod->type == mod_alias)
-					if (Cache_Check(&mod->cache))
-						Cache_Free(&mod->cache);
-			}
-			else
-				Sys_Error("mod_numknown == MAX_MOD_KNOWN");
-		}
-		else
-			mod_numknown++;
+			Sys_Error("mod_numknown == MAX_MOD_KNOWN");
 		strcpy(mod->name, name);
-		mod->needload = NL_NEEDS_LOADED;
+		mod->needload = true;
+		mod_numknown++;
 	}
 
 	return mod;
@@ -237,8 +225,7 @@ void Mod_TouchModel(char *name)
 
 	mod = Mod_FindName(name);
 
-	if (mod->needload == NL_PRESENT)
-	{
+	if (!mod->needload) {
 		if (mod->type == mod_alias)
 			Cache_Check(&mod->cache);
 	}
@@ -256,20 +243,14 @@ model_t *Mod_LoadModel(model_t *mod, bool crash)
 	unsigned *buf;
 	byte	stackbuf[1024];		// avoid dirtying the cache heap
 
-	if (mod->type == mod_alias)
-	{
-		if (Cache_Check(&mod->cache))
-		{
-			mod->needload = NL_PRESENT;
-			return mod;
+	if (!mod->needload) {
+		if (mod->type == mod_alias) {
+			if (Cache_Check(&mod->cache))
+				return mod;
 		}
-	}
-	else
-	{
-		if (mod->needload == NL_PRESENT)
+		else
 			return mod;
 	}
-
 	//
 	// because the world is so huge, load it one piece at a time
 	//
@@ -297,7 +278,7 @@ model_t *Mod_LoadModel(model_t *mod, bool crash)
 	//
 
 	// call the apropriate loader
-	mod->needload = NL_PRESENT;
+	mod->needload = false;
 
 	switch (LittleLong(*(unsigned *)buf))
 	{
@@ -686,8 +667,7 @@ void Mod_LoadTexinfo(lump_t *l)
 			if (miptex >= loadmodel->numtextures)
 				Sys_Error("miptex >= loadmodel->numtextures");
 			out->texture = loadmodel->textures[miptex];
-			if (!out->texture)
-			{
+			if (!out->texture) {
 				out->texture = r_notexture_mip; // texture not found
 				out->flags = 0;
 			}
@@ -893,17 +873,19 @@ void Mod_LoadLeafs(lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+		Sys_Error("%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
+
+	if (count > MAX_MAP_LEAFS)
+		Sys_Error("%s: model->numleafs > MAX_MAP_LEAFS\n", __func__);
+
 	out = Hunk_AllocName(count * sizeof(*out), loadname);
 
 	loadmodel->leafs = out;
 	loadmodel->numleafs = count;
 
-	for (i = 0; i<count; i++, in++, out++)
-	{
-		for (j = 0; j<3; j++)
-		{
+	for (i = 0; i<count; i++, in++, out++) {
+		for (j = 0; j<3; j++) {
 			out->minmaxs[j] = LittleShort(in->mins[j]);
 			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
 		}
@@ -916,7 +898,7 @@ void Mod_LoadLeafs(lump_t *l)
 		out->nummarksurfaces = (uint16_t)LittleShort(in->nummarksurfaces);
 
 		p = LittleLong(in->visofs);
-		out->compressed_vis = (p == -1) ? NULL : loadmodel->visdata + p;
+		out->compressed_vis = (p == -1) ? NULL : (loadmodel->visdata + p);
 		out->efrags = NULL;
 
 		for (j = 0; j<4; j++)
@@ -937,7 +919,7 @@ void Mod_LoadClipnodes(lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+		Sys_Error("%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_AllocName(count * sizeof(*out), loadname);
 
@@ -1829,14 +1811,7 @@ void Mod_Print(void)
 
 	Con_Printf("Cached models:\n");
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-	{
-		Con_Printf("%8p : %s", mod->cache.data, mod->name);
-		if (mod->needload & NL_UNREFERENCED)
-			Con_Printf(" (!R)");
-		if (mod->needload & NL_NEEDS_LOADED)
-			Con_Printf(" (!P)");
-		Con_Printf("\n");
-	}
+		Con_Printf("%8p : %s\n", mod->cache.data, mod->name);
 }
 
 

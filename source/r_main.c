@@ -53,8 +53,6 @@ byte		*r_warpbuffer;
 
 byte		*r_stack_start;
 
-bool	r_fov_greater_than_90;
-
 entity_t r_worldentity;
 
 //
@@ -461,11 +459,6 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 	r_aliastransition = r_aliastransbase.value * res_scale;
 	r_resfudge = r_aliastransadj.value * res_scale;
 
-	if (fov.value <= 90.0)
-		r_fov_greater_than_90 = false;
-	else
-		r_fov_greater_than_90 = true;
-
 // TODO: collect 386-specific code in one place
 #if	id386
 	if (r_pixbytes == 1)
@@ -563,7 +556,7 @@ void R_DrawEntitiesOnList (void)
 
 		// see if the bounding box lets us trivially reject, also sets
 		// trivial accept status
-			if (R_AliasCheckBBox ())
+			if (R_AliasCheckBBox (currententity))
 			{
 				j = R_LightPoint (currententity->origin);
 
@@ -592,7 +585,7 @@ void R_DrawEntitiesOnList (void)
 				if (lighting.ambientlight + lighting.shadelight > 192)
 					lighting.shadelight = 192 - lighting.ambientlight;
 
-				R_AliasDrawModel (&lighting);
+				R_AliasDrawModel (currententity, &lighting);
 			}
 
 			break;
@@ -618,7 +611,7 @@ void R_DrawViewModel (void)
 	float		add;
 	dlight_t	*dl;
 
-	if (!r_drawviewmodel.value || r_fov_greater_than_90)
+	if (!r_drawviewmodel.value)
 		return;
 
 	if (cl.items & IT_INVISIBILITY)
@@ -673,7 +666,7 @@ void R_DrawViewModel (void)
 	cl.light_level = r_viewlighting.ambientlight;
 #endif
 
-	R_AliasDrawModel (&r_viewlighting);
+	R_AliasDrawModel (currententity, &r_viewlighting);
 }
 
 

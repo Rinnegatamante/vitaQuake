@@ -33,6 +33,9 @@ typedef unsigned char 		byte;
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
+#define stringify__(x) #x
+#define stringify(x) stringify__(x)
+
 //============================================================================
 
 typedef struct sizebuf_s
