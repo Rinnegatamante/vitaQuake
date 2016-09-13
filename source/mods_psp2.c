@@ -23,7 +23,7 @@ typedef struct ModsList{
 CheckForPak
 ================
 */
-bool CheckForPak(char* dir)
+bool CheckForMod(char* dir)
 {
 	int dd = sceIoDopen(dir);
 	SceIoDirent entry;
@@ -31,7 +31,7 @@ bool CheckForPak(char* dir)
 	bool ret = false;
 
 	while ((res = sceIoDread(dd, &entry)) > 0 && (!ret))
-		if (strstr(strtolower(entry.d_name),".pak") != NULL) ret = true;
+		if ( strstr(strtolower(entry.d_name),".pak") != NULL || strstr(strtolower(entry.d_name), ".dat") != NULL) ret = true;	// Enable checks for progs.dat only mods
 	
 	sceIoDclose(dd);
 	return ret;
@@ -91,7 +91,7 @@ void MOD_SelectModMenu(char *basedir){
 	int res;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			if (CheckForPak( va("%s/%s", basedir, entry.d_name))){
+			if (CheckForMod( va("%s/%s", basedir, entry.d_name))){
 				mods = addMod(entry.d_name, mods);
 				max_idx++;
 			}

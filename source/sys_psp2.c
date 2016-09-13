@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Mods support
 int max_mod_idx = -1;
-extern bool CheckForPak(char* dir);
+extern bool CheckForMod(char* dir);
 extern void MOD_SelectModMenu(char *basedir);
 extern char* modname;
 
@@ -394,7 +394,8 @@ int main(int argc, char **argv)
 	int res;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			if (CheckForPak(va("%s/%s", parms.basedir, entry.d_name))) max_mod_idx++;
+			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name)))
+				max_mod_idx++;
 		}
 	}
 	sceIoDclose(dd);
