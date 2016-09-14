@@ -559,17 +559,17 @@ Host_Loadgame_f
 void Host_Loadgame_f (void)
 {
 	printf("Load Game");
-	char	*name = malloc(sizeof(char)*MAX_OSPATH);
+	char	name[MAX_OSPATH];
 	FILE	*f;
-	char	*mapname = malloc(sizeof(char)*MAX_OSPATH);
+	char	mapname[MAX_QPATH];
 	float	time, tfloat;
-	char	*str = malloc(sizeof(char)*32768);
-	char *start;
+	char*	str;
+	char*	start;
 	int		i, r;
 	edict_t	*ent;
 	int		entnum;
 	int		version;
-	float			*spawn_parms = malloc(sizeof(float)*NUM_SPAWN_PARMS);
+	float	spawn_parms[NUM_SPAWN_PARMS];
 
 	if (cmd_source != src_command)
 		return;
@@ -604,6 +604,8 @@ void Host_Loadgame_f (void)
 		Con_Printf ("Savegame is version %i, not %i\n", version, SAVEGAME_VERSION);
 		return;
 	}
+
+	str = Sys_BigStackAlloc(32768, "Host_Loadgame_f");
 	fscanf (f, "%s\n", str);
 	for (i=0 ; i<NUM_SPAWN_PARMS ; i++)
 		fscanf (f, "%f\n", &spawn_parms[i]);
@@ -628,6 +630,7 @@ void Host_Loadgame_f (void)
 	if (!sv.active)
 	{
 		Con_Printf ("Couldn't load map\n");
+		Sys_BigStackFree(32768, "Host_Loadgame_f");
 		return;
 	}
 	sv.paused = true;		// pause until all clients connect
@@ -701,10 +704,8 @@ void Host_Loadgame_f (void)
 		CL_EstablishConnection ("local");
 		Host_Reconnect_f ();
 	}
-	free(name);
-	free(mapname);
-	free(spawn_parms);
-	free(str);
+
+	Sys_BigStackFree(32768, "Host_Loadgame_f");
 }
 
 #ifdef QUAKE2
@@ -1811,7 +1812,7 @@ Host_Startdemos_f
 */
 void Host_Startdemos_f (void)
 {
-	int		i, c;
+	/*int		i, c;
 
 	if (cls.state == ca_dedicated)
 	{
@@ -1837,7 +1838,7 @@ void Host_Startdemos_f (void)
 		CL_NextDemo ();
 	}
 	else
-		cls.demonum = -1;
+		cls.demonum = -1;*/
 }
 
 

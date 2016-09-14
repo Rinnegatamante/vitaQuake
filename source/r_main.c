@@ -871,8 +871,8 @@ R_EdgeDrawing
 */
 void R_EdgeDrawing (void)
 {
-	static edge_t	ledges[NUMSTACKEDGES + ((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
-	static surf_t	lsurfs[NUMSTACKSURFACES + ((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
+	edge_t*	ledges = 0;
+	surf_t* lsurfs = 0;
 
 	if (auxedges)
 	{
@@ -880,12 +880,18 @@ void R_EdgeDrawing (void)
 	}
 	else
 	{
+		ledges = Sys_BigStackAlloc(sizeof(edge_t) * (NUMSTACKEDGES +
+			((CACHE_SIZE - 1) / sizeof(edge_t)) + 1), "R_EdgeDrawing");
+
 		r_edges =  (edge_t *)
 				(((long)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 	}
 
 	if (r_surfsonstack)
 	{
+		lsurfs = Sys_BigStackAlloc(sizeof(surf_t) * (NUMSTACKSURFACES +
+			((CACHE_SIZE - 1) / sizeof(surf_t)) + 1), "R_EdgeDrawing");
+
 		surfaces =  (surf_t *)
 				(((long)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 		surf_max = &surfaces[r_cnumsurfs];
@@ -935,6 +941,17 @@ void R_EdgeDrawing (void)
 		R_ScanEdges ();
 	}
 
+	if (lsurfs != 0)
+	{
+		Sys_BigStackFree(sizeof(surf_t) * (NUMSTACKSURFACES +
+			((CACHE_SIZE - 1) / sizeof(surf_t)) + 1), "R_EdgeDrawing");
+	};
+	if (ledges != 0)
+	{
+		Sys_BigStackFree(sizeof(edge_t) * (NUMSTACKEDGES +
+			((CACHE_SIZE - 1) / sizeof(edge_t)) + 1), "R_EdgeDrawing");
+	};
+
 }
 
 
@@ -947,7 +964,7 @@ r_refdef must be set before the first call
 */
 void R_RenderView_ (void)
 {
-	static byte	warpbuffer[WARP_WIDTH * WARP_HEIGHT];
+	byte* warpbuffer = Sys_BigStackAlloc(vid.width * vid.height * sizeof(byte), "R_RenderView_");
 
 	r_warpbuffer = warpbuffer;
 
@@ -1035,6 +1052,8 @@ SetVisibilityByPassages ();
 
 // back to high floating-point precision
 	Sys_HighFPPrecision ();
+	
+	Sys_BigStackFree(vid.width * vid.height * sizeof(byte), "R_RenderView_");
 }
 
 void R_RenderView (void)

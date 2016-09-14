@@ -85,7 +85,7 @@ Host_EndGame
 void Host_EndGame (char *message, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string = Sys_BigStackAlloc(1024, "Host_EndGame");
 
 	va_start (argptr,message);
 	vsprintf (string,message,argptr);
@@ -97,6 +97,8 @@ void Host_EndGame (char *message, ...)
 
 	if (cls.state == ca_dedicated)
 		Sys_Error ("Host_EndGame: %s\n",string);	// dedicated servers exit
+
+	Sys_BigStackFree(1024, "Host_EndGame");
 
 	if (cls.demonum != -1)
 	{
@@ -119,7 +121,7 @@ This shuts down both the client and server
 void Host_Error (char *error, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string;
 	static	bool inerror = false;
 
 	if (inerror)
@@ -127,6 +129,8 @@ void Host_Error (char *error, ...)
 	inerror = true;
 
 	SCR_EndLoadingPlaque ();		// reenable screen updates
+
+	string = Sys_BigStackAlloc(1024, "Host_Error");
 
 	va_start (argptr,error);
 	vsprintf (string,error,argptr);
@@ -138,6 +142,8 @@ void Host_Error (char *error, ...)
 
 	if (cls.state == ca_dedicated)
 		Sys_Error ("Host_Error: %s\n",string);	// dedicated servers exit
+
+	Sys_BigStackFree(1024, "Host_Error");
 
 	CL_Disconnect ();
 	cls.demonum = -1;
@@ -275,7 +281,7 @@ FIXME: make this just a stuffed echo?
 void SV_ClientPrintf (char *fmt, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string = Sys_BigStackAlloc(1024, "SV_ClientPrintf");
 
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
@@ -283,6 +289,8 @@ void SV_ClientPrintf (char *fmt, ...)
 
 	MSG_WriteByte (&host_client->message, svc_print);
 	MSG_WriteString (&host_client->message, string);
+
+	Sys_BigStackFree(1024, "SV_ClientPrintf");
 }
 
 /*
@@ -295,19 +303,23 @@ Sends text to all active clients
 void SV_BroadcastPrintf (char *fmt, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string = Sys_BigStackAlloc(1024, "SV_BroadcastPrintf");
 	int			i;
 
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
 	va_end (argptr);
 
-	for (i=0 ; i<svs.maxclients ; i++)
+	for (i = 0; i < svs.maxclients; i++)
+	{
 		if (svs.clients[i].active && svs.clients[i].spawned)
 		{
-			MSG_WriteByte (&svs.clients[i].message, svc_print);
-			MSG_WriteString (&svs.clients[i].message, string);
+			MSG_WriteByte(&svs.clients[i].message, svc_print);
+			MSG_WriteString(&svs.clients[i].message, string);
 		}
+	}
+
+	Sys_BigStackFree(1024, "SV_BroadcastPrintf");	
 }
 
 /*
@@ -320,7 +332,7 @@ Send text over to the client to be executed
 void Host_ClientCommands (char *fmt, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string = Sys_BigStackAlloc(1024, "Host_ClientCommands");
 
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
@@ -328,6 +340,8 @@ void Host_ClientCommands (char *fmt, ...)
 
 	MSG_WriteByte (&host_client->message, svc_stufftext);
 	MSG_WriteString (&host_client->message, string);
+
+	Sys_BigStackFree(1024, "Host_ClientCommands");
 }
 
 /*

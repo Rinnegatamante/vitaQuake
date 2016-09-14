@@ -34,6 +34,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <psp2/ctrl.h>
 #define u64 uint64_t
 
+#define BIGSTACK_SIZE 20 * 1024 * 1024
+byte sys_bigstack[BIGSTACK_SIZE];
+int sys_bigstack_cursize;
+
 // Mods support
 int max_mod_idx = -1;
 extern bool CheckForMod(char* dir);
@@ -179,6 +183,57 @@ void Sys_mkdir(char *path)
 {
 	sceIoMkdir(path, 0777);
 }
+
+
+void* Sys_Malloc(int size, char* purpose)
+{
+	void* m;
+
+	m = malloc(size);
+	if (m == 0)
+	{
+		Sys_Error("Sys_Malloc: %s - failed on %i bytes", purpose, size);
+	};
+	return m;
+}
+// <<< FIX
+
+// >>> FIX: For Nintendo Wii using devkitPPC / libogc
+// New functions for big stack handling:
+void Sys_BigStackRewind(void)
+{
+	sys_bigstack_cursize = 0;
+}
+
+void* Sys_BigStackAlloc(int size, char* purpose)
+{
+	void* p;
+
+	p = 0;
+	if (sys_bigstack_cursize + size < BIGSTACK_SIZE)
+	{
+		p = sys_bigstack + sys_bigstack_cursize;
+		sys_bigstack_cursize = sys_bigstack_cursize + size;
+	}
+	else
+	{
+		Sys_Error("Sys_BigStackAlloc: %s - failed on %i bytes", purpose, size);
+	};
+	return p;
+}
+
+void Sys_BigStackFree(int size, char* purpose)
+{
+	if (sys_bigstack_cursize - size >= 0)
+	{
+		sys_bigstack_cursize = sys_bigstack_cursize - size;
+	}
+	else
+	{
+		Sys_Error("Sys_BigStackFree: %s - underflow on %i bytes", purpose, sys_bigstack_cursize - size);
+	};
+}
+// <<< FIX
 
 
 /*
@@ -381,7 +436,7 @@ int main(int argc, char **argv)
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
 
-	parms.memsize = 40 * 1024 * 1024;
+	parms.memsize = 16 * 1024 * 1024;
 	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
 	
@@ -550,9 +605,12 @@ int main(int argc, char **argv)
 
 	}
 
+	// I'm sure those can be removed
 	free(parms.membase);
 	free(modname);
 	if (mod_path != NULL) free(mod_path);
+	//===============================
+
 	sceKernelExitProcess(0);
 	return 0;
 }

@@ -149,7 +149,7 @@ void CL_KeepaliveMessage (void)
 	static float lastmsg;
 	int		ret;
 	sizebuf_t	old;
-	byte		olddata[8192];
+	byte*	olddata;
 
 	if (sv.active)
 		return;		// no need if server is local
@@ -158,6 +158,7 @@ void CL_KeepaliveMessage (void)
 
 // read messages from server, should just be nops
 	old = net_message;
+	olddata = Sys_BigStackAlloc(8192 * sizeof(byte), "CL_KeepaliveMessage");
 	memcpy (olddata, net_message.data, net_message.cursize);
 
 	do
@@ -185,7 +186,10 @@ void CL_KeepaliveMessage (void)
 // check time
 	time = Sys_FloatTime ();
 	if (time - lastmsg < 5)
+	{
+		Sys_BigStackFree(8192 * sizeof(byte), "CL_KeepaliveMessage");
 		return;
+	}
 	lastmsg = time;
 
 // write out a nop
@@ -194,6 +198,8 @@ void CL_KeepaliveMessage (void)
 	MSG_WriteByte (&cls.message, clc_nop);
 	NET_SendMessage (cls.netcon, &cls.message);
 	SZ_Clear (&cls.message);
+
+	Sys_BigStackFree(8192 * sizeof(byte), "CL_KeepaliveMessage");
 }
 
 /*
@@ -206,8 +212,8 @@ void CL_ParseServerInfo (void)
 	char	*str;
 	int		i, maxlen;
 	int		nummodels, numsounds;
-	char	model_precache[MAX_MODELS][MAX_QPATH];
-	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
+	char**	sound_precache;
+	char**	model_precache;
 	char	tempname[MAX_QPATH];
 	Con_DPrintf ("Serverinfo packet received.\n");
 //
@@ -250,6 +256,12 @@ void CL_ParseServerInfo (void)
 // needlessly purge it
 //
 
+	model_precache = Sys_BigStackAlloc(MAX_MODELS * sizeof(char*), "CL_ParseServerInfo");
+	for (i = 0; i < MAX_MODELS; i++)
+	{
+		model_precache[i] = Sys_BigStackAlloc(MAX_QPATH, "CL_ParseServerInfo");
+	};
+
 // precache models
 	memset (cl.model_precache, 0, sizeof(cl.model_precache));
 	for (nummodels=1 ; ; nummodels++)
@@ -257,9 +269,13 @@ void CL_ParseServerInfo (void)
 		str = MSG_ReadString ();
 		if (!str[0])
 			break;
-		if (nummodels==MAX_MODELS)
+		if (nummodels == MAX_MODELS)
 		{
-			Con_Printf ("Server sent too many model precaches\n");
+			Con_Printf("Server sent too many model precaches\n");
+			for (i = MAX_MODELS - 1; i >= 0; i--) {
+				free(model_precache[i]);
+			};
+			free(model_precache);
 			return;
 		}
 		strcpy (model_precache[nummodels], str);
@@ -267,15 +283,23 @@ void CL_ParseServerInfo (void)
 	}
 
 // precache sounds
+
+	sound_precache = Sys_BigStackAlloc(MAX_SOUNDS * sizeof(char*), "CL_ParseServerInfo");
+	for (i = 0; i < MAX_SOUNDS; i++)
+	{
+		sound_precache[i] = Sys_BigStackAlloc(MAX_QPATH, "CL_ParseServerInfo");
+	};
+
 	memset (cl.sound_precache, 0, sizeof(cl.sound_precache));
 	for (numsounds=1 ; ; numsounds++)
 	{
 		str = MSG_ReadString ();
 		if (!str[0])
 			break;
-		if (numsounds==MAX_SOUNDS)
+		if (numsounds == MAX_SOUNDS)
 		{
-			Con_Printf ("Server sent too many sound precaches\n");
+			Con_Printf("Server sent too many sound precaches\n");
+			Sys_BigStackFree(MAX_MODELS * sizeof(char*) + MAX_MODELS * MAX_QPATH + MAX_SOUNDS * sizeof(char*) + MAX_SOUNDS * MAX_QPATH, "CL_ParseServerInfo");
 			return;
 		}
 		strcpy (sound_precache[numsounds], str);
@@ -291,6 +315,7 @@ void CL_ParseServerInfo (void)
 		if (cl.model_precache[i] == NULL)
 		{
 			Con_Printf("Model %s not found\n", model_precache[i]);
+			Sys_BigStackFree(MAX_MODELS * sizeof(char*) + MAX_MODELS * MAX_QPATH + MAX_SOUNDS * sizeof(char*) + MAX_SOUNDS * MAX_QPATH, "CL_ParseServerInfo");
 			return;
 		}
 		CL_KeepaliveMessage ();
@@ -311,6 +336,8 @@ void CL_ParseServerInfo (void)
 	Hunk_Check ();		// make sure nothing is hurt
 
 	noclip_anglehack = false;		// noclip is turned off at start
+
+	Sys_BigStackFree(MAX_MODELS * sizeof(char*) + MAX_MODELS * MAX_QPATH + MAX_SOUNDS * sizeof(char*) + MAX_SOUNDS * MAX_QPATH, "CL_ParseServerInfo");
 }
 
 

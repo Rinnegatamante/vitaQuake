@@ -641,7 +641,7 @@ Each surface has a linked list of its visible spans
 void R_ScanEdges (void)
 {
 	int		iv, bottom;
-	byte	*basespans = malloc(sizeof(byte)*(MAXSPANS*sizeof(espan_t)+CACHE_SIZE));
+	byte* basespans = Sys_BigStackAlloc(MAXSPANS * sizeof(espan_t) + CACHE_SIZE, "R_ScanEdges");
 	espan_t	*basespan_p;
 	surf_t	*s;
 
@@ -748,5 +748,5 @@ void R_ScanEdges (void)
 	else
 		D_DrawSurfaces ();
 
-	free(basespans);
+	Sys_BigStackFree(MAXSPANS * sizeof(espan_t) + CACHE_SIZE, "R_ScanEdges");
 }

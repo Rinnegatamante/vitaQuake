@@ -391,7 +391,7 @@ void D_DrawSprite (void)
 	int			i, nump;
 	float		ymin, ymax;
 	emitpoint_t	*pverts;
-	sspan_t		*spans = malloc(sizeof(sspan_t)*MAXHEIGHT+1);
+	sspan_t* spans = Sys_BigStackAlloc(sizeof(sspan_t) * (MAXHEIGHT + 1), "D_DrawSprite");
 
 	sprite_spans = spans;
 
@@ -422,8 +422,10 @@ void D_DrawSprite (void)
 	ymax = ceil (ymax);
 
 	if (ymin >= ymax)
+	{
+		Sys_BigStackFree(sizeof(sspan_t) * (MAXHEIGHT + 1), "D_DrawSprite");
 		return;		// doesn't cross any scans at all
-
+	}
 	cachewidth = r_spritedesc.pspriteframe->width;
 	sprite_height = r_spritedesc.pspriteframe->height;
 	cacheblock = (byte *)&r_spritedesc.pspriteframe->pixels[0];
@@ -438,5 +440,6 @@ void D_DrawSprite (void)
 	D_SpriteScanLeftEdge ();
 	D_SpriteScanRightEdge ();
 	D_SpriteDrawSpans (sprite_spans);
-	free(spans);
+	
+	Sys_BigStackFree(sizeof(sspan_t) * (MAXHEIGHT + 1), "D_DrawSprite");
 }

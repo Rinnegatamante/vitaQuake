@@ -192,7 +192,7 @@ This will be sent on the initial connection and upon each server load.
 void SV_SendServerinfo (client_t *client)
 {
 	char			**s;
-	char			message[2048];
+	char*			message = Sys_BigStackAlloc(2048, "SV_SendServerinfo");
 
 	if (svs.maxclients > 1)
 	{
@@ -246,6 +246,7 @@ void SV_SendServerinfo (client_t *client)
 
 	client->sendsignon = true;
 	client->spawned = false;		// need prespawn, spawn, etc
+	Sys_BigStackFree(2048, "SV_SendServerinfo");
 }
 
 /*

@@ -69,3 +69,9 @@ void Sys_LowFPPrecision (void);
 void Sys_HighFPPrecision (void);
 void Sys_SetFPCW (void);
 
+// >>> FIX: For Nintendo Wii using devkitPPC / libogc
+// New functions for big stack handling:
+void* Sys_BigStackAlloc(int size, char* purpose);
+void Sys_BigStackFree(int size, char* purpose);
+void Sys_BigStackRewind(void);
+// <<< FIX

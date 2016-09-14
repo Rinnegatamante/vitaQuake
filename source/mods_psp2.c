@@ -31,7 +31,7 @@ bool CheckForMod(char* dir)
 	bool ret = false;
 
 	while ((res = sceIoDread(dd, &entry)) > 0 && (!ret))
-		if ( strstr(strtolower(entry.d_name),".pak") != NULL || strstr(strtolower(entry.d_name), ".dat") != NULL) ret = true;	// Enable checks for progs.dat only mods
+		if ( strstr(strtolower(entry.d_name),".pak") != NULL || !strcmp(strtolower(entry.d_name), "progs.dat") ) ret = true;	// Enable checks for progs.dat only mods
 	
 	sceIoDclose(dd);
 	return ret;

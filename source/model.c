@@ -40,11 +40,6 @@ byte	mod_novis[MAX_MAP_LEAFS / 8];
 model_t	mod_known[MAX_MOD_KNOWN];
 int		mod_numknown;
 
-// values for model_t's needload
-/*#define NL_PRESENT		0
-#define NL_NEEDS_LOADED	1
-#define NL_UNREFERENCED	2*/
-
 /*
 ===============
 Mod_Init
@@ -196,18 +191,28 @@ model_t *Mod_FindName(char *name)
 	{
 		if (!strcmp(mod->name, name))
 			break;
-		/*if (mod->needload == NL_UNREFERENCED)
-			if (!avail || mod->type != mod_alias)
-				avail = mod;*/
 	}
 
 	if (i == mod_numknown)
 	{
 		if (mod_numknown == MAX_MOD_KNOWN)
-			Sys_Error("mod_numknown == MAX_MOD_KNOWN");
+		{
+			if (avail)
+			{
+				mod = avail;
+				if (mod->type == mod_alias)
+					if (Cache_Check(&mod->cache))
+						Cache_Free(&mod->cache);
+			}
+			else
+				Sys_Error("mod_numknown == MAX_MOD_KNOWN");
+		}
+		else
+			mod_numknown++;
+
 		strcpy(mod->name, name);
 		mod->needload = true;
-		mod_numknown++;
+		
 	}
 
 	return mod;
@@ -241,9 +246,10 @@ Loads a model into the cache
 model_t *Mod_LoadModel(model_t *mod, bool crash)
 {
 	unsigned *buf;
-	byte	stackbuf[1024];		// avoid dirtying the cache heap
+	byte*	stackbuf; // avoid dirtying the cache heap
 
-	if (!mod->needload) {
+	if (!mod->needload) 
+	{
 		if (mod->type == mod_alias) {
 			if (Cache_Check(&mod->cache))
 				return mod;
@@ -254,6 +260,7 @@ model_t *Mod_LoadModel(model_t *mod, bool crash)
 	//
 	// because the world is so huge, load it one piece at a time
 	//
+	stackbuf = Sys_BigStackAlloc(4096 * sizeof(byte), "Mod_LoadModel");
 
 	//
 	// load the file
@@ -263,6 +270,8 @@ model_t *Mod_LoadModel(model_t *mod, bool crash)
 	{
 		if (crash)
 			Sys_Error("Mod_NumForName: %s not found", mod->name);
+
+		Sys_BigStackFree(4096 * sizeof(byte), "Mod_LoadModel");
 		return NULL;
 	}
 
@@ -295,6 +304,7 @@ model_t *Mod_LoadModel(model_t *mod, bool crash)
 		break;
 	}
 
+	Sys_BigStackFree(4096 * sizeof(byte), "Mod_LoadModel");
 	return mod;
 }
 
@@ -358,10 +368,10 @@ void Mod_LoadTextures(lump_t *l)
 		if (m->dataofs[i] == -1)
 			continue;
 		mt = (miptex_t *)((byte *)m + m->dataofs[i]);
-		mt->width = (uint32_t)LittleLong(mt->width);
-		mt->height = (uint32_t)LittleLong(mt->height);
+		mt->width = LittleLong(mt->width);
+		mt->height = LittleLong(mt->height);
 		for (j = 0; j<MIPLEVELS; j++)
-			mt->offsets[j] = (uint32_t)LittleLong(mt->offsets[j]);
+			mt->offsets[j] = LittleLong(mt->offsets[j]);
 
 		if ((mt->width & 15) || (mt->height & 15))
 			Sys_Error("Texture %s is not 16 aligned", mt->name);
@@ -390,7 +400,7 @@ void Mod_LoadTextures(lump_t *l)
 		if (!tx || tx->name[0] != '+')
 			continue;
 		if (tx->anim_next)
-			continue;	// allready sequenced
+			continue;	// already sequenced
 
 						// find the number of frames in the animation
 		memset(anims, 0, sizeof(anims));
@@ -538,7 +548,7 @@ void Mod_LoadVertexes(lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+		Sys_Error("%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_AllocName(count * sizeof(*out), loadname);
 
@@ -547,9 +557,9 @@ void Mod_LoadVertexes(lump_t *l)
 
 	for (i = 0; i<count; i++, in++, out++)
 	{
-		out->position[0] = LittleFloat(in->point[0]);
-		out->position[1] = LittleFloat(in->point[1]);
-		out->position[2] = LittleFloat(in->point[2]);
+		out->position[0] = (in->point[0]);
+		out->position[1] = (in->point[1]);
+		out->position[2] = (in->point[2]);
 	}
 }
 
@@ -640,8 +650,11 @@ void Mod_LoadTexinfo(lump_t *l)
 
 	for (i = 0; i<count; i++, in++, out++)
 	{
-		for (j = 0; j<8; j++)
+		for (j = 0; j < 4; j++)
+		{
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
+			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
+		}
 		len1 = Length(out->vecs[0]);
 		len2 = Length(out->vecs[1]);
 		len1 = (len1 + len2) / 2;
