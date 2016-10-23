@@ -138,7 +138,7 @@ void Cbuf_Execute(void)
 {
 	int i;
 	char *text;
-	char line[1024];
+	char*	line = Sys_BigStackAlloc(1024, "Cbuf_Execute");
 	int quotes;
 	int notcmd;	// JPG - so that the ENTIRE line can be forwarded
 
@@ -181,6 +181,8 @@ void Cbuf_Execute(void)
 			break;
 		}
 	}
+
+	Sys_BigStackFree(1024, "Cbuf_Execute");
 }
 
 
@@ -333,7 +335,7 @@ char *CopyString (char *in)
 void Cmd_Alias_f (void)
 {
 	cmdalias_t	*a;
-	char		cmd[1024];
+	char*		cmd;
 	int			i, c;
 	char		*s;
 
@@ -370,6 +372,8 @@ void Cmd_Alias_f (void)
 	}
 	strcpy (a->name, s);
 
+	cmd = Sys_BigStackAlloc(1024, "Cmd_Alias_f");
+
 // copy the rest of the command line
 	cmd[0] = 0;		// start out with a null string
 	c = Cmd_Argc();
@@ -382,6 +386,8 @@ void Cmd_Alias_f (void)
 	strcat (cmd, "\n");
 
 	a->value = CopyString (cmd);
+
+	Sys_BigStackFree(1024, "Cmd_Alias_f");
 }
 
 /*

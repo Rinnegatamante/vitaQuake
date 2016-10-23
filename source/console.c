@@ -151,7 +151,7 @@ If the line width has changed, reformat the buffer.
 void Con_CheckResize(void)
 {
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
-	char	tbuf[CON_TEXTSIZE];
+	char*	tbuf;
 
 	width = (vid.width >> 3) - 2;
 
@@ -181,6 +181,8 @@ void Con_CheckResize(void)
 		if (con_linewidth < numchars)
 			numchars = con_linewidth;
 
+		tbuf = Sys_BigStackAlloc(CON_TEXTSIZE, "Con_CheckResize");
+
 		memcpy(tbuf, con_text, CON_TEXTSIZE);
 		memset(con_text, ' ', CON_TEXTSIZE);
 
@@ -192,6 +194,7 @@ void Con_CheckResize(void)
 			}
 		}
 
+		Sys_BigStackFree(CON_TEXTSIZE, "Con_CheckResize");
 		Con_ClearNotify();
 	}
 
@@ -208,7 +211,7 @@ Con_Init
 void Con_Init (void)
 {
 #define MAXGAMEDIRLEN	1000
-	char	temp[MAXGAMEDIRLEN+1];
+	char*	temp = Sys_BigStackAlloc(MAXGAMEDIRLEN + 1, "Con_Init");
 	char	*t2 = "/qconsole.log";
 
 	con_debuglog = COM_CheckParm("-condebug");
@@ -236,6 +239,8 @@ void Con_Init (void)
 	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
 	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
 	Cmd_AddCommand ("clear", Con_Clear_f);
+
+	Sys_BigStackFree(MAXGAMEDIRLEN + 1, "Con_Init");
 
 	con_initialized = true;
 	Con_Printf("Console initialized.\n");
@@ -373,7 +378,7 @@ Handles cursor positioning, line wrapping, etc
 void Con_Printf (char *fmt, ...)
 {
 	va_list		argptr;
-	char		msg[MAXPRINTMSG];
+	char*		msg = Sys_BigStackAlloc(MAXPRINTMSG, "Con_Printf");
 	static bool	inupdate;
 
 	va_start (argptr,fmt);
@@ -388,7 +393,10 @@ void Con_Printf (char *fmt, ...)
 		Con_DebugLog(va("%s/qconsole.log",com_gamedir), "%s", msg);
 
 	if (!con_initialized)
+	{
+		Sys_BigStackFree(MAXPRINTMSG, "Con_Printf");
 		return;
+	}
 
 	if (cls.state == ca_dedicated)
 		return;		// no graphics mode
@@ -408,6 +416,8 @@ void Con_Printf (char *fmt, ...)
 			inupdate = false;
 		}
 	}
+
+	Sys_BigStackFree(MAXPRINTMSG, "Con_Printf");
 }
 
 /*
@@ -420,16 +430,20 @@ A Con_Printf that only shows up if the "developer" cvar is set
 void Con_DPrintf (char *fmt, ...)
 {
 	va_list		argptr;
-	char		msg[MAXPRINTMSG];
+	char*		msg;
 
 	if (!developer.value)
 		return;			// don't confuse non-developers with techie stuff...
+
+	msg = Sys_BigStackAlloc(MAXPRINTMSG, "Con_DPrintf");
 
 	va_start (argptr,fmt);
 	vsprintf (msg,fmt,argptr);
 	va_end (argptr);
 
 	Con_Printf ("%s", msg);
+
+	Sys_BigStackFree(MAXPRINTMSG, "Con_DPrintf");
 }
 
 
@@ -443,7 +457,7 @@ Okay to call even when the screen can't be updated
 void Con_SafePrintf (char *fmt, ...)
 {
 	va_list		argptr;
-	char		msg[1024];
+	char* msg = Sys_BigStackAlloc(1024, "Con_SafePrintf");
 	int			temp;
 
 	va_start (argptr,fmt);
@@ -454,6 +468,8 @@ void Con_SafePrintf (char *fmt, ...)
 	scr_disabled_for_loading = true;
 	Con_Printf ("%s", msg);
 	scr_disabled_for_loading = temp;
+
+	Sys_BigStackFree(1024, "Con_SafePrintf");
 }
 
 

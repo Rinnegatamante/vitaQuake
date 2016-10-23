@@ -227,36 +227,59 @@ int     (*LittleLong) (int l);
 float   (*BigFloat) (float l);
 float   (*LittleFloat) (float l);
 
-inline short   ShortSwap (short l)
+short   ShortSwap(short l)
 {
-	return __builtin_bswap16(l);
+	byte    b1, b2;
+
+	b1 = l & 255;
+	b2 = (l >> 8) & 255;
+
+	return (b1 << 8) + b2;
 }
 
-inline short   ShortNoSwap (short l)
-{
-	return l;
-}
-
-inline int    LongSwap (int l)
-{
-	return __builtin_bswap32(l);
-}
-
-inline int     LongNoSwap (int l)
+short   ShortNoSwap(short l)
 {
 	return l;
 }
 
-inline float FloatSwap (float f)
+int    LongSwap(int l)
 {
-	return __builtin_bswap32(f);
+	byte    b1, b2, b3, b4;
+
+	b1 = l & 255;
+	b2 = (l >> 8) & 255;
+	b3 = (l >> 16) & 255;
+	b4 = (l >> 24) & 255;
+
+	return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
 }
 
-inline float FloatNoSwap (float f)
+int     LongNoSwap(int l)
+{
+	return l;
+}
+
+float FloatSwap(float f)
+{
+	union
+	{
+		float   f;
+		byte    b[4];
+	} dat1, dat2;
+
+
+	dat1.f = f;
+	dat2.b[0] = dat1.b[3];
+	dat2.b[1] = dat1.b[2];
+	dat2.b[2] = dat1.b[1];
+	dat2.b[3] = dat1.b[0];
+	return dat2.f;
+}
+
+float FloatNoSwap(float f)
 {
 	return f;
 }
-
 /*
 ==============================================================================
 
@@ -933,19 +956,25 @@ COM_Init
 */
 void COM_Init (char *basedir)
 {
-	byte    swaptest[2] = {1,0};
+	//byte    swaptest[2] = {1,0};
+
+/*
+=====================================
+SINCE VITAQUAKE IS LITTLE ENDIAN...
+=====================================
+*/
 
 // set the byte swapping variables in a portable manner
-	if ( *(short *)swaptest == 1)
-	{
-		bigendien = false;
-		BigShort = ShortSwap;
+/*	if ( *(short *)swaptest == 1)
+	{*/
+		//bigendien = false;
+		BigShort	= ShortSwap;
+		BigLong		= LongSwap;
+		BigFloat	= FloatSwap;
 		LittleShort = ShortNoSwap;
-		BigLong = LongSwap;
-		LittleLong = LongNoSwap;
-		BigFloat = FloatSwap;
+		LittleLong	= LongNoSwap;
 		LittleFloat = FloatNoSwap;
-	}
+/*	}
 	else
 	{
 		bigendien = true;
@@ -955,7 +984,7 @@ void COM_Init (char *basedir)
 		LittleLong = LongSwap;
 		BigFloat = FloatNoSwap;
 		LittleFloat = FloatSwap;
-	}
+	}*/
 
 	Cvar_RegisterVariable (&registered);
 	Cvar_RegisterVariable (&cmdline);
@@ -1146,7 +1175,7 @@ void COM_CopyFile (char *netpath, char *cachepath)
 {
 	int             in, out;
 	int             remaining, count;
-	char    buf[4096];
+	char*			buf = Sys_BigStackAlloc(4096, "COM_CopyFile");
 
 	remaining = Sys_FileOpenRead (netpath, &in);
 	COM_CreatePath (cachepath);     // create directories up to the cache file
@@ -1165,6 +1194,8 @@ void COM_CopyFile (char *netpath, char *cachepath)
 
 	Sys_FileClose (in);
 	Sys_FileClose (out);
+
+	Sys_BigStackFree(4096, "COM_CopyFile");
 }
 
 /*
@@ -1430,12 +1461,12 @@ of the list so they override previous pack files.
 pack_t *COM_LoadPackFile(char *packfile)
 {
 	dpackheader_t   header;
-	int                             i;
+	int                     i;
 	packfile_t              *newfiles;
-	int                             numpackfiles;
+	int                     numpackfiles;
 	pack_t                  *pack;
-	int                             packhandle;
-	dpackfile_t             info[MAX_FILES_IN_PACK];
+	int                     packhandle;
+	dpackfile_t*			info;
 	unsigned short          crc;
 
 	if (Sys_FileOpenRead(packfile, &packhandle) == -1)
@@ -1455,8 +1486,8 @@ pack_t *COM_LoadPackFile(char *packfile)
 	if (numpackfiles != PAK0_COUNT)
 		com_modified = true;    // not the original file
 
-								//johnfitz -- dynamic gamedir loading
-								//Hunk_AllocName (numpackfiles * sizeof(packfile_t), "packfile");
+	info = Sys_BigStackAlloc(MAX_FILES_IN_PACK * sizeof(dpackfile_t), "COM_LoadPackFile");
+
 	newfiles = Z_Malloc(numpackfiles * sizeof(packfile_t));
 	//johnfitz
 
@@ -1490,6 +1521,7 @@ pack_t *COM_LoadPackFile(char *packfile)
 
 	// FitzQuake has this commented out
 	Con_Printf("Added packfile %s (%i files)\n", packfile, numpackfiles);
+	info = Sys_BigStackAlloc(MAX_FILES_IN_PACK * sizeof(dpackfile_t), "COM_LoadPackFile");
 	return pack;
 }
 

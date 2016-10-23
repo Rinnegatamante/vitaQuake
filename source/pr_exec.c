@@ -261,7 +261,7 @@ Aborts the currently executing function
 void PR_RunError (char *error, ...)
 {
 	va_list		argptr;
-	char		string[1024];
+	char*		string = Sys_BigStackAlloc(1024, "PR_RunError");
 
 	va_start (argptr,error);
 	vsprintf (string,error,argptr);
@@ -272,6 +272,8 @@ void PR_RunError (char *error, ...)
 	Con_Printf ("%s\n", string);
 	
 	pr_depth = 0;		// dump the stack so host_error can shutdown functions
+
+	Sys_BigStackFree(1024, "PR_RunError");
 
 	Host_Error ("Program error");
 }

@@ -660,8 +660,8 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 	clipplane_t	*pclip;
 	medge_t		*pedges;
 	mplane_t	*pplane;
-	mvertex_t	verts[2][100];	//FIXME: do real number
-	polyvert_t	pverts[100];	//FIXME: do real number, safely
+	mvertex_t**	verts;	//FIXME: do real number
+	polyvert_t* pverts; //FIXME: do real number, safely
 	int			vertpage, newverts, newpage, lastvert;
 	bool	visible;
 
@@ -681,6 +681,15 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 			pclip = &view_clipplanes[i];
 		}
 	}
+
+
+	// >>> FIX: For Nintendo Wii using devkitPPC / libogc
+	// Allocating for previous fix in big stack:
+	verts = Sys_BigStackAlloc(sizeof(mvertex_t*) * 2, "R_RenderPoly");
+	verts[0] = Sys_BigStackAlloc(sizeof(mvertex_t) * 100, "R_RenderPoly");
+	verts[1] = Sys_BigStackAlloc(sizeof(mvertex_t) * 100, "R_RenderPoly");
+	pverts = Sys_BigStackAlloc(sizeof(polyvert_t) * 100, "R_RenderPoly");
+	// <<< FIX
 
 // reconstruct the polygon
 // FIXME: these should be precalculated and loaded off disk
@@ -708,33 +717,33 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 	while (pclip)
 	{
 		lastvert = lnumverts - 1;
-		lastdist = DotProduct (verts[vertpage][lastvert].position,
-							   pclip->normal) - pclip->dist;
+		lastdist = DotProduct(verts[vertpage][lastvert].position,
+			pclip->normal) - pclip->dist;
 
 		visible = false;
 		newverts = 0;
 		newpage = vertpage ^ 1;
 
-		for (i=0 ; i<lnumverts ; i++)
+		for (i = 0; i < lnumverts; i++)
 		{
-			dist = DotProduct (verts[vertpage][i].position, pclip->normal) -
-					pclip->dist;
+			dist = DotProduct(verts[vertpage][i].position, pclip->normal) -
+				pclip->dist;
 
 			if ((lastdist > 0) != (dist > 0))
 			{
 				frac = dist / (dist - lastdist);
 				verts[newpage][newverts].position[0] =
-						verts[vertpage][i].position[0] +
-						((verts[vertpage][lastvert].position[0] -
-						  verts[vertpage][i].position[0]) * frac);
+					verts[vertpage][i].position[0] +
+					((verts[vertpage][lastvert].position[0] -
+						verts[vertpage][i].position[0]) * frac);
 				verts[newpage][newverts].position[1] =
-						verts[vertpage][i].position[1] +
-						((verts[vertpage][lastvert].position[1] -
-						  verts[vertpage][i].position[1]) * frac);
+					verts[vertpage][i].position[1] +
+					((verts[vertpage][lastvert].position[1] -
+						verts[vertpage][i].position[1]) * frac);
 				verts[newpage][newverts].position[2] =
-						verts[vertpage][i].position[2] +
-						((verts[vertpage][lastvert].position[2] -
-						  verts[vertpage][i].position[2]) * frac);
+					verts[vertpage][i].position[2] +
+					((verts[vertpage][lastvert].position[2] -
+						verts[vertpage][i].position[2]) * frac);
 				newverts++;
 			}
 
@@ -750,8 +759,13 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 		}
 
 		if (!visible || (newverts < 3))
+		{
+			Sys_BigStackFree(sizeof(mvertex_t*) * 2
+				+ sizeof(mvertex_t) * 100
+				+ sizeof(mvertex_t) * 100
+				+ sizeof(polyvert_t) * 100, "R_RenderPoly");
 			return;
-
+		}
 		lnumverts = newverts;
 		vertpage ^= 1;
 		pclip = pclip->next;
@@ -823,6 +837,11 @@ void R_RenderPoly (msurface_t *fa, int clipflags)
 	r_polydesc.nearzi = r_nearzi;
 	r_polydesc.pcurrentface = fa;
 	r_polydesc.pverts = pverts;
+
+	Sys_BigStackFree(sizeof(mvertex_t*) * 2
+		+ sizeof(mvertex_t) * 100
+		+ sizeof(mvertex_t) * 100
+		+ sizeof(polyvert_t) * 100, "R_RenderPoly");
 }
 
 

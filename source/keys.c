@@ -462,7 +462,7 @@ Key_Bind_f
 void Key_Bind_f (void)
 {
 	int			i, c, b;
-	char		cmd[1024];
+	char		*cmd;
 
 	c = Cmd_Argc();
 
@@ -487,6 +487,8 @@ void Key_Bind_f (void)
 		return;
 	}
 
+	cmd = Sys_BigStackAlloc(1024, "Key_Bind_f");
+
 // copy the rest of the command line
 	cmd[0] = 0;		// start out with a null string
 	for (i=2 ; i< c ; i++)
@@ -497,6 +499,7 @@ void Key_Bind_f (void)
 	}
 
 	Key_SetBinding (b, cmd);
+	Sys_BigStackFree(1024, "Key_Bind_f");
 }
 
 /*
@@ -572,7 +575,7 @@ Should NOT be called during an interrupt!
 void Key_Event (int key, bool down)
 {
 	char	*kb;
-	char	cmd[1024];
+	char*	cmd;
 
 	keydown[key] = down;
 
@@ -629,6 +632,8 @@ void Key_Event (int key, bool down)
 		return;
 	}
 
+	cmd = Sys_BigStackAlloc(1024, "Key_Event");
+
 //
 // key up events only generate commands if the game key binding is
 // a button command (leading + sign).  These will occur even in console mode,
@@ -653,6 +658,8 @@ void Key_Event (int key, bool down)
 				Cbuf_AddText (cmd);
 			}
 		}
+
+		Sys_BigStackFree(1024, "Key_Event");
 		return;
 	}
 
@@ -662,6 +669,7 @@ void Key_Event (int key, bool down)
 	if (cls.demoplayback && down && consolekeys[key] && key_dest == key_game)
 	{
 		M_ToggleMenu_f ();
+		Sys_BigStackFree(1024, "Key_Event");
 		return;
 	}
 
@@ -686,11 +694,15 @@ void Key_Event (int key, bool down)
 				Cbuf_AddText ("\n");
 			}
 		}
+		Sys_BigStackFree(1024, "Key_Event");
 		return;
 	}
 
 	if (!down)
+	{
+		Sys_BigStackFree(1024, "Key_Event");
 		return;		// other systems only care about key down events
+	}
 
 	if (shift_down)
 	{
@@ -716,6 +728,8 @@ void Key_Event (int key, bool down)
 	default:
 		Sys_Error ("Bad key_dest");
 	}
+
+	Sys_BigStackFree(1024, "Key_Event");
 }
 
 
