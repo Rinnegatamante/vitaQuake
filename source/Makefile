@@ -6,7 +6,7 @@ INCLUDES	:=	include
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 
 LIBS = -lvorbisfile -logg -lvorbis -lspeexdsp -lmpg123 \
-	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceKernel_stub \
+	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
