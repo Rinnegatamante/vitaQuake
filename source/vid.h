@@ -83,3 +83,5 @@ int VID_SetMode (int modenum, unsigned char *palette);
 void VID_HandlePause (bool pause);
 // called only on Win32, when pause happens, so the mouse can be released
 
+void VID_ChangeRes(float scale);
+// called only on Vita build, changes rescaler properties

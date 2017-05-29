@@ -23,14 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "net_udp.h"
 
 #include <sys/types.h>
-#include <psp2/types.h>
-#include <psp2/net/net.h>
-#include <psp2/net/netctl.h>
-#include <psp2/kernel/threadmgr.h>
-#include <sys/param.h>
-#include <psp2/system_param.h>
-#include <psp2/apputil.h>
-#include <psp2/io/fcntl.h>
+#include <vitasdk.h>
 #include <errno.h>
 
 #ifdef __sun__
@@ -89,7 +82,7 @@ inline int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr
 	return 0;
 }
 
-inline int convertSockaddrIn(struct SceNetSockaddrIn* dst, struct sockaddr_in* src){
+inline int convertSockaddrIn(struct SceNetSockaddrIn* dst, const struct sockaddr_in* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sin_family = src->sin_family;
 	dst->sin_port = src->sin_port;
@@ -104,7 +97,7 @@ inline int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* ds
 	return 0;
 }
 
-inline int convertSockaddr(struct SceNetSockaddr* dst, struct sockaddr* src){
+inline int convertSockaddr(struct SceNetSockaddr* dst, const struct sockaddr* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sa_family = src->sa_family;
 	memcpy(dst->sa_data,src->sa_data,14);

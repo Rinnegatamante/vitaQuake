@@ -17,10 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <stdio.h>
-#include <psp2/audioout.h>
-#include <psp2/rtc.h>
-#include <psp2/kernel/threadmgr.h>
-#include <psp2/types.h>
+#include <vitasdk.h>
 #include "quakedef.h"
 
 #define u64 uint64_t
@@ -30,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define AUDIOSIZE   16384
 
 u8 *audiobuffer;
-u64 initial_tick;
+SceRtcTick initial_tick;
 int snd_inited;
 int chn = -1;
 int stop_audio = false;
@@ -97,9 +94,9 @@ int SNDDMA_GetDMAPos(void)
 	if(!snd_initialized)
 		return 0;
 
-	u64 tick;
+	SceRtcTick tick;
 	sceRtcGetCurrentTick(&tick);
-	const unsigned int deltaTick  = tick - initial_tick;
+	const unsigned int deltaTick  = tick.tick - initial_tick.tick;
 	const float deltaSecond = deltaTick * tickRate;
 	u64 samplepos = deltaSecond * SAMPLE_RATE;
 	shm->samplepos = samplepos;

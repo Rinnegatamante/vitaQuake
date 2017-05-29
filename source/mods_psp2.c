@@ -1,13 +1,9 @@
 #include "quakedef.h"
-#include <psp2/io/dirent.h>
-#include <psp2/io/stat.h>
-#include <psp2/io/fcntl.h>
+#include <vitasdk.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vita2d.h>
-#include <psp2/ctrl.h>
-#include <psp2/kernel/processmgr.h>
 
 #include <ctype.h>
 

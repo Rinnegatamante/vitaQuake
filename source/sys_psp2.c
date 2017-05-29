@@ -20,18 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
-#include <psp2/types.h>
-#include <psp2/rtc.h>
-#include <psp2/common_dialog.h>
-#include <psp2/ime_dialog.h>
-#include <psp2/sysmodule.h>
-#include <psp2/io/fcntl.h>
-#include <psp2/io/stat.h>
-#include <psp2/io/dirent.h>
-#include <psp2/touch.h>
-#include <psp2/system_param.h>
-#include <psp2/apputil.h>
-#include <psp2/ctrl.h>
+#include <vitasdk.h>
+#include <vita2d.h>
+
 #define u64 uint64_t
 
 #define BIGSTACK_SIZE 20 * 1024 * 1024
@@ -297,9 +288,9 @@ void Sys_Sleep(void)
 
 double Sys_FloatTime(void)
 {
-	u64 ticks;
+	SceRtcTick ticks;
 	sceRtcGetCurrentTick(&ticks);
-	return ticks * 0.000001;
+	return ticks.tick * 0.000001;
 }
 
 void Sys_HighFPPrecision(void)
@@ -509,7 +500,7 @@ int main(int argc, char **argv)
 	// Just to be sure to use the correct resolution in config.cfg
 	VID_ChangeRes(res_val.value);
 
-	u64 lastTick;
+	SceRtcTick lastTick;
 	sceRtcGetCurrentTick(&lastTick);
 
 	while (1)
@@ -594,14 +585,14 @@ int main(int argc, char **argv)
 		}
 
 		// Get current frame
-		u64 tick;
+		SceRtcTick tick;
 		sceRtcGetCurrentTick(&tick);
-		const unsigned int deltaTick = tick - lastTick;
+		const unsigned int deltaTick = tick.tick - lastTick.tick;
 		const float   deltaSecond = deltaTick * tickRate;
 
 		// Show frame
 		Host_Frame(deltaSecond);
-		lastTick = tick;
+		lastTick.tick = tick.tick;
 
 	}
 
