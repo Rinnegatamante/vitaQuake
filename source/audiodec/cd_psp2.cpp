@@ -249,5 +249,4 @@ void CDAudio_Shutdown(void)
 	sceKernelWaitThreadEnd(thread, NULL, NULL);
 	sceKernelDeleteSema(Audio_Mutex);
 	sceKernelDeleteSema(Talk_Mutex);
-	sceKernelDeleteThread(thread);
 }
