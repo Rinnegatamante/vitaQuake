@@ -60,11 +60,11 @@ static int bgmThread(unsigned int args, void* arg){
 	
 	// Initializing audio port
 	int ch = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_MAIN, NSAMPLES, 48000, SCE_AUDIO_OUT_MODE_STEREO);
-	sceAudioOutSetConfig(ch, -1, -1, -1);
+	sceAudioOutSetConfig(ch, -1, -1, (SceAudioOutMode)-1);
 	old_vol = bgmvolume.value;
 	int vol = 32767 * bgmvolume.value;
 	int vol_stereo[] = {vol, vol};
-	sceAudioOutSetVolume(ch, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, vol_stereo);
+	sceAudioOutSetVolume(ch, (SceAudioOutChannelFlag)(SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH), vol_stereo);
 	
 	DecodedMusic* mus;
 	for (;;){
@@ -142,7 +142,7 @@ static int bgmThread(unsigned int args, void* arg){
 				old_vol = bgmvolume.value;
 				int vol = 32767 * bgmvolume.value;
 				int vol_stereo[] = {vol, vol};
-				sceAudioOutSetVolume(ch, SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH, vol_stereo);
+				sceAudioOutSetVolume(ch, (SceAudioOutChannelFlag)(SCE_AUDIO_VOLUME_FLAG_L_CH | SCE_AUDIO_VOLUME_FLAG_R_CH), vol_stereo);
 				mus->changeVol = false;
 			}
 			
