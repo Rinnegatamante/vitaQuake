@@ -35,10 +35,10 @@ extern bool CheckForMod(char* dir);
 extern void MOD_SelectModMenu(char *basedir);
 extern char* modname;
 
-extern int old_char;
+int old_char;
 extern int setup_cursor;
 extern int lanConfig_cursor;
-extern int isKeyboard;
+int isKeyboard;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
 extern cvar_t psvita_touchmode;
@@ -449,6 +449,8 @@ int main(int argc, char **argv)
 	// Do we have at least a mod running here?
 	if (max_mod_idx > 0) 
 		MOD_SelectModMenu(parms.basedir);
+	
+	vita2d_fini();
 	
 	// Mods support
 	if (modname != NULL && strcmp(modname,"id1")) {

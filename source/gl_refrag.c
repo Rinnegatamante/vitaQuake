@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_efrag.c
 
 #include "quakedef.h"
-#include "r_local.h"
 
 mnode_t	*r_pefragtopnode;
 
@@ -155,44 +154,6 @@ void R_SplitEntityOnNode (mnode_t *node)
 }
 
 
-/*
-===================
-R_SplitEntityOnNode2
-===================
-*/
-void R_SplitEntityOnNode2 (mnode_t *node)
-{
-	mplane_t	*splitplane;
-	int			sides;
-
-	if (node->visframe != r_visframecount)
-		return;
-	
-	if (node->contents < 0)
-	{
-		if (node->contents != CONTENTS_SOLID)
-			r_pefragtopnode = node; // we've reached a non-solid leaf, so it's
-									//  visible and not BSP clipped
-		return;
-	}
-	
-	splitplane = node->plane;
-	sides = BOX_ON_PLANE_SIDE(r_emins, r_emaxs, splitplane);
-	
-	if (sides == 3)
-	{
-	// remember first splitter
-		r_pefragtopnode = node;
-		return;
-	}
-	
-// not split yet; recurse down the contacted side
-	if (sides & 1)
-		R_SplitEntityOnNode2 (node->children[0]);
-	else
-		R_SplitEntityOnNode2 (node->children[1]);
-}
-
 
 /*
 ===========
@@ -201,19 +162,24 @@ R_AddEfrags
 */
 void R_AddEfrags (entity_t *ent)
 {
+	model_t		*entmodel;
+	int			i;
+		
 	if (!ent->model)
 		return;
-
-	if (ent == cl_entities)
-		return;		// never add the world
 
 	r_addent = ent;
 			
 	lastlink = &ent->efrag;
 	r_pefragtopnode = NULL;
+	
+	entmodel = ent->model;
 
-	VectorAdd(ent->origin, ent->model->mins, r_emins);
-	VectorAdd(ent->origin, ent->model->maxs, r_emaxs);
+	for (i=0 ; i<3 ; i++)
+	{
+		r_emins[i] = ent->origin[i] + entmodel->mins[i];
+		r_emaxs[i] = ent->origin[i] + entmodel->maxs[i];
+	}
 
 	R_SplitEntityOnNode (cl.worldmodel->nodes);
 

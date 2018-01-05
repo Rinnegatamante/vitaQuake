@@ -28,6 +28,7 @@ enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_
 #define ENGINE_NAME			"VitaQuake"
 #define	VERSION				2.1
 #define VERSION_PROQUAKE	3.50
+#define	GLQUAKE_VERSION	    1.00
 
 //define	PARANOID			// speed sapping error checking
 
@@ -238,8 +239,12 @@ typedef struct
 #include "progs.h"
 #include "server.h"
 
+#ifdef GLQUAKE
+#include "gl_model.h"
+#else
 #include "model.h"
 #include "d_iface.h"
+#endif
 
 #include "input.h"
 #include "world.h"
@@ -250,6 +255,9 @@ typedef struct
 #include "crc.h"
 #include "cdaudio.h"
 
+#ifdef GLQUAKE
+#include "glquake.h"
+#endif
 
 //=============================================================================
 
@@ -322,3 +330,8 @@ extern	cvar_t	chase_active;
 void Chase_Init (void);
 void Chase_Reset (void);
 void Chase_Update (void);
+
+#define VERTEXARRAYSIZE 2048
+extern float gVertexBuffer[VERTEXARRAYSIZE];
+extern float gColorBuffer[VERTEXARRAYSIZE];
+extern float gTexCoordBuffer[VERTEXARRAYSIZE];

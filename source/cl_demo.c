@@ -21,6 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 bool benchmark;
+int max_fps = 0;
+int average_fps = 0; // TODO: Add this
+int min_fps = 72;
 void CL_FinishTimeDemo (void);
 
 /*
@@ -89,7 +92,7 @@ Handles recording and playback of demos, on top of NET_ code
 ====================
 */
 
-extern bool bBenchmarkStarted;
+bool bBenchmarkStarted;
 int CL_GetMessage (void)
 {
 	int		r, i;

@@ -1090,13 +1090,6 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 	else
 		mod_flags = 0;
 
-#if 0
-	if (mod != MOD_QSMACK)
-	{
-		if (pq_password.value && (len <= 18 || pq_password.value != MSG_ReadLong()))
-			return Datagram_Reject("Your client does not seem to accept passworded servers.\n", acceptsock, &clientaddr);
-	}
-#endif
 	// allocate a QSocket
 	sock = NET_NewQSocket ();
 	if (sock == NULL)

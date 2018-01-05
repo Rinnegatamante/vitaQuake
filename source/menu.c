@@ -17,14 +17,16 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-#include <vita2d.h>
 #include "quakedef.h"
 
-extern vita2d_texture* tex_buffer;
-extern char res_string[256];
+char res_string[256];
 extern cvar_t	fov;
 extern cvar_t	crosshair;
-extern cvar_t	d_mipscale;
+STATIC_CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
+STATIC_CVAR (d_mipcap,		0, CVAR_ARCHIVE)
+CVAR (d_mipscale,	1, CVAR_ARCHIVE)
+CVAR (d_dither,		0, CVAR_ARCHIVE)
+CVAR (vid_vsync, 1, CVAR_ARCHIVE)
 extern void VID_ChangeRes(float);
 extern cvar_t	inverted;
 extern cvar_t	pstv_rumble;
@@ -32,7 +34,6 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
 extern cvar_t	show_fps;
-extern cvar_t	vid_vsync;
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -104,6 +105,10 @@ char		m_return_reason [32];
 #define DirectConfig	(m_net_cursor == 1)
 #define	IPXConfig		(m_net_cursor == 2)
 #define	TCPIPConfig		(m_net_cursor == 3)
+
+CVAR (viewsize, 100, CVAR_ARCHIVE)
+CVAR (fov,		90,	 CVAR_ARCHIVE) // LIMITS: 10 - 170
+CVAR (show_fps, 0, CVAR_ARCHIVE) //  FPS Counter
 
 void M_ConfigureNetSubsystem(void);
 
@@ -1117,9 +1122,6 @@ void M_DrawSlider (int x, int y, float range)
 
 void M_DrawCheckbox (int x, int y, int on)
 {
-#if 0
-		M_DrawCharacter (x, y, on ? 131 : 129);
-#endif
 		M_Print (x, y, on ? "on" : "off");
 }
 

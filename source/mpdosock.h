@@ -30,80 +30,6 @@ typedef unsigned long   u_long;
  */
 typedef u_int           SOCKET;
 
-// FIXME
-#if 0
-/*
- * Select uses arrays of SOCKETs.  These macros manipulate such
- * arrays.  FD_SETSIZE may be defined by the user before including
- * this file, but the default here should be >= 64.
- *
- * CAVEAT IMPLEMENTOR and USER: THESE MACROS AND TYPES MUST BE
- * INCLUDED IN WINSOCK.H EXACTLY AS SHOWN HERE.
- */
-#ifndef FD_SETSIZE
-#define FD_SETSIZE      64
-#endif /* FD_SETSIZE */
-
-typedef struct fd_set {
-        u_int   fd_count;               /* how many are SET? */
-        SOCKET  fd_array[FD_SETSIZE];   /* an array of SOCKETs */
-} fd_set;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern int PASCAL FAR __WSAFDIsSet(SOCKET, fd_set FAR *);
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#define FD_CLR(fd, set) do { \
-    u_int __i; \
-    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count ; __i++) { \
-        if (((fd_set FAR *)(set))->fd_array[__i] == fd) { \
-            while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
-                ((fd_set FAR *)(set))->fd_array[__i] = \
-                    ((fd_set FAR *)(set))->fd_array[__i+1]; \
-                __i++; \
-            } \
-            ((fd_set FAR *)(set))->fd_count--; \
-            break; \
-        } \
-    } \
-} while(0)
-
-#define FD_SET(fd, set) do { \
-    if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) \
-        ((fd_set FAR *)(set))->fd_array[((fd_set FAR *)(set))->fd_count++]=(fd);\
-} while(0)
-
-#define FD_ZERO(set) (((fd_set FAR *)(set))->fd_count=0)
-
-#define FD_ISSET(fd, set) __WSAFDIsSet((SOCKET)(fd), (fd_set FAR *)(set))
-
-/*
- * Structure used in select() call, taken from the BSD file sys/time.h.
- */
-struct timeval {
-        long    tv_sec;         /* seconds */
-        long    tv_usec;        /* and microseconds */
-};
-
-/*
- * Operations on timevals.
- *
- * NB: timercmp does not work for >= or <=.
- */
-#define timerisset(tvp)         ((tvp)->tv_sec || (tvp)->tv_usec)
-#define timercmp(tvp, uvp, cmp) \
-        ((tvp)->tv_sec cmp (uvp)->tv_sec || \
-         (tvp)->tv_sec == (uvp)->tv_sec && (tvp)->tv_usec cmp (uvp)->tv_usec)
-#define timerclear(tvp)         (tvp)->tv_sec = (tvp)->tv_usec = 0
-#endif
-
 /*
  * Commands for ioctlsocket(),  taken from the BSD file fcntl.h.
  *
@@ -628,51 +554,6 @@ struct  linger {
 #define WSANO_ADDRESS           WSANO_DATA
 #define NO_ADDRESS              WSANO_ADDRESS
 
-/*
- * Windows Sockets errors redefined as regular Berkeley error constants.
- * These are commented out in Windows NT to avoid conflicts with errno.h.
- * Use the WSA constants instead.
- */
-#if 0
-#define EWOULDBLOCK             WSAEWOULDBLOCK
-#define EINPROGRESS             WSAEINPROGRESS
-#define EALREADY                WSAEALREADY
-#define ENOTSOCK                WSAENOTSOCK
-#define EDESTADDRREQ            WSAEDESTADDRREQ
-#define EMSGSIZE                WSAEMSGSIZE
-#define EPROTOTYPE              WSAEPROTOTYPE
-#define ENOPROTOOPT             WSAENOPROTOOPT
-#define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
-#define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
-#define EOPNOTSUPP              WSAEOPNOTSUPP
-#define EPFNOSUPPORT            WSAEPFNOSUPPORT
-#define EAFNOSUPPORT            WSAEAFNOSUPPORT
-#define EADDRINUSE              WSAEADDRINUSE
-#define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
-#define ENETDOWN                WSAENETDOWN
-#define ENETUNREACH             WSAENETUNREACH
-#define ENETRESET               WSAENETRESET
-#define ECONNABORTED            WSAECONNABORTED
-#define ECONNRESET              WSAECONNRESET
-#define ENOBUFS                 WSAENOBUFS
-#define EISCONN                 WSAEISCONN
-#define ENOTCONN                WSAENOTCONN
-#define ESHUTDOWN               WSAESHUTDOWN
-#define ETOOMANYREFS            WSAETOOMANYREFS
-#define ETIMEDOUT               WSAETIMEDOUT
-#define ECONNREFUSED            WSAECONNREFUSED
-#define ELOOP                   WSAELOOP
-#define ENAMETOOLONG            WSAENAMETOOLONG
-#define EHOSTDOWN               WSAEHOSTDOWN
-#define EHOSTUNREACH            WSAEHOSTUNREACH
-#define ENOTEMPTY               WSAENOTEMPTY
-#define EPROCLIM                WSAEPROCLIM
-#define EUSERS                  WSAEUSERS
-#define EDQUOT                  WSAEDQUOT
-#define ESTALE                  WSAESTALE
-#define EREMOTE                 WSAEREMOTE
-#endif
-
 /* Socket function prototypes */
 
 #ifdef __cplusplus
@@ -718,10 +599,6 @@ int PASCAL FAR recv (SOCKET s, char FAR * buf, int len, int flags);
 int PASCAL FAR recvfrom (SOCKET s, char FAR * buf, int len, int flags,
                          struct sockaddr FAR *from, int FAR * fromlen);
 
-#if 0
-int PASCAL FAR select (int nfds, fd_set FAR *readfds, fd_set FAR *writefds,
-                       fd_set FAR *exceptfds, const struct timeval FAR *timeout);
-#endif
 
 int PASCAL FAR send (SOCKET s, const char FAR * buf, int len, int flags);
 

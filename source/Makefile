@@ -5,7 +5,7 @@ DATA		:=	data
 INCLUDES	:=	include
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 
-LIBS = -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
+LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
 	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
@@ -17,6 +17,7 @@ COMMON_OBJS =	chase.o \
 	cl_main.o \
 	cl_parse.o \
 	cl_tent.o \
+	chase.o \
 	cmd.o \
 	common.o \
 	console.o \
@@ -45,43 +46,27 @@ COMMON_OBJS =	chase.o \
 	world.o \
 	zone.o \
 	sys_psp2.o \
-	d_edge.o \
-	d_fill.o \
-	d_init.o \
-	d_modech.o \
-	d_part.o \
-	d_polyse.o \
-	d_scan.o \
-	d_sky.o \
-	d_sprite.o \
-	d_surf.o \
-	d_vars.o \
-	draw.o \
-	model.o \
-	nonintel.o \
-	r_aclip.o \
-	r_alias.o \
-	r_bsp.o \
-	r_draw.o \
-	r_edge.o \
-	r_efrag.o \
-	r_light.o \
-	r_main.o \
-	r_misc.o \
-	r_sky.o \
-	r_sprite.o \
-	r_surf.o \
-	r_vars.o \
-	screen.o \
+	gl_draw.o \
+	gl_mesh.o \
+	gl_model.o \
+	gl_refrag.o \
+	gl_rlight.o \
+	gl_rmain.o \
+	gl_rmisc.o \
+	gl_rsurf.o \
+	gl_screen.o \
+	gl_test.o \
+	gl_warp.o \
+	r_part.o \
 	snd_dma.o \
 	snd_mix.o \
 	snd_mem.o \
 	snd_psp2.o \
-	vid_psp2.o \
 	net_bsd.o \
 	net_udp_psp2.o \
 	in_psp2.o \
-	mods_psp2.o
+	mods_psp2.o \
+	gl_vidpsp2.o
 	
 CPPSOURCES	:= audiodec
 
@@ -93,7 +78,7 @@ OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -fno-lto -Wl,-q -O3 -g -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\" 
+CFLAGS  = -w -fno-lto -Wl,-q -O3 -g -DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\" 
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
