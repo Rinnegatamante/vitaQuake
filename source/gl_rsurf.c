@@ -619,7 +619,7 @@ void R_BlendLightmaps (void)
 	else if (gl_lightmap_format == GL_INTENSITY)
 	{
 		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		//->glColor4f (1,1,1,1);
+		glColor4f (1,1,1,1);
 	}
 
 	glDepthMask (1);		// back to normal Z buffering
