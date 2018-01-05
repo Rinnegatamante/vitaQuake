@@ -47,13 +47,6 @@ cvar_t		vid_waitforrefresh = {"vid_waitforrefresh","0",true};
  
 char	*framebuffer_ptr;
 
-cvar_t  mouse_button_commands[3] =
-{
-    {"mouse1","+attack"},
-    {"mouse2","+strafe"},
-    {"mouse3","+forward"},
-};
-
 int     mouse_buttons;
 int     mouse_buttonstate;
 int     mouse_oldbuttonstate;
@@ -61,7 +54,7 @@ float   mouse_x, mouse_y;
 float	old_mouse_x, old_mouse_y;
 int		mx, my;
 
-int scr_width, scr_height;
+int scr_width = 960, scr_height = 544;
 
 /*-----------------------------------------------------------------------*/
 
@@ -82,9 +75,6 @@ const char *gl_vendor;
 const char *gl_renderer;
 const char *gl_version;
 const char *gl_extensions;
-
-void (*qgl3DfxSetPaletteEXT) (GLuint *);
-void (*qglColorTableEXT) (int, int, int, int, int, const void *);
 
 static float vid_gamma = 1.0;
 
@@ -205,8 +195,6 @@ void GL_Init (void)
 	gl_extensions = glGetString (GL_EXTENSIONS);
 	Con_Printf ("GL_EXTENSIONS: %s\n", gl_extensions);
 	
-	vglInit(0x8000000);
-	
 //	Con_Printf ("%s %s\n", gl_renderer, gl_version);
 
 	CheckMultiTextureExtensions ();
@@ -294,6 +282,18 @@ void VID_Init8bitPalette(void)
 	if (COM_CheckParm("-no8bit"))
 		return;
 	
+	GLubyte table[256][4];
+	char *oldpal;
+	oldpal = (char *) d_8to24table; //d_8to24table3dfx;
+	for (i=0;i<256;i++) {
+		table[i][2] = *oldpal++;
+		table[i][1] = *oldpal++;
+		table[i][0] = *oldpal++;
+		table[i][3] = 255;
+		oldpal++;
+	}
+	glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, (void*)table);
+	is8bit = true;
 }
 
 static void Check_Gamma (unsigned char *pal)
@@ -327,6 +327,7 @@ static void Check_Gamma (unsigned char *pal)
 
 void VID_Init(unsigned char *palette)
 {
+	Log("VID_Init called...");
 	int i;
 	GLint attribs[32];
 	char	gldir[MAX_OSPATH];
@@ -382,10 +383,13 @@ void VID_Init(unsigned char *palette)
 	vid.aspect = ((float)vid.height / (float)vid.width) *
 				(320.0 / 240.0);
 	vid.numpages = 2;
-
+	
+	Log("GL_Init called...");
 	GL_Init();
 
+	
 	sprintf (gldir, "%s/glquake", com_gamedir);
+	Log("Cache dir created... (%s)", gldir);
 	Sys_mkdir (gldir);
 
 	Check_Gamma(palette);
