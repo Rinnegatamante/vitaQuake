@@ -27,7 +27,7 @@ float gTexCoordBuffer[VERTEXARRAYSIZE];
 
 extern	model_t	*loadmodel;
 
-int		skytexturenum;
+//int		skytexturenum;
 
 int		solidskytexture;
 int		alphaskytexture;
@@ -997,6 +997,8 @@ void R_DrawSkyBox (void)
 
 //===============================================================
 
+static texture_t* current_sky_mt;
+
 /*
 =============
 R_InitSky
@@ -1012,8 +1014,10 @@ void R_InitSky (texture_t *mt)
 	unsigned	transpix;
 	int			r, g, b;
 	unsigned	*rgba;
-	extern	int			skytexturenum;
+	//extern	int			skytexturenum;
 
+	current_sky_mt = mt;
+	
 	src = (byte *)mt + mt->offsets[0];
 
 	// make an average value for the back to avoid
@@ -1063,3 +1067,8 @@ void R_InitSky (texture_t *mt)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
+void R_ReloadSky() {
+    if (current_sky_mt) {
+        R_InitSky(current_sky_mt);
+    }
+}

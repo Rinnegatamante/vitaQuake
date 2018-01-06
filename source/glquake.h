@@ -232,8 +232,8 @@ void R_TranslatePlayerSkin (int playernum);
 void GL_Bind (int texnum);
 
 // Multitexture
-#define    TEXTURE0_SGIS				0x835E
-#define    TEXTURE1_SGIS				0x835F
+#define    TEXTURE0_SGIS				GL_TEXTURE29
+#define    TEXTURE1_SGIS				GL_TEXTURE30
 
 #ifndef _WIN32
 #define APIENTRY /* */

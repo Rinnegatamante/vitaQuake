@@ -442,20 +442,22 @@ void R_DrawSequentialPoly (msurface_t *s)
 			theRect->w = 0;
 		}
 		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-		glBegin (GL_TRIANGLE_FAN);
+		float* pPos = gVertexBuffer;
 		v = p->verts[0];
 		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 		{
-			qglMTexCoord2fSGIS (TEXTURE0_SGIS, v[3], v[4]);
-			qglMTexCoord2fSGIS (TEXTURE1_SGIS, v[5], v[6]);
-
-			nv[0] = v[0] + 8*sin(v[1]*0.05+realtime)*sin(v[2]*0.05+realtime);
-			nv[1] = v[1] + 8*sin(v[0]*0.05+realtime)*sin(v[2]*0.05+realtime);
-			nv[2] = v[2];
-
-			glVertex3fv (nv);
+			*pPos++ = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+			*pPos++ = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+			*pPos++ = v[2];
 		}
-		glEnd ();
+		glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
+        glClientActiveTexture(GL_TEXTURE1);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
+        glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        glClientActiveTexture(GL_TEXTURE0);
 
 	} else {
 		p = s->polys;
@@ -488,19 +490,20 @@ void DrawGLWaterPoly (glpoly_t *p)
 
 	GL_DisableMultitexture();
 
-	glBegin (GL_TRIANGLE_FAN);
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
 	v = p->verts[0];
+
+	float* pnv = gVertexBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		glTexCoord2f (v[3], v[4]);
-
-		nv[0] = v[0] + 8*sin(v[1]*0.05+realtime)*sin(v[2]*0.05+realtime);
-		nv[1] = v[1] + 8*sin(v[0]*0.05+realtime)*sin(v[2]*0.05+realtime);
-		nv[2] = v[2];
-
-		glVertex3fv (nv);
+		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		pnv[2] = v[2];
+		pnv += 3;
 	}
-	glEnd ();
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
 void DrawGLWaterPolyLightmap (glpoly_t *p)
@@ -512,19 +515,20 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 
 	GL_DisableMultitexture();
 
-	glBegin (GL_TRIANGLE_FAN);
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
 	v = p->verts[0];
+
+	float* pnv = gVertexBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		glTexCoord2f (v[5], v[6]);
-
-		nv[0] = v[0] + 8*sin(v[1]*0.05+realtime)*sin(v[2]*0.05+realtime);
-		nv[1] = v[1] + 8*sin(v[0]*0.05+realtime)*sin(v[2]*0.05+realtime);
-		nv[2] = v[2];
-
-		glVertex3fv (nv);
+		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		pnv[2] = v[2];
+		pnv += 3;
 	}
-	glEnd ();
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
 /*

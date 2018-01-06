@@ -702,7 +702,7 @@ void SCR_DrawNotifyString (void)
 
 	start = scr_notifystring;
 
-	y = vid.height*0.35;
+	y = (int)(vid.height*0.35);
 
 	do	
 	{
@@ -826,7 +826,7 @@ void SCR_UpdateScreen (void)
 	if (block_drawing)
 		return;
 
-	vid.numpages = 2 + gl_triplebuffer.value;
+	vid.numpages = (int)(2 + gl_triplebuffer.value);
 
 	scr_copytop = 0;
 	scr_copyeverything = 0;

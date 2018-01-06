@@ -264,7 +264,7 @@ void R_DrawSpriteModel (entity_t *e)
 
 #define NUMVERTEXNORMALS	162
 
-float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
+const float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
 #include "anorms.h"
 };
 
@@ -273,7 +273,7 @@ float	shadelight, ambientlight;
 
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
-float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
+const float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
 #include "anorm_dots.h"
 ;
 
@@ -724,7 +724,7 @@ void R_PolyBlend (void)
 
 	GL_DisableMultitexture();
 
-	glDisable (GL_ALPHA_TEST);
+	//glDisable (GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_TEXTURE_2D);
@@ -746,7 +746,7 @@ void R_PolyBlend (void)
 
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
-	glEnable (GL_ALPHA_TEST);
+	//glEnable (GL_ALPHA_TEST);
 }
 
 

@@ -44,8 +44,27 @@ typedef struct
 	float	sl, tl, sh, th;
 } glpic_t;
 
-byte		conback_buffer[sizeof(qpic_t) + sizeof(glpic_t)];
-qpic_t		*conback = (qpic_t *)&conback_buffer;
+typedef union
+{
+    qpic_t qpic;
+    struct {
+        // First part is from qpic
+        int width;
+        int height;
+
+        glpic_t glpic;
+    } g;
+} packedGlpic_t;
+
+typedef union
+{
+    byte buffer[sizeof(qpic_t) + sizeof(glpic_t)];
+    packedGlpic_t pics;
+} conback_t;
+
+conback_t conbackUnion;
+#define		conback_buffer (conbackUnion.buffer)
+packedGlpic_t *conback = &conbackUnion.pics;
 
 int		gl_lightmap_format = 4;
 int		gl_solid_format = 3;
@@ -68,7 +87,6 @@ typedef struct
 #define	MAX_GLTEXTURES	1024
 gltexture_t	gltextures[MAX_GLTEXTURES];
 int			numgltextures;
-
 
 void GL_Bind (int texnum)
 {
@@ -145,6 +163,7 @@ int Scrap_AllocBlock (int w, int h, int *x, int *y)
 	}
 
 	Sys_Error ("Scrap_AllocBlock: full");
+	return 0;
 }
 
 int	scrap_uploads;
@@ -181,13 +200,24 @@ byte		menuplyr_pixels[4096];
 int		pic_texels;
 int		pic_count;
 
+/*
+================
+GL_LoadPicTexture
+================
+*/
+int GL_LoadPicTexture (qpic_t *pic)
+{
+  return GL_LoadTexture ("", pic->width, pic->height, pic->data, false, true);
+}
+
 qpic_t *Draw_PicFromWad (char *name)
 {
-	qpic_t	*p;
-	glpic_t	*gl;
+	packedGlpic_t	*pp;
 
-	p = W_GetLumpName (name);
-	gl = (glpic_t *)p->data;
+	pp = (packedGlpic_t*) W_GetLumpName (name);
+	
+	qpic_t* p = & pp->qpic;
+    glpic_t* gl = & pp->g.glpic;
 
 	// load little ones into the scrap
 	if (p->width < 64 && p->height < 64)
@@ -416,21 +446,21 @@ void Draw_Init (void)
 	for (x=0 ; x<y ; x++)
 		Draw_CharToConback (ver[x], dest+(x<<3));
 
-	conback->width = cb->width;
-	conback->height = cb->height;
+	conback->g.width = cb->width;
+	conback->g.height = cb->height;
 	ncdata = cb->data;
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	gl = (glpic_t *)conback->data;
-	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, false);
+	gl = &conback->g.glpic;
+	gl->texnum = GL_LoadTexture ("conback", conback->g.width, conback->g.height, ncdata, false, false);
 	gl->sl = 0;
 	gl->sh = 1;
 	gl->tl = 0;
 	gl->th = 1;
-	conback->width = vid.width;
-	conback->height = vid.height;
+	conback->g.width = vid.width;
+	conback->g.height = vid.height;
 
 	// free loaded console
 	Hunk_FreeToLowMark(start);
@@ -558,7 +588,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	glVertex2f (x, y+pic->height);
 	glEnd ();
 	glColor4f (1,1,1,1);
-	glEnable(GL_ALPHA_TEST);
+	//glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 }
 
@@ -577,7 +607,9 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 
 	if (scrap_dirty)
 		Scrap_Upload ();
-	gl = (glpic_t *)pic->data;
+	glpic_t temp;
+	memcpy(&temp, pic->data, sizeof(temp));
+	gl = & temp;
 	glColor4f (1,1,1,1);
 	GL_Bind (gl->texnum);
 	glBegin (GL_QUADS);
@@ -690,10 +722,17 @@ This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
 */
+typedef union ByteToInt_t {
+    byte b[4];
+    int i;
+} ByteToInt;
+
 void Draw_TileClear (int x, int y, int w, int h)
 {
 	glColor3f (1,1,1);
-	GL_Bind (*(int *)draw_backtile->data);
+	ByteToInt b;
+	memcpy(b.b, draw_backtile->data, sizeof(b.b));
+	GL_Bind (b.i);
 	glBegin (GL_QUADS);
 	glTexCoord2f (x/64.0, y/64.0);
 	glVertex2f (x, y);
@@ -775,7 +814,7 @@ void Draw_BeginDisc (void)
 	if (!draw_disc)
 		return;
 	//->glDrawBuffer  (GL_FRONT);
-	Draw_Pic (vid.width - 24, 0, draw_disc);
+	//->Draw_Pic (vid.width - 24, 0, draw_disc);
 	//->glDrawBuffer  (GL_BACK);
 }
 
@@ -813,7 +852,7 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	glEnable (GL_ALPHA_TEST);
+	//->glEnable (GL_ALPHA_TEST);
 //	glDisable (GL_ALPHA_TEST);
 
 	glColor4f (1,1,1,1);
@@ -1171,7 +1210,7 @@ static	unsigned	trans[640*480];		// FIXME, temporary
 		}
 	}
 
- 	if (VID_Is8bit() && !alpha && (data!=scrap_texels[0])) {
+ 	if (VID_Is8bit() && (data!=scrap_texels[0])) {
  		GL_Upload8_EXT (data, width, height, mipmap, alpha);
  		return;
 	}
@@ -1201,6 +1240,7 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 				return gltextures[i].texnum;
 			}
 		}
+		numgltextures++;
 	}
 	else {
 		glt = &gltextures[numgltextures];
@@ -1222,16 +1262,6 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 	return texture_extension_number-1;
 }
 
-/*
-================
-GL_LoadPicTexture
-================
-*/
-int GL_LoadPicTexture (qpic_t *pic)
-{
-	return GL_LoadTexture ("", pic->width, pic->height, pic->data, false, true);
-}
-
 /****************************************/
 
 static GLenum oldtarget = TEXTURE0_SGIS;
@@ -1240,7 +1270,7 @@ void GL_SelectTexture (GLenum target)
 {
 	if (!gl_mtexable)
 		return;
-	qglSelectTextureSGIS(target);
+	glActiveTexture(target);
 	if (target == oldtarget) 
 		return;
 	cnttextures[oldtarget-TEXTURE0_SGIS] = currenttexture;

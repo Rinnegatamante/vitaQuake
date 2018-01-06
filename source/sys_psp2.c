@@ -452,7 +452,7 @@ int main(int argc, char **argv)
 	
 	vita2d_fini();
 	
-	vglInit(0x8000000);
+	vglInit(0x800000);
 	
 	// Mods support
 	if (modname != NULL && strcmp(modname,"id1")) {
