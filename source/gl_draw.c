@@ -588,7 +588,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	glVertex2f (x, y+pic->height);
 	glEnd ();
 	glColor4f (1,1,1,1);
-	//glEnable(GL_ALPHA_TEST);
+	//->glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 }
 
