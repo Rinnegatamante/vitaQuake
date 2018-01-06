@@ -54,7 +54,7 @@ float   mouse_x, mouse_y;
 float	old_mouse_x, old_mouse_y;
 int		mx, my;
 
-int scr_width = 960, scr_height = 544;
+int scr_width, scr_height;
 
 /*-----------------------------------------------------------------------*/
 
@@ -80,7 +80,7 @@ static float vid_gamma = 1.0;
 
 bool is8bit = false;
 bool isPermedia = false;
-bool gl_mtexable = false;
+bool gl_mtexable = true;
 
 /*-----------------------------------------------------------------------*/
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
@@ -168,13 +168,6 @@ void CheckMultiTextureExtensions(void)
 
 	if (strstr(gl_extensions, "GL_SGIS_multitexture ") && !COM_CheckParm("-nomtex")) {
 		Con_Printf("Found GL_SGIS_multitexture...\n");
-
-		if (qglMTexCoord2fSGIS && qglSelectTextureSGIS) {
-			Con_Printf("Multitexture extensions found.\n");
-			gl_mtexable = true;
-		} else
-			Con_Printf("Symbol not found, disabled.\n");
-
 	}
 }
 
@@ -238,12 +231,14 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 //		Sys_Error ("wglMakeCurrent failed");
 
 //	glViewport (*x, *y, *width, *height);
+	vglStartRendering();
 }
 
 
 void GL_EndRendering (void)
 {
 	//->glFlush();
+	vglStopRendering();
 }
 
 #define NUM_RESOLUTIONS 1
@@ -286,10 +281,10 @@ void VID_Init8bitPalette(void)
 	char *oldpal;
 	oldpal = (char *) d_8to24table; //d_8to24table3dfx;
 	for (i=0;i<256;i++) {
+		table[i][3] = *oldpal++;
 		table[i][2] = *oldpal++;
 		table[i][1] = *oldpal++;
-		table[i][0] = *oldpal++;
-		table[i][3] = 255;
+		table[i][0] = 255;
 		oldpal++;
 	}
 	glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, (void*)table);
