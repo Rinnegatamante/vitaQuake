@@ -98,6 +98,7 @@ void GL_Bind (int texnum)
 #ifdef _WIN32
 	bindTexFunc (GL_TEXTURE_2D, texnum);
 #else
+	Log("Binding 0x%lX texture", texnum);
 	glBindTexture(GL_TEXTURE_2D, texnum);
 #endif
 }
@@ -479,7 +480,25 @@ void Draw_Init (void)
 	draw_backtile = Draw_PicFromWad ("backtile");
 }
 
+void DrawQuad_NoTex(float x, float y, float w, float h)
+{
+  float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
+  short index[4] = {0, 1, 2, 3};
+  glVertexPointer( 2, GL_FLOAT, 0, vertex);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, index);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+}
 
+void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, float vh)
+{
+  float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
+  float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
+  unsigned short index[4] = {0, 1, 2, 3};
+  glTexCoordPointer( 2, GL_FLOAT, 0, texcoord);
+  glVertexPointer( 3, GL_FLOAT, 0, vertex);
+  glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, index);
+}
 
 /*
 ================
@@ -516,16 +535,7 @@ void Draw_Character (int x, int y, int num)
 
 	GL_Bind (char_texture);
 
-	glBegin (GL_QUADS);
-	glTexCoord2f (fcol, frow);
-	glVertex2f (x, y);
-	glTexCoord2f (fcol + size, frow);
-	glVertex2f (x+8, y);
-	glTexCoord2f (fcol + size, frow + size);
-	glVertex2f (x+8, y+8);
-	glTexCoord2f (fcol, frow + size);
-	glVertex2f (x, y+8);
-	glEnd ();
+	DrawQuad(x, y, 8, 8, fcol, frow, size, size);
 }
 
 /*
@@ -561,7 +571,7 @@ void Draw_DebugChar (char num)
 Draw_AlphaPic
 =============
 */
-void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
+void Draw_AlphaPic (int x, int y, packedGlpic_t *ppic, float alpha)
 {
 	byte			*dest, *source;
 	unsigned short	*pusdest;
@@ -570,23 +580,15 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 
 	if (scrap_dirty)
 		Scrap_Upload ();
-	gl = (glpic_t *)pic->data;
-	glDisable(GL_ALPHA_TEST);
+	gl = & ppic->g.glpic;
+	//->glDisable(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 //	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //	glCullFace(GL_FRONT);
 	glColor4f (1,1,1,alpha);
 	GL_Bind (gl->texnum);
-	glBegin (GL_QUADS);
-	glTexCoord2f (gl->sl, gl->tl);
-	glVertex2f (x, y);
-	glTexCoord2f (gl->sh, gl->tl);
-	glVertex2f (x+pic->width, y);
-	glTexCoord2f (gl->sh, gl->th);
-	glVertex2f (x+pic->width, y+pic->height);
-	glTexCoord2f (gl->sl, gl->th);
-	glVertex2f (x, y+pic->height);
-	glEnd ();
+	Log("Draw_AlphaPic");
+	DrawQuad(x, y, ppic->g.width, ppic->g.height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
 	glColor4f (1,1,1,1);
 	//->glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
@@ -612,16 +614,8 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 	gl = & temp;
 	glColor4f (1,1,1,1);
 	GL_Bind (gl->texnum);
-	glBegin (GL_QUADS);
-	glTexCoord2f (gl->sl, gl->tl);
-	glVertex2f (x, y);
-	glTexCoord2f (gl->sh, gl->tl);
-	glVertex2f (x+pic->width, y);
-	glTexCoord2f (gl->sh, gl->th);
-	glVertex2f (x+pic->width, y+pic->height);
-	glTexCoord2f (gl->sl, gl->th);
-	glVertex2f (x, y+pic->height);
-	glEnd ();
+
+	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
 }
 
 
@@ -677,23 +671,19 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 				dest[u] =  d_8to24table[translation[p]];
 		}
 	}
-
+	
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_alpha_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glColor3f (1,1,1);
-	glBegin (GL_QUADS);
-	glTexCoord2f (0, 0);
-	glVertex2f (x, y);
-	glTexCoord2f (1, 0);
-	glVertex2f (x+pic->width, y);
-	glTexCoord2f (1, 1);
-	glVertex2f (x+pic->width, y+pic->height);
-	glTexCoord2f (0, 1);
-	glVertex2f (x, y+pic->height);
-	glEnd ();
+	Log("Draw_TransPicTranslate");
+	DrawQuad(x, y, pic->width, pic->height, 0, 0, 1, 1);
 }
 
 
@@ -733,16 +723,8 @@ void Draw_TileClear (int x, int y, int w, int h)
 	ByteToInt b;
 	memcpy(b.b, draw_backtile->data, sizeof(b.b));
 	GL_Bind (b.i);
-	glBegin (GL_QUADS);
-	glTexCoord2f (x/64.0, y/64.0);
-	glVertex2f (x, y);
-	glTexCoord2f ( (x+w)/64.0, y/64.0);
-	glVertex2f (x+w, y);
-	glTexCoord2f ( (x+w)/64.0, (y+h)/64.0);
-	glVertex2f (x+w, y+h);
-	glTexCoord2f ( x/64.0, (y+h)/64.0 );
-	glVertex2f (x, y+h);
-	glEnd ();
+	Log("Draw_TileClear");
+	DrawQuad(x, y, w, h, x/64.0, y/64.0, w/64.0, h/64.0);
 }
 
 
@@ -760,14 +742,8 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		host_basepal[c*3+1]/255.0,
 		host_basepal[c*3+2]/255.0);
 
-	glBegin (GL_QUADS);
-
-	glVertex2f (x,y);
-	glVertex2f (x+w, y);
-	glVertex2f (x+w, y+h);
-	glVertex2f (x, y+h);
-
-	glEnd ();
+	Log("Draw_Fill");
+	DrawQuad_NoTex(x, y, w, h);
 	glColor3f (1,1,1);
 	glEnable (GL_TEXTURE_2D);
 }
@@ -784,14 +760,9 @@ void Draw_FadeScreen (void)
 	glEnable (GL_BLEND);
 	glDisable (GL_TEXTURE_2D);
 	glColor4f (0, 0, 0, 0.8);
-	glBegin (GL_QUADS);
-
-	glVertex2f (0,0);
-	glVertex2f (vid.width, 0);
-	glVertex2f (vid.width, vid.height);
-	glVertex2f (0, vid.height);
-
-	glEnd ();
+	
+	Log("Draw_FadeScreen");
+	DrawQuad_NoTex(0, 0, vid.width, vid.height);
 	glColor4f (1,1,1,1);
 	glEnable (GL_TEXTURE_2D);
 	glDisable (GL_BLEND);
@@ -1030,12 +1001,16 @@ static	unsigned	scaled[1024*512];	// [512*256];
 
 	samples = alpha ? gl_alpha_format : gl_solid_format;
 
-texels += scaled_width * scaled_height;
+	texels += scaled_width * scaled_height;
 
 	if (scaled_width == width && scaled_height == height)
 	{
 		if (!mipmap)
 		{
+			float log_unitf;
+			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+			int log_unit = (int)log_unitf;
+			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, samples, GL_RGBA);
 			glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			goto done;
 		}
@@ -1043,7 +1018,11 @@ texels += scaled_width * scaled_height;
 	}
 	else
 		GL_ResampleTexture (data, width, height, scaled, scaled_width, scaled_height);
-
+	
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, samples, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 	if (mipmap)
 	{
@@ -1060,6 +1039,10 @@ texels += scaled_width * scaled_height;
 			if (scaled_height < 1)
 				scaled_height = 1;
 			miplevel++;
+			float log_unitf;
+			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+			int log_unit = (int)log_unitf;
+			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, miplevel, samples, GL_RGBA);
 			glTexImage2D (GL_TEXTURE_2D, miplevel, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 		}
 	}
@@ -1126,6 +1109,10 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 	{
 		if (!mipmap)
 		{
+			float log_unitf;
+			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+			int log_unit = (int)log_unitf;
+			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
 			glTexImage2D (GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX , GL_UNSIGNED_BYTE, data);
 			goto done;
 		}
@@ -1134,6 +1121,10 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 	else
 		GL_Resample8BitTexture (data, width, height, scaled, scaled_width, scaled_height);
 
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, scaled);
 	if (mipmap)
 	{
@@ -1150,6 +1141,10 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 			if (scaled_height < 1)
 				scaled_height = 1;
 			miplevel++;
+			float log_unitf;
+			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+			int log_unit = (int)log_unitf;
+			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, miplevel, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
 			glTexImage2D (GL_TEXTURE_2D, miplevel, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, scaled);
 		}
 	}
@@ -1270,6 +1265,7 @@ void GL_SelectTexture (GLenum target)
 {
 	if (!gl_mtexable)
 		return;
+	Log("Activating 0x%lX texture unit\n");
 	glActiveTexture(target);
 	if (target == oldtarget) 
 		return;
@@ -1277,3 +1273,7 @@ void GL_SelectTexture (GLenum target)
 	currenttexture = cnttextures[target-TEXTURE0_SGIS];
 	oldtarget = target;
 }
+
+float gVertexBuffer[VERTEXARRAYSIZE];
+float gColorBuffer[VERTEXARRAYSIZE];
+float gTexCoordBuffer[VERTEXARRAYSIZE];

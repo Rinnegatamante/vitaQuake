@@ -88,6 +88,10 @@ void R_InitParticleTexture (void)
 			data[y][x][3] = dottexture[x][y]*255;
 		}
 	}
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_alpha_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -354,6 +358,10 @@ void R_TranslatePlayerSkin (int playernum)
 			frac += fracstep;
 		}
 	}
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_solid_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

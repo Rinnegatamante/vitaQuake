@@ -224,33 +224,36 @@ void R_DrawSpriteModel (entity_t *e)
 	GL_DisableMultitexture();
 
     GL_Bind(frame->gl_texturenum);
+	Log("R_DrawSpriteModel");
+	//->glEnable (GL_ALPHA_TEST);
+	float* pPoint = gVertexBuffer;
+	float texCoords[] = {
+		0, 1,
+		0, 0,
+		1, 0,
+		1, 1
+	};
 
-	glEnable (GL_ALPHA_TEST);
-	glBegin (GL_QUADS);
-
-	glTexCoord2f (0, 1);
 	VectorMA (e->origin, frame->down, up, point);
-	VectorMA (point, frame->left, right, point);
-	glVertex3fv (point);
+	VectorMA (point, frame->left, right, pPoint);
+	pPoint += 3;
 
-	glTexCoord2f (0, 0);
 	VectorMA (e->origin, frame->up, up, point);
-	VectorMA (point, frame->left, right, point);
-	glVertex3fv (point);
+	VectorMA (point, frame->left, right, pPoint);
+	pPoint += 3;
 
-	glTexCoord2f (1, 0);
 	VectorMA (e->origin, frame->up, up, point);
-	VectorMA (point, frame->right, right, point);
-	glVertex3fv (point);
+	VectorMA (point, frame->right, right, pPoint);
+	pPoint += 3;
 
-	glTexCoord2f (1, 1);
 	VectorMA (e->origin, frame->down, up, point);
-	VectorMA (point, frame->right, right, point);
-	glVertex3fv (point);
-	
-	glEnd ();
+	VectorMA (point, frame->right, right, pPoint);
 
-	glDisable (GL_ALPHA_TEST);
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	//->glDisable (GL_ALPHA_TEST);
 }
 
 /*
@@ -307,32 +310,54 @@ lastposenum = posenum;
 
 	while (1)
 	{
+		Log("GL_DrawAliasFrame\n");
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
 			break;		// done
+		
+		int primType;
+		int c;
+		float* pColor;
+		float* pTexCoord;
+		float* pPos;
+		
 		if (count < 0)
 		{
 			count = -count;
-			glBegin (GL_TRIANGLE_FAN);
+			primType = GL_TRIANGLE_FAN;
 		}
 		else
-			glBegin (GL_TRIANGLE_STRIP);
-
+			primType = GL_TRIANGLE_STRIP;
+		
+		pColor = gColorBuffer;
+		pPos = gVertexBuffer;
+		pTexCoord = gTexCoordBuffer;
+		c = count;
 		do
 		{
 			// texture coordinates come from the draw list
-			glTexCoord2f (((float *)order)[0], ((float *)order)[1]);
+			*pTexCoord++ = ((float *)order)[0];
+			*pTexCoord++ = ((float *)order)[1];
 			order += 2;
 
 			// normals and vertexes come from the frame list
 			l = shadedots[verts->lightnormalindex] * shadelight;
-			glColor3f (l, l, l);
-			glVertex3f (verts->v[0], verts->v[1], verts->v[2]);
+			*pColor++ = l;
+			*pColor++ = l;
+			*pColor++ = l;
+			*pColor++ = 1.0f;
+			*pPos++ = verts->v[0];
+			*pPos++ = verts->v[1];
+			*pPos++ = verts->v[2];
 			verts++;
-		} while (--count);
+		   } while (--c);
 
-		glEnd ();
+		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
+		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+		glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
+		glDrawArrays(primType, 0, count);
+		
 	}
 }
 
@@ -368,39 +393,49 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 
 	while (1)
 	{
+		Log("GL_DrawAliasShadow\n");
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
 			break;		// done
+		
+		int primType;
+		int c;
+		float* pVertex;
+		
 		if (count < 0)
 		{
 			count = -count;
-			glBegin (GL_TRIANGLE_FAN);
+			primType = GL_TRIANGLE_FAN;
 		}
 		else
-			glBegin (GL_TRIANGLE_STRIP);
-
-		do
+			primType = GL_TRIANGLE_STRIP;
+		
+		pVertex = gVertexBuffer;
+		for(c = 0; c < count; c++)
 		{
 			// texture coordinates come from the draw list
 			// (skipped for shadows) glTexCoord2fv ((float *)order);
 			order += 2;
 
 			// normals and vertexes come from the frame list
-			point[0] = verts->v[0] * paliashdr->scale[0] + paliashdr->scale_origin[0];
-			point[1] = verts->v[1] * paliashdr->scale[1] + paliashdr->scale_origin[1];
-			point[2] = verts->v[2] * paliashdr->scale[2] + paliashdr->scale_origin[2];
+			pVertex[0] = verts->v[0] * paliashdr->scale[0] + paliashdr->scale_origin[0];
+			pVertex[1] = verts->v[1] * paliashdr->scale[1] + paliashdr->scale_origin[1];
+			pVertex[2] = verts->v[2] * paliashdr->scale[2] + paliashdr->scale_origin[2];
 
-			point[0] -= shadevector[0]*(point[2]+lheight);
-			point[1] -= shadevector[1]*(point[2]+lheight);
-			point[2] = height;
-//			height -= 0.001;
-			glVertex3fv (point);
+			pVertex[0] -= shadevector[0]*(pVertex[2]+lheight);
+			pVertex[1] -= shadevector[1]*(pVertex[2]+lheight);
+			pVertex[2] = height;
+	//		height -= 0.001;
 
+			pVertex += 3;
 			verts++;
-		} while (--count);
+		}
 
-		glEnd ();
+		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDrawArrays(primType, 0, count);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	}	
 }
 
@@ -735,14 +770,18 @@ void R_PolyBlend (void)
     glRotatef (90,  0, 0, 1);	    // put Z going up
 
 	glColor4fv (v_blend);
-
-	glBegin (GL_QUADS);
-
-	glVertex3f (10, 100, 100);
-	glVertex3f (10, -100, 100);
-	glVertex3f (10, -100, -100);
-	glVertex3f (10, 100, -100);
-	glEnd ();
+	
+	Log("R_PolyBlend\n");
+	float vertex[3*4] = {
+		10, 100, 100,
+		10, -100, 100,
+		10, -100, -100,
+		10, 100, -100
+	};
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer( 3, GL_FLOAT, 0, vertex);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
@@ -984,10 +1023,14 @@ void R_Clear (void)
 {
 	if (r_mirroralpha.value != 1.0)
 	{
-		if (gl_clear.value)
+		
+		if (gl_clear.value){
+			Log("Clearing color+depth\n");
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		else
+		}else{
+			Log("Clearing depth\n");
 			glClear (GL_DEPTH_BUFFER_BIT);
+		}
 		gldepthmin = 0;
 		gldepthmax = 0.5;
 		glDepthFunc (GL_LEQUAL);
@@ -996,9 +1039,11 @@ void R_Clear (void)
 	{
 		static int trickframe;
 
-		if (gl_clear.value)
+		if (gl_clear.value){
+			Log("Clearing color\n");
 			glClear (GL_COLOR_BUFFER_BIT);
-
+		}
+		
 		trickframe++;
 		if (trickframe & 1)
 		{
@@ -1015,10 +1060,13 @@ void R_Clear (void)
 	}
 	else
 	{
-		if (gl_clear.value)
+		if (gl_clear.value){
+			Log("Clearing color+depth\n");
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		else
+		}else{
+			Log("Clearing depth\n");
 			glClear (GL_DEPTH_BUFFER_BIT);
+		}
 		gldepthmin = 0;
 		gldepthmax = 1;
 		glDepthFunc (GL_LEQUAL);

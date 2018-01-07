@@ -87,22 +87,33 @@ void R_RenderDlight (dlight_t *light)
 		AddLightBlend (1, 0.5, 0, light->radius * 0.0003);
 		return;
 	}
-
-	glBegin (GL_TRIANGLE_FAN);
-	glColor3f (0.2,0.1,0.0);
+	
+	Log("R_RenderDlight");
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
+	float* pPos = gVertexBuffer;
+	float* pColor = gColorBuffer;
+	*pColor++ = 0.2f;
+	*pColor++ = 0.1f;
+	*pColor++ = 0.0f;
+	*pColor++ = 1.0f;
 	for (i=0 ; i<3 ; i++)
-		v[i] = light->origin[i] - vpn[i]*rad;
-	glVertex3fv (v);
-	glColor3f (0,0,0);
+		*pPos++ = light->origin[i] - vpn[i]*rad;
 	for (i=16 ; i>=0 ; i--)
 	{
+		*pColor++ = 0.0f;
+		*pColor++ = 0.0f;
+		*pColor++ = 0.0f;
+		*pColor++ = 0.0f;
 		a = i/16.0 * M_PI*2;
 		for (j=0 ; j<3 ; j++)
-			v[j] = light->origin[j] + vright[j]*cos(a)*rad
+			*pPos++ = light->origin[j] + vright[j]*cos(a)*rad
 				+ vup[j]*sin(a)*rad;
-		glVertex3fv (v);
 	}
-	glEnd ();
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 18);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glColor3f(0,0,0); // Ensure the color ends up being zero just like the non-OpenGLES code
 }
 
 /*

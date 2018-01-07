@@ -54,7 +54,7 @@ float   mouse_x, mouse_y;
 float	old_mouse_x, old_mouse_y;
 int		mx, my;
 
-int scr_width, scr_height;
+int scr_width = 960, scr_height = 544;
 
 /*-----------------------------------------------------------------------*/
 
@@ -80,7 +80,7 @@ static float vid_gamma = 1.0;
 
 bool is8bit = false;
 bool isPermedia = false;
-bool gl_mtexable = true;
+bool gl_mtexable = false;
 
 /*-----------------------------------------------------------------------*/
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
@@ -211,6 +211,11 @@ void GL_Init (void)
 
 //	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 //->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
 }
 
 /*

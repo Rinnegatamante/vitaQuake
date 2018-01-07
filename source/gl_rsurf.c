@@ -357,6 +357,7 @@ void R_DrawSequentialPoly (msurface_t *s)
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
             glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
+			Log("R_DrawSequentialPoly\n");
             glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glClientActiveTexture(GL_TEXTURE0);
@@ -368,11 +369,13 @@ void R_DrawSequentialPoly (msurface_t *s)
 			GL_Bind (t->gl_texturenum);
 			glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
             glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
+			Log("R_DrawSequentialPoly\n");
             glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 
 			GL_Bind (lightmap_textures + s->lightmaptexturenum);
 			glEnable (GL_BLEND);
 			glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
+			Log("R_DrawSequentialPoly\n");
             glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 
 			glDisable (GL_BLEND);
@@ -455,6 +458,7 @@ void R_DrawSequentialPoly (msurface_t *s)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
         glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
+		Log("R_DrawSequentialPoly\n");
         glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glClientActiveTexture(GL_TEXTURE0);
@@ -490,8 +494,6 @@ void DrawGLWaterPoly (glpoly_t *p)
 
 	GL_DisableMultitexture();
 
-	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
 	v = p->verts[0];
 
 	float* pnv = gVertexBuffer;
@@ -502,7 +504,9 @@ void DrawGLWaterPoly (glpoly_t *p)
 		pnv[2] = v[2];
 		pnv += 3;
 	}
-
+	Log("DrawGLWaterPoly\n");
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
@@ -515,8 +519,6 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 
 	GL_DisableMultitexture();
 
-	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
 	v = p->verts[0];
 
 	float* pnv = gVertexBuffer;
@@ -527,7 +529,9 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 		pnv[2] = v[2];
 		pnv += 3;
 	}
-
+	Log("DrawGLWaterPolyLightmap\n");
+	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+	glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
@@ -543,6 +547,7 @@ void DrawGLPoly (glpoly_t *p)
 
 	glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
     glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
+	Log("DrawGLPoly\n");
     glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
@@ -596,6 +601,7 @@ void R_BlendLightmaps (void)
 //			glTexImage2D (GL_TEXTURE_2D, 0, lightmap_bytes
 //				, BLOCK_WIDTH, theRect->h, 0, 
 //				gl_lightmap_format, GL_UNSIGNED_BYTE, lightmaps+(i*BLOCK_HEIGHT+theRect->t)*BLOCK_WIDTH*lightmap_bytes);
+			Log("glTexSubImage2d\n");
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, theRect->t, 
 				BLOCK_WIDTH, theRect->h, gl_lightmap_format, GL_UNSIGNED_BYTE,
 				lightmaps+(i* BLOCK_HEIGHT + theRect->t) *BLOCK_WIDTH*lightmap_bytes);
@@ -612,6 +618,7 @@ void R_BlendLightmaps (void)
 			{
 				glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
                 glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][5]);
+				Log("R_BlendLightmaps\n");
                 glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 			}
 		}
@@ -1514,6 +1521,10 @@ void GL_BuildLightmaps (void)
 		GL_Bind(lightmap_textures + i);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		float log_unitf;
+		glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+		int log_unit = (int)log_unitf;
+		Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, lightmap_bytes, gl_lightmap_format);
 		glTexImage2D (GL_TEXTURE_2D, 0, lightmap_bytes
 		, BLOCK_WIDTH, BLOCK_HEIGHT, 0, 
 		gl_lightmap_format, GL_UNSIGNED_BYTE, lightmaps+i*BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);

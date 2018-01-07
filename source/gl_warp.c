@@ -21,10 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-float gVertexBuffer[VERTEXARRAYSIZE];
-float gColorBuffer[VERTEXARRAYSIZE];
-float gTexCoordBuffer[VERTEXARRAYSIZE];
-
 extern	model_t	*loadmodel;
 
 //int		skytexturenum;
@@ -219,6 +215,7 @@ void EmitWaterPolys (msurface_t *fa)
 		}
 		glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
 		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
+		Log("EmitWaterPolys\n");
 		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 	}
 }
@@ -259,6 +256,7 @@ void EmitSkyPolys (msurface_t *fa)
 		}
 		glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
 		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
+		Log("EmitSkyPolys\n");
 		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 	}
 }
@@ -658,7 +656,11 @@ void R_LoadSkys (void)
 		}
 		LoadTGA (f);
 //		LoadPCX (f);
-
+		
+		float log_unitf;
+		glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+		int log_unit = (int)log_unitf;
+		Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_solid_format, GL_RGBA);
 		glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, targa_rgba);
 //		glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, pcx_rgb);
 
@@ -983,6 +985,7 @@ void R_DrawSkyBox (void)
 			continue;
 
 		GL_Bind (SKY_TEX+skytexorder[i]);
+		Log("R_DrawSkyBox\n");
 		glBegin (GL_QUADS);
 		MakeSkyVec (skymins[0][i], skymins[1][i], i);
 		MakeSkyVec (skymins[0][i], skymaxs[1][i], i);
@@ -1044,6 +1047,11 @@ void R_InitSky (texture_t *mt)
 	if (!solidskytexture)
 		solidskytexture = texture_extension_number++;
 	GL_Bind (solidskytexture );
+	
+	float log_unitf;
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	int log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_solid_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1062,6 +1070,10 @@ void R_InitSky (texture_t *mt)
 	if (!alphaskytexture)
 		alphaskytexture = texture_extension_number++;
 	GL_Bind(alphaskytexture);
+	
+	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
+	log_unit = (int)log_unitf;
+	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_alpha_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
