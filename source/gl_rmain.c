@@ -225,7 +225,7 @@ void R_DrawSpriteModel (entity_t *e)
 
     GL_Bind(frame->gl_texturenum);
 	Log("R_DrawSpriteModel");
-	//->glEnable (GL_ALPHA_TEST);
+	glEnable (GL_ALPHA_TEST);
 	float* pPoint = gVertexBuffer;
 	float texCoords[] = {
 		0, 1,
@@ -253,7 +253,7 @@ void R_DrawSpriteModel (entity_t *e)
 	glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	//->glDisable (GL_ALPHA_TEST);
+	glDisable (GL_ALPHA_TEST);
 }
 
 /*
@@ -596,14 +596,14 @@ void R_DrawAliasModel (entity_t *e)
 
 	//->if (gl_smoothmodels.value)
 	//->	glShadeModel (GL_SMOOTH);
-	//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	//->if (gl_affinemodels.value)
 	//->	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
 	R_SetupAliasFrame (currententity->frame, paliashdr);
 
-	//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	//->glShadeModel (GL_FLAT);
 	//->if (gl_affinemodels.value)

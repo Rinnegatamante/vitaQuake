@@ -44,27 +44,8 @@ typedef struct
 	float	sl, tl, sh, th;
 } glpic_t;
 
-typedef union
-{
-    qpic_t qpic;
-    struct {
-        // First part is from qpic
-        int width;
-        int height;
-
-        glpic_t glpic;
-    } g;
-} packedGlpic_t;
-
-typedef union
-{
-    byte buffer[sizeof(qpic_t) + sizeof(glpic_t)];
-    packedGlpic_t pics;
-} conback_t;
-
-conback_t conbackUnion;
-#define		conback_buffer (conbackUnion.buffer)
-packedGlpic_t *conback = &conbackUnion.pics;
+byte		conback_buffer[sizeof(qpic_t) + sizeof(glpic_t)];
+qpic_t	*conback = (qpic_t *)&conback_buffer;
 
 int		gl_lightmap_format = 4;
 int		gl_solid_format = 3;
@@ -213,12 +194,11 @@ int GL_LoadPicTexture (qpic_t *pic)
 
 qpic_t *Draw_PicFromWad (char *name)
 {
-	packedGlpic_t	*pp;
+	qpic_t	*p;
+	glpic_t	*gl;
 
-	pp = (packedGlpic_t*) W_GetLumpName (name);
-	
-	qpic_t* p = & pp->qpic;
-    glpic_t* gl = & pp->g.glpic;
+	p = W_GetLumpName (name);
+	gl = (glpic_t *)p->data;
 
 	// load little ones into the scrap
 	if (p->width < 64 && p->height < 64)
@@ -447,21 +427,21 @@ void Draw_Init (void)
 	for (x=0 ; x<y ; x++)
 		Draw_CharToConback (ver[x], dest+(x<<3));
 
-	conback->g.width = cb->width;
-	conback->g.height = cb->height;
+	conback->width = cb->width;
+	conback->height = cb->height;
 	ncdata = cb->data;
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	gl = &conback->g.glpic;
-	gl->texnum = GL_LoadTexture ("conback", conback->g.width, conback->g.height, ncdata, false, false);
+	gl = (glpic_t *)conback->data;
+	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, false);
 	gl->sl = 0;
 	gl->sh = 1;
 	gl->tl = 0;
 	gl->th = 1;
-	conback->g.width = vid.width;
-	conback->g.height = vid.height;
+	conback->width = vid.width;
+	conback->height = vid.height;
 
 	// free loaded console
 	Hunk_FreeToLowMark(start);
@@ -484,7 +464,7 @@ void DrawQuad_NoTex(float x, float y, float w, float h)
 {
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
   short index[4] = {0, 1, 2, 3};
-  glVertexPointer( 2, GL_FLOAT, 0, vertex);
+  glVertexPointer( 3, GL_FLOAT, 0, vertex);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, index);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -571,7 +551,7 @@ void Draw_DebugChar (char num)
 Draw_AlphaPic
 =============
 */
-void Draw_AlphaPic (int x, int y, packedGlpic_t *ppic, float alpha)
+void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 {
 	byte			*dest, *source;
 	unsigned short	*pusdest;
@@ -580,17 +560,17 @@ void Draw_AlphaPic (int x, int y, packedGlpic_t *ppic, float alpha)
 
 	if (scrap_dirty)
 		Scrap_Upload ();
-	gl = & ppic->g.glpic;
-	//->glDisable(GL_ALPHA_TEST);
+	gl = (glpic_t *)pic->data;
+	glDisable(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 //	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //	glCullFace(GL_FRONT);
 	glColor4f (1,1,1,alpha);
 	GL_Bind (gl->texnum);
 	Log("Draw_AlphaPic");
-	DrawQuad(x, y, ppic->g.width, ppic->g.height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
+	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
 	glColor4f (1,1,1,1);
-	//->glEnable(GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 }
 
@@ -823,7 +803,7 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	//->glEnable (GL_ALPHA_TEST);
+	glEnable (GL_ALPHA_TEST);
 //	glDisable (GL_ALPHA_TEST);
 
 	glColor4f (1,1,1,1);
@@ -1235,7 +1215,6 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 				return gltextures[i].texnum;
 			}
 		}
-		numgltextures++;
 	}
 	else {
 		glt = &gltextures[numgltextures];

@@ -334,7 +334,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			// Binds world to texture env 0
 			GL_SelectTexture(TEXTURE0_SGIS);
 			GL_Bind (t->gl_texturenum);
-			//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			// Binds lightmap to texenv 1
 			GL_EnableMultitexture(); // Same as SelectTexture (TEXTURE1)
 			GL_Bind (lightmap_textures + s->lightmaptexturenum);
@@ -351,7 +351,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 				theRect->h = 0;
 				theRect->w = 0;
 			}
-			//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 			glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
             glClientActiveTexture(GL_TEXTURE1);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -428,7 +428,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 		t = R_TextureAnimation (s->texinfo->texture);
 		GL_SelectTexture(TEXTURE0_SGIS);
 		GL_Bind (t->gl_texturenum);
-		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		GL_EnableMultitexture();
 		GL_Bind (lightmap_textures + s->lightmaptexturenum);
 		i = s->lightmaptexturenum;
@@ -444,7 +444,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			theRect->h = 0;
 			theRect->w = 0;
 		}
-		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 		float* pPos = gVertexBuffer;
 		v = p->verts[0];
 		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -575,7 +575,7 @@ void R_BlendLightmaps (void)
 		glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 	else if (gl_lightmap_format == GL_INTENSITY)
 	{
-		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glColor4f (0,0,0,1);
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
@@ -629,7 +629,7 @@ void R_BlendLightmaps (void)
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	else if (gl_lightmap_format == GL_INTENSITY)
 	{
-		//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glColor4f (1,1,1,1);
 	}
 
@@ -808,7 +808,7 @@ void R_DrawWaterSurfaces (void)
 	if (r_wateralpha.value < 1.0) {
 		glEnable (GL_BLEND);
 		glColor4f (1,1,1,r_wateralpha.value);
-	//->	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	}
 
 	if (!gl_texsort.value) {
@@ -847,7 +847,7 @@ void R_DrawWaterSurfaces (void)
 	}
 
 	if (r_wateralpha.value < 1.0) {
-	//->	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 		glColor4f (1,1,1,1);
 		glDisable (GL_BLEND);
@@ -1448,7 +1448,6 @@ void GL_BuildLightmaps (void)
 		texture_extension_number += MAX_LIGHTMAPS;
 	}
 
-	gl_lightmap_format = GL_RGBA;
 	gl_lightmap_format = GL_LUMINANCE;
 	// default differently on the Permedia
 	if (isPermedia)

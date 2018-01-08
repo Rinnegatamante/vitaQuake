@@ -626,7 +626,7 @@ void R_DrawParticles (void)
     GL_Bind(particletexture);
 	
 	glEnable (GL_BLEND);
-	//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	
 	glEnableClientState(GL_COLOR_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);

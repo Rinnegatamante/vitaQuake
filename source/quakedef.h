@@ -331,6 +331,36 @@ void Chase_Init (void);
 void Chase_Reset (void);
 void Chase_Update (void);
 
+void DrawQuad_NoTex(GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+void DrawQuad(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat u, GLfloat v, GLfloat uw, GLfloat vh);
+
+bool VID_Is8bit(void);
+void GL_SubdivideSurface (msurface_t *fa);
+void GL_MakeAliasModelDisplayLists (model_t *m, aliashdr_t *hdr);
+int R_LightPoint (vec3_t p);
+void R_DrawBrushModel (entity_t *e);
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
+void R_AnimateLight (void);
+void V_CalcBlend (void);
+void R_DrawWorld (void);
+void R_RenderDlights(void);
+void R_DrawParticles (void);
+void R_DrawWaterSurfaces (void);
+void R_RenderBrushPoly (msurface_t *fa);
+void R_InitParticles (void);
+void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha);
+void R_ClearParticles (void);
+void GL_BuildLightmaps (void);
+void EmitWaterPolys (msurface_t *fa);
+void EmitSkyPolys (msurface_t *fa);
+void EmitBothSkyLayers (msurface_t *fa);
+void R_DrawSkyChain (msurface_t *s);
+bool R_CullBox (vec3_t mins, vec3_t maxs);
+void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
+void R_RotateForEntity (entity_t *e);
+void R_StoreEfrags (efrag_t **ppefrag);
+void GL_Set2D (void);
+
 #define VERTEXARRAYSIZE 2048
 extern float gVertexBuffer[VERTEXARRAYSIZE];
 extern float gColorBuffer[VERTEXARRAYSIZE];

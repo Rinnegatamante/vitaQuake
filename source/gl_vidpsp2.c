@@ -196,21 +196,21 @@ void GL_Init (void)
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
 
-	//->glEnable(GL_ALPHA_TEST);
-	//->glAlphaFunc(GL_GREATER, 0.666);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.666);
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 	//->glShadeModel (GL_FLAT);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 //	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//->glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -236,6 +236,7 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 //		Sys_Error ("wglMakeCurrent failed");
 
 //	glViewport (*x, *y, *width, *height);
+	Log("Init scene...");
 	vglStartRendering();
 }
 
@@ -243,6 +244,7 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 void GL_EndRendering (void)
 {
 	//->glFlush();
+	Log("Ending scene...");
 	vglStopRendering();
 }
 
@@ -270,7 +272,7 @@ int findres(int *width, int *height)
 
 bool VID_Is8bit(void)
 {
-	return is8bit;
+	return false;
 }
 
 void VID_Init8bitPalette(void) 
@@ -286,10 +288,10 @@ void VID_Init8bitPalette(void)
 	char *oldpal;
 	oldpal = (char *) d_8to24table; //d_8to24table3dfx;
 	for (i=0;i<256;i++) {
-		table[i][3] = *oldpal++;
-		table[i][2] = *oldpal++;
+		table[i][0] = *oldpal++;
 		table[i][1] = *oldpal++;
-		table[i][0] = 255;
+		table[i][2] = *oldpal++;
+		table[i][3] = 255;
 		oldpal++;
 	}
 	glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, (void*)table);
