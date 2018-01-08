@@ -34,6 +34,7 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
 extern cvar_t	show_fps;
+
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -108,7 +109,6 @@ char		m_return_reason [32];
 
 CVAR (viewsize, 100, CVAR_ARCHIVE)
 CVAR (fov,		90,	 CVAR_ARCHIVE) // LIMITS: 10 - 170
-CVAR (show_fps, 0, CVAR_ARCHIVE) //  FPS Counter
 
 void M_ConfigureNetSubsystem(void);
 

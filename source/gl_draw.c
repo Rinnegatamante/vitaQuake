@@ -1256,3 +1256,77 @@ void GL_SelectTexture (GLenum target)
 float gVertexBuffer[VERTEXARRAYSIZE];
 float gColorBuffer[VERTEXARRAYSIZE];
 float gTexCoordBuffer[VERTEXARRAYSIZE];
+
+// Benchmark
+int max_fps = 0;
+int average_fps = 0; // TODO: Add this
+int min_fps = 72;
+bool bBenchmarkStarted;
+bool bBlinkBenchmark;
+
+void GL_DrawBenchmark(void)
+{
+	static double lastframetime;
+	double t;
+	extern int fps_count;
+	static int lastfps;
+	int x, y;
+	char st[80],st2[80],st3[80],st4[80];
+
+	t = Sys_FloatTime ();
+
+	if ((t - lastframetime) >= 1.0) {
+		lastfps = fps_count;
+		fps_count = 0;
+		lastframetime = t;
+		bBlinkBenchmark = !bBlinkBenchmark;
+	}
+
+	sprintf(st,  "Current: %3d", lastfps);
+
+	if (bBenchmarkStarted)
+	{
+		if (lastfps > max_fps) max_fps = lastfps;
+		if (lastfps < min_fps) min_fps = lastfps;
+		sprintf(st2, "    Max: %3d", max_fps);
+		sprintf(st3, "    Min: %3d", min_fps);	// <-- Dat Result really feels cheated
+	}
+
+	x = vid.width - strlen(st) * 8 - 16;
+	y = (vid.height * 0.2);
+	Draw_String(x, y, st);
+	Draw_String(x, y+8, st2);
+	Draw_String(x, y+16, st3);
+
+	if (bBlinkBenchmark) {	// Neato messaji
+		char *msg = "Benchmark in progress, please wait...";
+		Draw_String((vid.width / 2) - (strlen(msg) * 4), vid.height*0.25, msg);
+	}
+}
+
+void GL_DrawFPS(void){
+	extern cvar_t show_fps;
+	static double lastframetime;
+	double t;
+	extern int fps_count;
+	static int lastfps;
+	int x, y;
+	char st[80];
+	
+	if (!show_fps.value)
+		return;
+
+	t = Sys_FloatTime ();
+
+	if ((t - lastframetime) >= 1.0) {
+		lastfps = fps_count;
+		fps_count = 0;
+		lastframetime = t;
+
+	}
+	sprintf(st, "%3d FPS", lastfps);
+
+	x = vid.width - strlen(st) * 8 - 16;
+	y = 8 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
+	Draw_String(x, y, st);
+}

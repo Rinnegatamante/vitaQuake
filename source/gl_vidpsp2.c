@@ -29,9 +29,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define stringify(m) { #m, m }
 
+extern bool benchmark;
 unsigned short	d_8to16table[256];
 unsigned	d_8to24table[256];
 unsigned char d_15to8table[65536];
+CVAR (show_fps, 0, CVAR_ARCHIVE)
 
 int num_shades=32;
 
@@ -215,6 +217,8 @@ void GL_Init (void)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
+	
+	Cvar_RegisterVariable (&show_fps); // muff
 
 }
 
@@ -240,9 +244,11 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 	vglStartRendering();
 }
 
-
 void GL_EndRendering (void)
 {
+	if (benchmark) GL_DrawBenchmark ();
+	else GL_DrawFPS ();
+	
 	//->glFlush();
 	Log("Ending scene...");
 	vglStopRendering();
