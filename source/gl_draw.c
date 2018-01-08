@@ -76,12 +76,9 @@ void GL_Bind (int texnum)
 	if (currenttexture == texnum)
 		return;
 	currenttexture = texnum;
-#ifdef _WIN32
-	bindTexFunc (GL_TEXTURE_2D, texnum);
-#else
-	Log("Binding 0x%lX texture", texnum);
+
 	glBindTexture(GL_TEXTURE_2D, texnum);
-#endif
+
 }
 
 
@@ -567,7 +564,6 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 //	glCullFace(GL_FRONT);
 	glColor4f (1,1,1,alpha);
 	GL_Bind (gl->texnum);
-	Log("Draw_AlphaPic");
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
 	glColor4f (1,1,1,1);
 	glEnable(GL_ALPHA_TEST);
@@ -652,17 +648,12 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 		}
 	}
 	
-	float log_unitf;
-	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-	int log_unit = (int)log_unitf;
-	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, gl_alpha_format, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glColor3f (1,1,1);
-	Log("Draw_TransPicTranslate");
 	DrawQuad(x, y, pic->width, pic->height, 0, 0, 1, 1);
 }
 
@@ -703,7 +694,6 @@ void Draw_TileClear (int x, int y, int w, int h)
 	ByteToInt b;
 	memcpy(b.b, draw_backtile->data, sizeof(b.b));
 	GL_Bind (b.i);
-	Log("Draw_TileClear");
 	DrawQuad(x, y, w, h, x/64.0, y/64.0, w/64.0, h/64.0);
 }
 
@@ -722,7 +712,6 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		host_basepal[c*3+1]/255.0,
 		host_basepal[c*3+2]/255.0);
 
-	Log("Draw_Fill");
 	DrawQuad_NoTex(x, y, w, h);
 	glColor3f (1,1,1);
 	glEnable (GL_TEXTURE_2D);
@@ -739,11 +728,12 @@ void Draw_FadeScreen (void)
 {
 	glEnable (GL_BLEND);
 	glDisable (GL_TEXTURE_2D);
-	glColor4f (0, 0, 0, 0.8);
+	glDisable(GL_ALPHA_TEST); // KH
+	glColor4f (0, 0, 0, 0.4); // KH
 	
-	Log("Draw_FadeScreen");
 	DrawQuad_NoTex(0, 0, vid.width, vid.height);
 	glColor4f (1,1,1,1);
+	glEnable(GL_ALPHA_TEST); // KH
 	glEnable (GL_TEXTURE_2D);
 	glDisable (GL_BLEND);
 
@@ -987,10 +977,6 @@ static	unsigned	scaled[1024*512];	// [512*256];
 	{
 		if (!mipmap)
 		{
-			float log_unitf;
-			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-			int log_unit = (int)log_unitf;
-			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, samples, GL_RGBA);
 			glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			goto done;
 		}
@@ -999,32 +985,10 @@ static	unsigned	scaled[1024*512];	// [512*256];
 	else
 		GL_ResampleTexture (data, width, height, scaled, scaled_width, scaled_height);
 	
-	float log_unitf;
-	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-	int log_unit = (int)log_unitf;
-	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, samples, GL_RGBA);
 	glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 	if (mipmap)
 	{
-		int		miplevel;
-
-		miplevel = 0;
-		while (scaled_width > 1 || scaled_height > 1)
-		{
-			GL_MipMap ((byte *)scaled, scaled_width, scaled_height);
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-			if (scaled_width < 1)
-				scaled_width = 1;
-			if (scaled_height < 1)
-				scaled_height = 1;
-			miplevel++;
-			float log_unitf;
-			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-			int log_unit = (int)log_unitf;
-			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, miplevel, samples, GL_RGBA);
-			glTexImage2D (GL_TEXTURE_2D, miplevel, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-		}
+		glGenerateMipmap(GL_TEXTURE_2D);		
 	}
 done: ;
 
@@ -1089,10 +1053,6 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 	{
 		if (!mipmap)
 		{
-			float log_unitf;
-			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-			int log_unit = (int)log_unitf;
-			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
 			glTexImage2D (GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX , GL_UNSIGNED_BYTE, data);
 			goto done;
 		}
@@ -1101,32 +1061,10 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 	else
 		GL_Resample8BitTexture (data, width, height, scaled, scaled_width, scaled_height);
 
-	float log_unitf;
-	glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-	int log_unit = (int)log_unitf;
-	Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, 0, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, scaled);
 	if (mipmap)
 	{
-		int		miplevel;
-
-		miplevel = 0;
-		while (scaled_width > 1 || scaled_height > 1)
-		{
-			GL_MipMap8Bit ((byte *)scaled, scaled_width, scaled_height);
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-			if (scaled_width < 1)
-				scaled_width = 1;
-			if (scaled_height < 1)
-				scaled_height = 1;
-			miplevel++;
-			float log_unitf;
-			glGetFloatv(GL_ACTIVE_TEXTURE, &log_unitf);
-			int log_unit = (int)log_unitf;
-			Log("glTexImage2D: unit: 0x%lX, level: %ld, iFormat: 0x%lX, format: 0x%lX", log_unit, miplevel, GL_COLOR_INDEX8_EXT, GL_COLOR_INDEX);
-			glTexImage2D (GL_TEXTURE_2D, miplevel, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, scaled);
-		}
+		//glGenerateMipmap(GL_TEXTURE_2D);
 	}
 done: ;
 
@@ -1238,18 +1176,22 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 
 /****************************************/
 
-static GLenum oldtarget = TEXTURE0_SGIS;
+static GLenum oldtarget = 0; // KH
+extern int gl_mtex_enum;
 
 void GL_SelectTexture (GLenum target) 
 {
+
 	if (!gl_mtexable)
 		return;
+	
 	Log("Activating 0x%lX texture unit\n");
-	glActiveTexture(target);
+	glActiveTexture(target+gl_mtex_enum);
+	
 	if (target == oldtarget) 
 		return;
-	cnttextures[oldtarget-TEXTURE0_SGIS] = currenttexture;
-	currenttexture = cnttextures[target-TEXTURE0_SGIS];
+	cnttextures[oldtarget] = currenttexture; // KH
+	currenttexture = cnttextures[target]; // KH
 	oldtarget = target;
 }
 
