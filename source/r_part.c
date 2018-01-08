@@ -689,7 +689,6 @@ void R_DrawParticles (void)
 		
 		if(particleIndex >= maxParticleIndex)
 		{
-			Log("R_DrawParticles\n");
 			glDrawArrays(GL_TRIANGLES, 0, particleIndex);
 			particleIndex = 0;
 			pPos = gVertexBuffer;
@@ -787,7 +786,6 @@ void R_DrawParticles (void)
 	}
 
 #ifdef GLQUAKE
-	Log("R_DrawParticles at the end\n");
 	glDrawArrays(GL_TRIANGLES, 0, particleIndex);
 	glDisableClientState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);

@@ -224,7 +224,6 @@ void R_DrawSpriteModel (entity_t *e)
 	GL_DisableMultitexture();
 
     GL_Bind(frame->gl_texturenum);
-	Log("R_DrawSpriteModel");
 	glEnable (GL_ALPHA_TEST);
 	float* pPoint = gVertexBuffer;
 	float texCoords[] = {
@@ -310,7 +309,6 @@ lastposenum = posenum;
 
 	while (1)
 	{
-		Log("GL_DrawAliasFrame\n");
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
@@ -393,7 +391,6 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 
 	while (1)
 	{
-		Log("GL_DrawAliasShadow\n");
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
@@ -771,7 +768,6 @@ void R_PolyBlend (void)
 
 	glColor4fv (v_blend);
 	
-	Log("R_PolyBlend\n");
 	float vertex[3*4] = {
 		10, 100, 100,
 		10, -100, 100,
@@ -1025,10 +1021,8 @@ void R_Clear (void)
 	{
 		
 		if (gl_clear.value){
-			Log("Clearing color+depth\n");
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}else{
-			Log("Clearing depth\n");
 			glClear (GL_DEPTH_BUFFER_BIT);
 		}
 		gldepthmin = 0;
@@ -1040,7 +1034,6 @@ void R_Clear (void)
 		static int trickframe;
 
 		if (gl_clear.value){
-			Log("Clearing color\n");
 			glClear (GL_COLOR_BUFFER_BIT);
 		}
 		
@@ -1061,10 +1054,8 @@ void R_Clear (void)
 	else
 	{
 		if (gl_clear.value){
-			Log("Clearing color+depth\n");
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}else{
-			Log("Clearing depth\n");
 			glClear (GL_DEPTH_BUFFER_BIT);
 		}
 		gldepthmin = 0;

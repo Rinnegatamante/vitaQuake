@@ -71,7 +71,7 @@ int		texture_extension_number = 1;
 
 float		gldepthmin, gldepthmax;
 
-cvar_t	gl_ztrick = {"gl_ztrick","1"};
+cvar_t	gl_ztrick = {"gl_ztrick","0"}; // Default now OFF. KH
 
 const char *gl_vendor;
 const char *gl_renderer;
@@ -83,6 +83,8 @@ static float vid_gamma = 1.0;
 bool is8bit = false;
 bool isPermedia = false;
 bool gl_mtexable = false;
+bool gl_arb_mtex = false; // KH
+int gl_mtex_enum = GL_TEXTURE2;
 
 /*-----------------------------------------------------------------------*/
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
@@ -240,7 +242,7 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 //		Sys_Error ("wglMakeCurrent failed");
 
 //	glViewport (*x, *y, *width, *height);
-	Log("Init scene...");
+
 	vglStartRendering();
 }
 
@@ -250,7 +252,7 @@ void GL_EndRendering (void)
 	else GL_DrawFPS ();
 	
 	//->glFlush();
-	Log("Ending scene...");
+
 	vglStopRendering();
 }
 
@@ -335,7 +337,6 @@ static void Check_Gamma (unsigned char *pal)
 
 void VID_Init(unsigned char *palette)
 {
-	Log("VID_Init called...");
 	int i;
 	GLint attribs[32];
 	char	gldir[MAX_OSPATH];
@@ -392,12 +393,10 @@ void VID_Init(unsigned char *palette)
 				(320.0 / 240.0);
 	vid.numpages = 2;
 	
-	Log("GL_Init called...");
 	GL_Init();
 
 	
 	sprintf (gldir, "%s/glquake", com_gamedir);
-	Log("Cache dir created... (%s)", gldir);
 	Sys_mkdir (gldir);
 
 	Check_Gamma(palette);

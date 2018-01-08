@@ -88,7 +88,6 @@ void R_RenderDlight (dlight_t *light)
 		return;
 	}
 	
-	Log("R_RenderDlight");
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	float* pPos = gVertexBuffer;
 	float* pColor = gColorBuffer;

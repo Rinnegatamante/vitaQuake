@@ -231,10 +231,6 @@ extern	const char *gl_extensions;
 void R_TranslatePlayerSkin (int playernum);
 void GL_Bind (int texnum);
 
-// Multitexture
-#define    TEXTURE0_SGIS				GL_TEXTURE29
-#define    TEXTURE1_SGIS				GL_TEXTURE30
-
 #ifndef _WIN32
 #define APIENTRY /* */
 #endif
