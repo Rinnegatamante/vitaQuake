@@ -330,6 +330,7 @@ void R_TranslatePlayerSkin (int playernum)
 		}
 
 		GL_Upload8_EXT ((byte *)pixels, scaled_width, scaled_height, false, false);
+		free(pixels);
 		return;
 	}
 
