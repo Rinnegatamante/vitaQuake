@@ -21,7 +21,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //#define	GLTEST			// experimental stuff
 
-enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_lanconfig, m_gameoptions, m_search, m_slist, m_onlineserverlist, m_benchmark} m_state;
+#define m_none 0 
+#define m_main 1
+#define m_singleplayer 2
+#define m_load 3 
+#define m_save 4
+#define m_multiplayer 5
+#define m_setup 6
+#define m_net 7
+#define m_options 8
+#define m_video 9
+#define m_keys 10
+#define m_help 11
+#define m_quit 12
+#define m_lanconfig 13
+#define m_gameoptions 14
+#define m_search 15
+#define m_slist 16
+#define m_onlineserverlist 17
+#define m_benchmark 18
+
+extern int m_state;
 
 #define	QUAKE_GAME			// as opposed to utilities
 
@@ -360,6 +380,9 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 void R_RotateForEntity (entity_t *e);
 void R_StoreEfrags (efrag_t **ppefrag);
 void GL_Set2D (void);
+void GL_DrawFPS(void);
+void GL_DrawBenchmark(void);
+void GL_SelectTexture (GLenum target);
 
 #define VERTEXARRAYSIZE 2048
 extern float gVertexBuffer[VERTEXARRAYSIZE];
