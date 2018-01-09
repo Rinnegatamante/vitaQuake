@@ -23,8 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vitasdk.h>
 #include <vita2d.h>
 
-#define u64 uint64_t
-
 #define BIGSTACK_SIZE 20 * 1024 * 1024
 byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
@@ -42,6 +40,7 @@ int isKeyboard;
 extern uint64_t rumble_tick;
 extern cvar_t res_val;
 extern cvar_t psvita_touchmode;
+extern cvar_t vid_vsync;
 
 uint64_t initialTime = 0;
 int hostInitialized = 0;
@@ -59,13 +58,12 @@ FILE IO
 #define MAX_HANDLES             10
 FILE    *sys_handles[MAX_HANDLES];
 
-int             Sys_FindHandle(void)
+int Sys_FindHandle(void)
 {
-	int             i;
+	int i;
 
-	for (i = 1; i<MAX_HANDLES; i++)
-		if (!sys_handles[i])
-			return i;
+	for (i=1;i<MAX_HANDLES;i++)
+		if (!sys_handles[i]) return i;
 	Sys_Error("out of handles");
 	return -1;
 }
@@ -175,18 +173,6 @@ void Sys_mkdir(char *path)
 	sceIoMkdir(path, 0777);
 }
 
-
-void* Sys_Malloc(int size, char* purpose)
-{
-	void* m;
-
-	m = malloc(size);
-	if (m == 0)
-	{
-		Sys_Error("Sys_Malloc: %s - failed on %i bytes", purpose, size);
-	};
-	return m;
-}
 // <<< FIX
 
 // >>> FIX: For Nintendo Wii using devkitPPC / libogc
@@ -427,7 +413,7 @@ int main(int argc, char **argv)
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
 
-	parms.memsize = 30 * 1024 * 1024;
+	parms.memsize = 24 * 1024 * 1024;
 	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
 	
@@ -501,8 +487,7 @@ int main(int argc, char **argv)
 	Cvar_ForceSet("platform", "2");
 	}*/
 
-	// Just to be sure to use the correct resolution in config.cfg
-	VID_ChangeRes(res_val.value);
+	vglWaitVblankStart(vid_vsync.value);
 
 	SceRtcTick lastTick;
 	sceRtcGetCurrentTick(&lastTick);

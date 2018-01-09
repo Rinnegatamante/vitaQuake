@@ -34,6 +34,7 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	always_run;
 extern cvar_t	show_fps;
+int m_state = m_none;
 
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
@@ -1082,6 +1083,7 @@ void M_AdjustSliders (int dir)
 		
 	case 16:	// vsync
 		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
+		vglWaitVblankStart(vid_vsync.value);
 		break;
 		
 	case 17:	// change res
