@@ -69,7 +69,7 @@ typedef struct
 
 #define	MAX_GLTEXTURES	1024
 gltexture_t	gltextures[MAX_GLTEXTURES];
-int			numgltextures;
+int numgltextures = 0;
 
 /*
  * Texture Manager - derived from glesquake
@@ -248,7 +248,6 @@ private:
 
     ~textureStore() {
         free(mBase);
-        COM_CloseFile(mFileId);
     }
 
     void grabMagicTextureIds() {
@@ -292,7 +291,6 @@ private:
     static const size_t LIVE_TEXTURE_LIMIT = 1 * 1024 * 1024;
     static const size_t TEXTURE_STORE_NUM_TEXTURES = 512;
 
-    int mFileId;
     byte* mBase;
     size_t mLength;
     size_t mCapacity;
@@ -627,17 +625,18 @@ void Draw_Init (void)
 	glpic_t	*gl;
 	int		start;
 	byte	*ncdata;
-	int		f, fstep;
-
+	int		f, fstep, maxsize;
 
 	Cvar_RegisterVariable (&gl_nobind);
 	Cvar_RegisterVariable (&gl_max_size);
 	Cvar_RegisterVariable (&gl_picmip);
 
-	// 3dfx can only handle 256 wide textures
-	if (!Q_strncasecmp ((char *)gl_renderer, "3dfx",4) ||
-		strstr((char *)gl_renderer, "Glide"))
-		Cvar_Set ("gl_max_size", "256");
+	// texture_max_size
+	if ((i = COM_CheckParm("-maxsize")) != 0) {
+		maxsize = Q_atoi(com_argv[i+1]);
+		maxsize &= 0xff80;
+		Cvar_SetValue("gl_max_size", maxsize);
+	} 
 
 	Cmd_AddCommand ("gl_texturemode", &Draw_TextureMode_f);
 
@@ -672,11 +671,11 @@ void Draw_Init (void)
 	conback->height = cb->height;
 	ncdata = cb->data;
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);  // 13/02/2000 changed: M.Tretene
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 	gl = (glpic_t *)conback->data;
-	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, false);
+	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, true); //  30/01/2000 modified: M.Tretene
 	gl->sl = 0;
 	gl->sh = 1;
 	gl->tl = 0;
@@ -753,10 +752,19 @@ void Draw_Character (int x, int y, int num)
 	frow = row*0.0625;
 	fcol = col*0.0625;
 	size = 0.0625;
-
+	
+	glDisable(GL_ALPHA_TEST); // 30/01/2000 added: M.Tretene
+	glEnable (GL_BLEND);
+	glColor4f (1,1,1,(float) 1);
+	
 	GL_Bind (char_texture);
 
 	DrawQuad(x, y, 8, 8, fcol, frow, size, size);
+	
+	glColor4f (1,1,1,1);
+	glEnable(GL_ALPHA_TEST);
+	glDisable (GL_BLEND);
+	
 }
 
 /*
@@ -831,8 +839,8 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 		Scrap_Upload ();
 	glpic_t temp;
 	memcpy(&temp, pic->data, sizeof(temp));
-	gl = & temp;
-	glColor4f (1,1,1,1);
+	gl = &temp;
+	//glColor4f (1,1,1,1); // 30/01/2000 removed: M.Tretene
 	GL_Bind (gl->texnum);
 
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
@@ -855,8 +863,16 @@ void Draw_TransPic (int x, int y, qpic_t *pic)
 	{
 		Sys_Error ("Draw_TransPic: bad coordinates");
 	}
-		
+	
+	glDisable(GL_ALPHA_TEST);     // 30/01/2000 added: M.Tretene
+	glEnable (GL_BLEND);
+	glColor4f (1,1,1,1);
+	
 	Draw_Pic (x, y, pic);
+	
+	glColor4f (1,1,1,1);          // 30/01/2000 added: M.Tretene
+	glEnable(GL_ALPHA_TEST);
+	glDisable (GL_BLEND);
 }
 
 
@@ -1037,8 +1053,7 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	glEnable (GL_ALPHA_TEST);
-//	glDisable (GL_ALPHA_TEST);
+	glDisable (GL_ALPHA_TEST);
 
 	glColor4f (1,1,1,1);
 }
@@ -1270,8 +1285,8 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 				noalpha = false;
 		}
 
-		if (alpha && noalpha)
-			alpha = false;
+		//if (alpha && noalpha)     // 30/01/2000 removed: M.Tretene
+		//  alpha = false;
 	}
 	for (scaled_width = 1 ; scaled_width < width ; scaled_width<<=1)
 		;
@@ -1367,10 +1382,10 @@ static	unsigned	trans[640*480];		// FIXME, temporary
 		}
 	}
 
- 	if (VID_Is8bit() && (data!=scrap_texels[0])) {
+ 	/*if (VID_Is8bit() && (data!=scrap_texels[0])) {
  		GL_Upload8_EXT (data, width, height, mipmap, alpha);
  		return;
-	}
+	}*/
 	GL_Upload32 (trans, width, height, mipmap, alpha);
 }
 
@@ -1398,10 +1413,10 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 			}
 		}
 	}
-	else {
+	//else {                                    // 13/02/2000 removed: M.Tretene
 		glt = &gltextures[numgltextures];
 		numgltextures++;
-	}
+	//}
 
 	strcpy (glt->identifier, identifier);
 	glt->texnum = texture_extension_number;

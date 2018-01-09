@@ -91,16 +91,16 @@ void R_RenderDlight (dlight_t *light)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	float* pPos = gVertexBuffer;
 	float* pColor = gColorBuffer;
-	*pColor++ = 0.2f;
+	*pColor++ = 0.8f;
 	*pColor++ = 0.1f;
 	*pColor++ = 0.0f;
-	*pColor++ = 1.0f;
+	*pColor++ = 0.1f;
 	for (i=0 ; i<3 ; i++)
 		*pPos++ = light->origin[i] - vpn[i]*rad;
 	for (i=16 ; i>=0 ; i--)
 	{
-		*pColor++ = 0.0f;
-		*pColor++ = 0.0f;
+		*pColor++ = 0.8f;
+		*pColor++ = 0.4f;
 		*pColor++ = 0.0f;
 		*pColor++ = 0.0f;
 		a = i/16.0 * M_PI*2;
@@ -134,7 +134,7 @@ void R_RenderDlights (void)
 	glDisable (GL_TEXTURE_2D);
 	//->glShadeModel (GL_SMOOTH);
 	glEnable (GL_BLEND);
-	glBlendFunc (GL_ONE, GL_ONE);
+	//glBlendFunc (GL_ONE, GL_ONE);    // 30/01/2000 removed: M.Tretene
 
 	l = cl_dlights;
 	for (i=0 ; i<MAX_DLIGHTS ; i++, l++)
@@ -147,7 +147,7 @@ void R_RenderDlights (void)
 	glColor3f (1,1,1);
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // 30/01/2000 removed: M.Tretene
 	glDepthMask (1);
 }
 

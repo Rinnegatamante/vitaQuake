@@ -383,9 +383,8 @@ void Mod_LoadTextures (lump_t *l)
 			R_InitSky (tx);
 		else
 		{
-			texture_mode = GL_LINEAR_MIPMAP_NEAREST; //_LINEAR;
-			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(tx+1), true, false);
 			texture_mode = GL_LINEAR;
+			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(tx+1), true, false);
 		}
 	}
 
