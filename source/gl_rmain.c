@@ -79,7 +79,7 @@ cvar_t	r_drawviewmodel = {"r_drawviewmodel","1"};
 cvar_t	r_speeds = {"r_speeds","0"};
 cvar_t	r_fullbright = {"r_fullbright","0"};
 cvar_t	r_lightmap = {"r_lightmap","0"};
-cvar_t	r_shadows = {"r_shadows","0"};
+cvar_t	r_shadows = {"r_shadows","0", true}; // m3x: modfied
 cvar_t	r_mirroralpha = {"r_mirroralpha","1"};
 cvar_t	r_wateralpha = {"r_wateralpha","1"};
 cvar_t	r_dynamic = {"r_dynamic","1"};
@@ -92,14 +92,18 @@ cvar_t	gl_texsort = {"gl_texsort","1"};
 cvar_t	gl_smoothmodels = {"gl_smoothmodels","1"};
 cvar_t	gl_affinemodels = {"gl_affinemodels","0"};
 cvar_t	gl_polyblend = {"gl_polyblend","1"};
-cvar_t	gl_flashblend = {"gl_flashblend","1"};
+cvar_t	gl_flashblend = {"gl_flashblend","1", true};
 cvar_t	gl_playermip = {"gl_playermip","0"};
 cvar_t	gl_nocolors = {"gl_nocolors","0"};
 cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","0"};
 cvar_t	gl_reporttjunctions = {"gl_reporttjunctions","0"};
-cvar_t	gl_doubleeyes = {"gl_doubleeys", "1"};
+cvar_t	gl_doubleeyes = {"gl_doubleeyes", "1"};
+
+// Torch flares. KH
+cvar_t  gl_torchflares = {"gl_torchflares", "1", true};
 
 extern	cvar_t	gl_ztrick;
+extern bool gl_warp;
 
 /*
 =================
@@ -219,12 +223,13 @@ void R_DrawSpriteModel (entity_t *e)
 		right = vright;
 	}
 
-	glColor3f (1,1,1);
+	glColor4f (1,1,1,1);  //glColor3f (1,1,1);   30/01/2000 changed: M.Tretene
 
 	GL_DisableMultitexture();
 
     GL_Bind(frame->gl_texturenum);
 	glEnable (GL_ALPHA_TEST);
+	glEnable (GL_BLEND);   // 30/01/2000 added: M.Tretene
 	float* pPoint = gVertexBuffer;
 	float texCoords[] = {
 		0, 1,
@@ -253,6 +258,7 @@ void R_DrawSpriteModel (entity_t *e)
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	glDisable (GL_ALPHA_TEST);
+	glDisable (GL_BLEND);       // 30/01/2000 added: M.Tretene
 }
 
 /*
@@ -488,6 +494,8 @@ void R_DrawAliasModel (entity_t *e)
 	int			index;
 	float		s, t, an;
 	int			anim;
+	
+	bool    torch = false; // Flags is this model is a torch
 
 	clmodel = currententity->model;
 
@@ -543,8 +551,11 @@ void R_DrawAliasModel (entity_t *e)
 	// HACK HACK HACK -- no fullbright colors, so make torches full light
 	if (!strcmp (clmodel->name, "progs/flame2.mdl")
 		|| !strcmp (clmodel->name, "progs/flame.mdl") )
+	{
+		torch = true; // This model is a torch. KH
 		ambientlight = shadelight = 256;
-
+	}
+	
 	shadedots = r_avertexnormal_dots[((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 	shadelight = shadelight / 200.0;
 	
@@ -607,14 +618,124 @@ void R_DrawAliasModel (entity_t *e)
 	//->	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	glPopMatrix ();
+	
+	if (torch && gl_torchflares.value) {
+		// Draw torch flares. KH
+		// NOTE: It would be better if we batched these up.
+		//       All those state changes are not nice. KH
+		
+		// This relies on unchanged game code!
+		const int TORCH_STYLE = 1; // Flicker.
 
-	if (r_shadows.value)
-	{
+		vec3_t  lightorigin;    // Origin of torch.
+		vec3_t  v;              // Vector to torch.
+		float   radius;         // Radius of torch flare.
+		float   distance;       // Vector distance to torch.
+		float   intensity;      // Intensity of torch flare.
+
+		// NOTE: I don't think this is centered on the model.
+		VectorCopy(currententity->origin, lightorigin);
+
+		radius = 20.0f;
+		VectorSubtract(lightorigin, r_origin, v);
+
+		// See if view is outside the light.
+		distance = Length(v);
+		if (distance > radius) {
+		    glDepthMask (0);
+		    glDisable (GL_TEXTURE_2D);
+		    //->glShadeModel (GL_SMOOTH);
+		    glEnable (GL_BLEND);
+		    glBlendFunc (GL_ONE, GL_ONE);
+
+		    // Translate the glow to coincide with the flame. KH
+		    glPushMatrix();
+		    glTranslatef(0.0f, 0.0f, 8.0f);
+			
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			float* pPos = gVertexBuffer;
+			float* pColor = gColorBuffer;
+		    
+		    // Diminish torch flare inversely with distance.
+		    intensity = (1024.0f - distance) / 1024.0f;
+
+		    // Invert (fades as you approach).
+		    intensity = (1.0f - intensity);
+
+		    // Clamp, but don't let the flare disappear.
+		    if (intensity > 1.0f) intensity = 1.0f;
+		    if (intensity < 0.0f) intensity = 0.0f;
+
+		    // Now modulate with flicker.
+		    i = (int)(cl.time*10);
+		    if (!cl_lightstyle[TORCH_STYLE].length) {
+		        j = 256;
+		    } else {
+		        j = i % cl_lightstyle[TORCH_STYLE].length;
+		        j = cl_lightstyle[TORCH_STYLE].map[j] - 'a';
+		        j = j*22;
+		    }
+		    intensity *= ((float)j / 255.0f);
+
+		    // Set yellow intensity			
+			*pColor++ = 0.8f*intensity;
+			*pColor++ = 0.4f*intensity;
+			*pColor++ = 0.1f;
+			*pColor++ = 1.0f;
+
+		    for (i=0 ; i<3 ; i++)
+		        *pPos++ = lightorigin[i] - vpn[i]*radius;
+			
+		    for (i=16; i>=0; i--) {
+				*pColor++ = 0.0f;
+				*pColor++ = 0.0f;
+				*pColor++ = 0.0f;
+				*pColor++ = 0.0f;
+		        float a = i/16.0f * M_PI*2;
+		        for (j=0; j<3; j++)
+		            *pPos++ =  lightorigin[j] + 
+		                    vright[j]*cos(a)*radius +
+		                    vup[j]*sin(a)*radius;
+		    }
+		    glDrawArrays(GL_TRIANGLE_FAN, 0, 18);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+			
+		    // Restore previous matrix! KH
+		    glPopMatrix();
+
+		    glColor3f (1,1,1);
+		    glDisable (GL_BLEND);
+		    glEnable (GL_TEXTURE_2D);
+		    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		    glDepthMask (1);
+		}
+	}
+
+	if (r_shadows.value) {
+		//
+		// Test for models that we don't want to shadow. KH
+		// Not a nice way to do it...
+		//
+
+		// Torches. Early-out to avoid the strcmp's. KH
+		if (torch)
+		    return;
+		// Grenades. KH
+		if (!strcmp (clmodel->name, "progs/grenade.mdl"))
+		    return;
+		// Lightning bolts. KH
+		if (!strncmp (clmodel->name, "progs/bolt", 10))
+		return;
+	
 		glPushMatrix ();
 		R_RotateForEntity (e);
 		glDisable (GL_TEXTURE_2D);
 		glEnable (GL_BLEND);
-		glColor4f (0,0,0,0.5);
+		// Quick-fix issue with self-overlapping alias triangles.
+		//glColor4f (0,0,0,0.5); // Original.
+		glColor4f (0.0f, 0.0f, 0.0f, 1.0f); // KH
 		GL_DrawAliasShadow (paliashdr, lastposenum);
 		glEnable (GL_TEXTURE_2D);
 		glDisable (GL_BLEND);
@@ -637,26 +758,25 @@ void R_DrawEntitiesOnList (void)
 
 	if (!r_drawentities.value)
 		return;
-
+	
 	// draw sprites seperately, because of alpha blending
 	for (i=0 ; i<cl_numvisedicts ; i++)
 	{
 		currententity = cl_visedicts[i];
-
 		switch (currententity->model->type)
 		{
 		case mod_alias:
 			R_DrawAliasModel (currententity);
 			break;
-
 		case mod_brush:
 			R_DrawBrushModel (currententity);
 			break;
-
 		default:
 			break;
 		}
 	}
+		
+	glDepthMask (GL_FALSE);    // don't bother writing Z
 
 	for (i=0 ; i<cl_numvisedicts ; i++)
 	{
@@ -669,8 +789,9 @@ void R_DrawEntitiesOnList (void)
 			break;
 		}
 	}
+	glDepthMask (GL_TRUE);    // don't bother writing Z
+	//glEnable (GL_DEPTH_TEST);
 }
-
 /*
 =============
 R_DrawViewModel
@@ -994,15 +1115,17 @@ void R_RenderScene (void)
 	R_DrawWorld ();		// adds static entities to the list
 
 	S_ExtraUpdate ();	// don't let sound get messed up if going slow
-
+		
 	R_DrawEntitiesOnList ();
 
 	GL_DisableMultitexture();
 
 	R_RenderDlights ();
-
+	
+	glDepthMask (GL_FALSE);    // don't bother writing Z
 	R_DrawParticles ();
-
+	glDepthMask (GL_TRUE);     // back writing Z
+	
 #ifdef GLTEST
 	Test_Draw ();
 #endif

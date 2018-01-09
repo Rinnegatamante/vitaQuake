@@ -32,6 +32,9 @@ int		lightmap_bytes;		// 1, 2, or 4
 
 int		lightmap_textures;
 
+extern int   gl_filter_min;
+extern int   gl_filter_max;
+
 unsigned		blocklights[18*18];
 
 #define	BLOCK_WIDTH		128
@@ -196,7 +199,7 @@ store:
 				t >>= 7;
 				if (t > 255)
 					t = 255;
-				dest[0] = dest[1] = dest[2] = dest[3] = 255-t; // KH
+				dest[3] = 255-t;
 				dest += 4;
 			}
 		}
@@ -338,6 +341,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			// Binds lightmap to texenv 1
 			GL_EnableMultitexture(); // Same as SelectTexture (TEXTURE1)
 			GL_Bind (lightmap_textures + s->lightmaptexturenum);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 			i = s->lightmaptexturenum;
 			if (lightmap_modified[i])
 			{
@@ -541,7 +545,7 @@ void DrawGLPoly (glpoly_t *p)
 
 	glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
     glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][3]);
-
+	glDisable (GL_BLEND);
     glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
@@ -595,7 +599,6 @@ void R_BlendLightmaps (void)
 //			glTexImage2D (GL_TEXTURE_2D, 0, lightmap_bytes
 //				, BLOCK_WIDTH, theRect->h, 0, 
 //				gl_lightmap_format, GL_UNSIGNED_BYTE, lightmaps+(i*BLOCK_HEIGHT+theRect->t)*BLOCK_WIDTH*lightmap_bytes);
-			Log("glTexSubImage2d\n");
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, theRect->t, 
 				BLOCK_WIDTH, theRect->h, gl_lightmap_format, GL_UNSIGNED_BYTE,
 				lightmaps+(i* BLOCK_HEIGHT + theRect->t) *BLOCK_WIDTH*lightmap_bytes);
@@ -1288,9 +1291,9 @@ BuildSurfaceDisplayList
 void BuildSurfaceDisplayList (msurface_t *fa)
 {
 	int			i, lindex, lnumverts, s_axis, t_axis;
-	float		dist, lastdist, lzi, scale, u, v, frac;
-	unsigned	mask;
-	vec3_t		local, transformed;
+	//float		dist, lastdist, lzi, scale, u, v, frac;
+	//unsigned	mask;
+	//vec3_t		local, transformed;
 	medge_t		*pedges, *r_pedge;
 	mplane_t	*pplane;
 	int			vertpage, newverts, newpage, lastvert;
@@ -1407,7 +1410,7 @@ GL_CreateSurfaceLightmap
 */
 void GL_CreateSurfaceLightmap (msurface_t *surf)
 {
-	int		smax, tmax, s, t, l, i;
+	int		smax, tmax, s; //, t, l, i;
 	byte	*base;
 
 	if (surf->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
@@ -1439,7 +1442,7 @@ void GL_BuildLightmaps (void)
 
 	memset (allocated, 0, sizeof(allocated));
 
-	r_framecount = 1;		// no dlightcache
+	//r_framecount = 1;		// no dlightcache
 
 	if (!lightmap_textures)
 	{
