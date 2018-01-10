@@ -33,6 +33,7 @@ extern cvar_t vid_vsync;
 extern bool benchmark;
 unsigned short	d_8to16table[256];
 unsigned	d_8to24table[256];
+float	d_8to32ftable[256];
 unsigned char d_15to8table[65536];
 CVAR (show_fps, 0, CVAR_ARCHIVE)
 
@@ -85,7 +86,7 @@ bool is8bit = false;
 bool isPermedia = false;
 bool gl_mtexable = false;
 bool gl_arb_mtex = false; // KH
-int gl_mtex_enum = GL_TEXTURE2;
+int gl_mtex_enum = GL_TEXTURE0;
 
 /*-----------------------------------------------------------------------*/
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
@@ -140,7 +141,7 @@ void	VID_SetPalette (unsigned char *palette)
 		*table++ = v;
 	}
 	d_8to24table[255] &= 0xffffff;	// 255 is transparent
-
+	
 	// JACK: 3D distance calcs - k is last closest, l is the distance.
 	for (i=0; i < (1<<15); i++) {
 		/* Maps
@@ -165,6 +166,12 @@ void	VID_SetPalette (unsigned char *palette)
 		}
 		d_15to8table[i]=k;
 	}
+	
+	// Storing a [0,1] float table for particles rendering
+	for (i=0; i < 256; i++){
+		d_8to32ftable[i] = d_8to24table[i] / 255.0f;
+	}
+	
 }
 
 void CheckMultiTextureExtensions(void) 
@@ -201,7 +208,7 @@ void GL_Init (void)
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
 
-	glEnable(GL_ALPHA_TEST);
+	//->glEnable (GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.666);
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -214,8 +221,8 @@ void GL_Init (void)
 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+//	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -363,7 +370,7 @@ void VID_Init(unsigned char *palette)
 	else
 		vid.conwidth = 960;
 
-	//vid.conwidth &= 0xfff8; // make it a multiple of eight
+	vid.conwidth &= 0xfff8; // make it a multiple of eight
 
 	if (vid.conwidth < 320)
 		vid.conwidth = 320;

@@ -38,6 +38,7 @@ int			r_numparticles;
 
 vec3_t			r_pright, r_pup, r_ppn;
 
+extern float d_8to32ftable[];
 
 /*
 ===============
@@ -695,10 +696,9 @@ void R_DrawParticles (void)
 			pColor = (float*) gColorBuffer;
 			pUV = (float*) gTexCoordBuffer;
 		}
-
-		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
-		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
-		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		
+		
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
 		pColor[3] = 1.0f;
 		pColor += 4;
 		*pUV++ = 0.0f;
@@ -707,9 +707,7 @@ void R_DrawParticles (void)
 		*pPos++ = p->org[1];
 		*pPos++ = p->org[2];
 
-		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
-		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
-		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
 		pColor[3] = 1.0f;
 		pColor += 4;
 		*pUV++ = 1.0f;
@@ -718,9 +716,7 @@ void R_DrawParticles (void)
 		*pPos++ = (p->org[1] + up[1]*scale);
 		*pPos++ = (p->org[2] + up[2]*scale);
 
-		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
-		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
-		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
 		pColor[3] = 1.0f;
 		pColor += 4;
 		*pUV++ = 0.0;
