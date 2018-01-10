@@ -403,6 +403,9 @@ int main(int argc, char **argv)
 {
 	// Initializing stuffs
 	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
