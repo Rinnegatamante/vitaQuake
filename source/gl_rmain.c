@@ -609,14 +609,14 @@ void R_DrawAliasModel (entity_t *e)
 
 	//->if (gl_smoothmodels.value)
 	//->	glShadeModel (GL_SMOOTH);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	//->if (gl_affinemodels.value)
 	//->	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
 	R_SetupAliasFrame (currententity->frame, paliashdr);
 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	//->glShadeModel (GL_FLAT);
 	//->if (gl_affinemodels.value)

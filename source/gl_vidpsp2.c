@@ -208,7 +208,7 @@ void GL_Init (void)
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
 
-	//->glEnable (GL_ALPHA_TEST);
+	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.666);
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);

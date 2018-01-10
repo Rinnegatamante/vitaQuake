@@ -727,8 +727,8 @@ void CalcSurfaceExtents (msurface_t *s)
 
 	for (i=0 ; i<2 ; i++)
 	{	
-		bmins[i] = floor(mins[i]/16);
-		bmaxs[i] = ceil(maxs[i]/16);
+		bmins[i] = (int)floorf(mins[i]/16);
+		bmaxs[i] = (int)ceilf(maxs[i]/16);
 
 		s->texturemins[i] = bmins[i] * 16;
 		s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
@@ -1150,7 +1150,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 // swap all the lumps
 	mod_base = (byte *)header;
 
-	for (i=0 ; i<sizeof(dheader_t)/4 ; i++)
+	for (i=0 ; i<(int)(sizeof(dheader_t)/4) ; i++)
 		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
 
 // load into heap
