@@ -219,7 +219,6 @@ void GL_Init (void)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
 	
 	Cvar_RegisterVariable (&show_fps); // muff
 	Cvar_RegisterVariable(&vid_vsync);
@@ -315,11 +314,7 @@ static void Check_Gamma (unsigned char *pal)
 	int		i;
 
 	if ((i = COM_CheckParm("-gamma")) == 0) {
-		if ((gl_renderer && strstr(gl_renderer, "Voodoo")) ||
-			(gl_vendor && strstr(gl_vendor, "3Dfx")))
-			vid_gamma = 1;
-		else
-			vid_gamma = 0.7; // default to 0.7 on non-3dfx hardware
+		vid_gamma = 0.7; // default to 0.7 on non-3dfx hardware
 	} else
 		vid_gamma = Q_atof(com_argv[i+1]);
 

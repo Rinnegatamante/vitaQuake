@@ -112,6 +112,7 @@ void R_RenderDlight (dlight_t *light)
 	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
 	glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 18);
+	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glColor3f(0,0,0); // Ensure the color ends up being zero just like the non-OpenGLES code
 }

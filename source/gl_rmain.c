@@ -307,7 +307,9 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 	float	*normal;
 	int		count;
 
-lastposenum = posenum;
+	glEnableClientState(GL_COLOR_ARRAY);
+	
+	lastposenum = posenum;
 
 	verts = (trivertx_t *)((byte *)paliashdr + paliashdr->posedata);
 	verts += posenum * paliashdr->poseverts;
@@ -363,6 +365,9 @@ lastposenum = posenum;
 		glDrawArrays(primType, 0, count);
 		
 	}
+	
+	glDisableClientState(GL_COLOR_ARRAY);
+	
 }
 
 
@@ -877,7 +882,7 @@ void R_PolyBlend (void)
 
 	GL_DisableMultitexture();
 
-	//glDisable (GL_ALPHA_TEST);
+	glDisable (GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_TEXTURE_2D);
@@ -902,7 +907,7 @@ void R_PolyBlend (void)
 
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
-	//glEnable (GL_ALPHA_TEST);
+	glEnable (GL_ALPHA_TEST);
 }
 
 
