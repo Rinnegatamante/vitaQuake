@@ -615,23 +615,23 @@ void R_DrawParticles (void)
 	float			dvel;
 	float			frametime;
 	float*			pPos = gVertexBuffer;
-	unsigned char*	pColor = (unsigned char*) gColorBuffer;
-	unsigned char*  pUV = (unsigned char*) gTexCoordBuffer;
+	float*	pColor = (float*) gColorBuffer;
+	float*  pUV = (float*) gTexCoordBuffer;
 	int				particleIndex = 0;
 	int				maxParticleIndex = (int) sizeof(gVertexBuffer) / (sizeof(float) * 3) - 3;
 #ifdef GLQUAKE
 	vec3_t			up, right;
 	float			scale;
-
+	
     GL_Bind(particletexture);
 	
 	glEnable (GL_BLEND);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	
 	glEnableClientState(GL_COLOR_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glTexCoordPointer(2, GL_BYTE, 0, gTexCoordBuffer);
-	glColorPointer(4, GL_UNSIGNED_BYTE, 0, gColorBuffer);
+	glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
+	glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
 	VectorScale (vup, 1.5, up);
@@ -692,36 +692,42 @@ void R_DrawParticles (void)
 			glDrawArrays(GL_TRIANGLES, 0, particleIndex);
 			particleIndex = 0;
 			pPos = gVertexBuffer;
-			pColor = (unsigned char*) gColorBuffer;
-			pUV = (unsigned char*) gTexCoordBuffer;
+			pColor = (float*) gColorBuffer;
+			pUV = (float*) gTexCoordBuffer;
 		}
 
-		memcpy(pColor, (byte *)&d_8to24table[(int)p->color], 3);
-		pColor[3] = 255;
+		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
+		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
+		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		pColor[3] = 1.0f;
 		pColor += 4;
-		*pUV++ = 0;
-		*pUV++ = 0;
+		*pUV++ = 0.0f;
+		*pUV++ = 0.0f;
 		*pPos++ = p->org[0];
 		*pPos++ = p->org[1];
 		*pPos++ = p->org[2];
 
-		memcpy(pColor, (byte *)&d_8to24table[(int)p->color], 3);
-		pColor[3] = 255;
+		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
+		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
+		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		pColor[3] = 1.0f;
 		pColor += 4;
-		*pUV++ = 1;
-		*pUV++ = 0;
-		*pPos++ = p->org[0] + up[0]*scale;
-		*pPos++ = p->org[1] + up[1]*scale;
-		*pPos++ = p->org[2] + up[2]*scale;
+		*pUV++ = 1.0f;
+		*pUV++ = 0.0f;
+		*pPos++ = (p->org[0] + up[0]*scale);
+		*pPos++ = (p->org[1] + up[1]*scale);
+		*pPos++ = (p->org[2] + up[2]*scale);
 
-		memcpy(pColor, (byte *)&d_8to24table[(int)p->color], 3);
-		pColor[3] = 255;
+		pColor[0] = (d_8to24table[(int)p->color] / 255.0f);
+		pColor[1] = (d_8to24table[(int)p->color+1] / 255.0f);
+		pColor[2] = (d_8to24table[(int)p->color+2] / 255.0f);
+		pColor[3] = 1.0f;
 		pColor += 4;
-		*pUV++ = 0;
-		*pUV++ = 1;
-		*pPos++ = p->org[0] + right[0]*scale;
-		*pPos++ = p->org[1] + right[1]*scale;
-		*pPos++ = p->org[2] + right[2]*scale;
+		*pUV++ = 0.0;
+		*pUV++ = 1.0;
+		*pPos++ = (p->org[0] + right[0]*scale);
+		*pPos++ = (p->org[1] + right[1]*scale);
+		*pPos++ = (p->org[2] + right[2]*scale);
 
 		particleIndex += 3;
 #else
@@ -789,6 +795,8 @@ void R_DrawParticles (void)
 	glDrawArrays(GL_TRIANGLES, 0, particleIndex);
 	glDisableClientState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glDisable (GL_BLEND);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 #else
 	D_EndParticles ();
 #endif
