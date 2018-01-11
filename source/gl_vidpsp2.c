@@ -24,9 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-#define WARP_WIDTH              320
-#define WARP_HEIGHT             200
-
 #define stringify(m) { #m, m }
 
 extern cvar_t vid_vsync;
@@ -36,6 +33,7 @@ unsigned	d_8to24table[256];
 float	d_8to32ftable[256];
 unsigned char d_15to8table[65536];
 CVAR (show_fps, 0, CVAR_ARCHIVE)
+extern int isKeyboard;
 
 int num_shades=32;
 
@@ -211,7 +209,6 @@ void GL_Init (void)
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.666);
 
-	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 	//->glShadeModel (GL_FLAT);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -246,11 +243,6 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 	*width = scr_width;
 	*height = scr_height;
 
-//    if (!wglMakeCurrent( maindc, baseRC ))
-//		Sys_Error ("wglMakeCurrent failed");
-
-//	glViewport (*x, *y, *width, *height);
-
 	vglStartRendering();
 }
 
@@ -261,7 +253,12 @@ void GL_EndRendering (void)
 	
 	//->glFlush();
 
-	vglStopRendering();
+	if (isKeyboard){
+		vglStopRenderingInit();
+		vglUpdateCommonDialog();
+		vglStopRenderingTerm();
+	}else vglStopRendering();
+	 
 }
 
 #define NUM_RESOLUTIONS 1
@@ -351,55 +348,21 @@ void VID_Init(unsigned char *palette)
 	Cvar_RegisterVariable (&vid_waitforrefresh);
 	Cvar_RegisterVariable (&gl_ztrick);
 	
-	vid.maxwarpwidth = WARP_WIDTH;
-	vid.maxwarpheight = WARP_HEIGHT;
+	vid.maxwarpwidth = width;
+	vid.maxwarpheight = height;
 	vid.colormap = host_colormap;
-	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
-
-// interpret command-line params
-
-// set vid parameters
-
-	if ((i = COM_CheckParm("-width")) != 0)
-		width = atoi(com_argv[i+1]);
-	if ((i = COM_CheckParm("-height")) != 0)
-		height = atoi(com_argv[i+1]);
-
-	if ((i = COM_CheckParm("-conwidth")) != 0)
-		vid.conwidth = Q_atoi(com_argv[i+1]);
-	else
-		vid.conwidth = 960;
-
-	vid.conwidth &= 0xfff8; // make it a multiple of eight
-
-	if (vid.conwidth < 320)
-		vid.conwidth = 320;
-
-	// pick a conheight that matches with correct aspect
-	vid.conheight = 544;
-
-	if ((i = COM_CheckParm("-conheight")) != 0)
-		vid.conheight = Q_atoi(com_argv[i+1]);
-	if (vid.conheight < 200)
-		vid.conheight = 200;
-
-	scr_width = width;
-	scr_height = height;
-
-	if (vid.conheight > height)
-		vid.conheight = height;
-	if (vid.conwidth > width)
-		vid.conwidth = width;
-	vid.width = vid.conwidth;
-	vid.height = vid.conheight;
-
-	vid.aspect = ((float)vid.height / (float)vid.width) *
-				(320.0 / 240.0);
+	vid.fullbright = 0xFFFF;
+	vid.aspect = (float) width / (float) height;
 	vid.numpages = 2;
+	vid.rowbytes = 2 * width;
+	vid.width = width;
+	vid.height = height;
+
+	vid.conwidth = width;
+	vid.conheight = height;
 	
 	GL_Init();
 
-	
 	sprintf (gldir, "%s/glquake", com_gamedir);
 	Sys_mkdir (gldir);
 
