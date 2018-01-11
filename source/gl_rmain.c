@@ -314,7 +314,7 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 	verts = (trivertx_t *)((byte *)paliashdr + paliashdr->posedata);
 	verts += posenum * paliashdr->poseverts;
 	order = (int *)((byte *)paliashdr + paliashdr->commands);
-
+	
 	while (1)
 	{
 		// get the vertex count and primitive type
@@ -346,9 +346,12 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			*pTexCoord++ = ((float *)order)[0];
 			*pTexCoord++ = ((float *)order)[1];
 			order += 2;
-
-			// normals and vertexes come from the frame list
-			l = shadedots[verts->lightnormalindex] * shadelight;
+			
+			if (r_fullbright.value || !cl.worldmodel->lightdata)
+				l = 1;
+			else
+				l = shadedots[verts->lightnormalindex] * shadelight;
+			
 			*pColor++ = l;
 			*pColor++ = l;
 			*pColor++ = l;
@@ -357,8 +360,8 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			*pPos++ = verts->v[1];
 			*pPos++ = verts->v[2];
 			verts++;
-		   } while (--c);
-
+		} while (--c);
+		
 		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
 		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
 		glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
@@ -739,8 +742,8 @@ void R_DrawAliasModel (entity_t *e)
 		glDisable (GL_TEXTURE_2D);
 		glEnable (GL_BLEND);
 		// Quick-fix issue with self-overlapping alias triangles.
-		//glColor4f (0,0,0,0.5); // Original.
-		glColor4f (0.0f, 0.0f, 0.0f, 1.0f); // KH
+		glColor4f (0,0,0,0.5); // Original.
+		//glColor4f (0.0f, 0.0f, 0.0f, 1.0f); // KH
 		GL_DrawAliasShadow (paliashdr, lastposenum);
 		glEnable (GL_TEXTURE_2D);
 		glDisable (GL_BLEND);
@@ -780,9 +783,9 @@ void R_DrawEntitiesOnList (void)
 			break;
 		}
 	}
-		
+	
 	glDepthMask (GL_FALSE);    // don't bother writing Z
-
+	
 	for (i=0 ; i<cl_numvisedicts ; i++)
 	{
 		currententity = cl_visedicts[i];
@@ -794,8 +797,10 @@ void R_DrawEntitiesOnList (void)
 			break;
 		}
 	}
+	
 	glDepthMask (GL_TRUE);    // don't bother writing Z
 	//glEnable (GL_DEPTH_TEST);
+
 }
 /*
 =============
