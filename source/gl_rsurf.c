@@ -1442,7 +1442,7 @@ void GL_BuildLightmaps (void)
 
 	memset (allocated, 0, sizeof(allocated));
 
-	//r_framecount = 1;		// no dlightcache
+	r_framecount = 1;		// no dlightcache
 
 	if (!lightmap_textures)
 	{

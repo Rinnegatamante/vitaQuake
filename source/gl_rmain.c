@@ -296,17 +296,11 @@ GL_DrawAliasFrame
 */
 void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 {
-	float	s, t;
 	float 	l;
-	int		i, j;
-	int		index;
-	trivertx_t	*v, *verts;
-	int		list;
+	trivertx_t *verts;
 	int		*order;
-	vec3_t	point;
-	float	*normal;
 	int		count;
-
+	
 	glEnableClientState(GL_COLOR_ARRAY);
 	
 	lastposenum = posenum;
@@ -867,9 +861,9 @@ void R_DrawViewModel (void)
 	diffuse[0] = diffuse[1] = diffuse[2] = diffuse[3] = (float)shadelight / 128;
 
 	// hack the depth range to prevent view model from poking into walls
-	//->glDepthRange (gldepthmin, gldepthmin + 0.3*(gldepthmax-gldepthmin));
+	glDepthRange (gldepthmin, gldepthmin + 0.3*(gldepthmax-gldepthmin));
 	R_DrawAliasModel (currententity);
-	//->glDepthRange (gldepthmin, gldepthmax);
+	glDepthRange (gldepthmin, gldepthmax);
 }
 
 
@@ -1095,9 +1089,9 @@ void R_SetupGL (void)
 	//
 	// set drawing parms
 	//
-	if (gl_cull.value)
+	/*if (gl_cull.value)
 		glEnable(GL_CULL_FACE);
-	else
+	else*/
 		glDisable(GL_CULL_FACE);
 
 	glDisable(GL_BLEND);
@@ -1196,7 +1190,7 @@ void R_Clear (void)
 		glDepthFunc (GL_LEQUAL);
 	}
 
-	//->glDepthRange (gldepthmin, gldepthmax);
+	glDepthRange (gldepthmin, gldepthmax);
 }
 
 /*
@@ -1234,7 +1228,7 @@ void R_Mirror (void)
 
 	gldepthmin = 0.5;
 	gldepthmax = 1;
-	//->glDepthRange (gldepthmin, gldepthmax);
+	glDepthRange (gldepthmin, gldepthmax);
 	glDepthFunc (GL_LEQUAL);
 
 	R_RenderScene ();
@@ -1242,7 +1236,7 @@ void R_Mirror (void)
 
 	gldepthmin = 0;
 	gldepthmax = 0.5;
-	//->glDepthRange (gldepthmin, gldepthmax);
+	glDepthRange (gldepthmin, gldepthmax);
 	glDepthFunc (GL_LEQUAL);
 
 	// blend on top
