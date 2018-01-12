@@ -384,7 +384,7 @@ void GL_DrawFPS(void);
 void GL_DrawBenchmark(void);
 void GL_SelectTexture (GLenum target);
 
-#define VERTEXARRAYSIZE 2048
+#define VERTEXARRAYSIZE 18360
 extern float gVertexBuffer[VERTEXARRAYSIZE];
 extern float gColorBuffer[VERTEXARRAYSIZE];
 extern float gTexCoordBuffer[VERTEXARRAYSIZE];
