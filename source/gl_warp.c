@@ -202,6 +202,7 @@ void EmitWaterPolys (msurface_t *fa)
 	for (p=fa->polys ; p ; p=p->next)
 	{
 		float* pUV = gTexCoordBuffer;
+		float* pPoint = gVertexBuffer;
 		for (i=0,v=p->verts[0] ; i<p->numverts ; i++, v+=VERTEXSIZE)
 		{
 			os = v[3];
@@ -212,8 +213,10 @@ void EmitWaterPolys (msurface_t *fa)
 			t *= (1.0/64);
 			*pUV++ = s;
 			*pUV++ = t;
+			memcpy(pPoint, &v[0], sizeof(vec3_t));
+			pPoint += 3;
 		}
-		glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
+		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 	}
@@ -239,6 +242,7 @@ void EmitSkyPolys (msurface_t *fa)
 	for (p=fa->polys ; p ; p=p->next)
 	{
 		float* pUV = gTexCoordBuffer;
+		float* pPoint = gVertexBuffer;
 		for (i=0,v=p->verts[0] ; i<p->numverts ; i++, v+=VERTEXSIZE)
 		{
 			VectorSubtract (v, r_origin, dir);
@@ -252,8 +256,10 @@ void EmitSkyPolys (msurface_t *fa)
 			t = (speedscale + dir[1]) * (1.0/128);
 			*pUV++ = s;
 			*pUV++ = t;
+			memcpy(pPoint, &v[0], sizeof(vec3_t));
+			pPoint += 3;
 		}
-		glVertexPointer(3, GL_FLOAT, VERTEXSIZE*sizeof(float), &p->verts[0][0]);
+		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 	}
@@ -993,8 +999,6 @@ void R_DrawSkyBox (void)
 
 //===============================================================
 
-static texture_t* current_sky_mt;
-
 /*
 =============
 R_InitSky
@@ -1010,9 +1014,6 @@ void R_InitSky (texture_t *mt)
 	unsigned	transpix;
 	int			r, g, b;
 	unsigned	*rgba;
-	//extern	int			skytexturenum;
-
-	current_sky_mt = mt;
 	
 	src = (byte *)mt + mt->offsets[0];
 
@@ -1063,10 +1064,4 @@ void R_InitSky (texture_t *mt)
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void R_ReloadSky() {
-    if (current_sky_mt) {
-        R_InitSky(current_sky_mt);
-    }
 }
