@@ -568,14 +568,16 @@ void R_BlendLightmaps (void)
 		return;
 
 	glDepthMask (0);		// don't bother writing Z
-
-	if (gl_lightmap_format == GL_LUMINANCE)
-		glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-	else if (gl_lightmap_format == GL_INTENSITY)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glColor4f (0,0,0,1);
-		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	switch (gl_lightmap_format){
+		case GL_LUMINANCE:
+			glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+			break;
+		default:
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor4f (0,0,0,1);
+			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
 	}
 
 	if (!r_lightmap.value)
@@ -621,18 +623,21 @@ void R_BlendLightmaps (void)
 	}
 
 	glDisable (GL_BLEND);
-	if (gl_lightmap_format == GL_LUMINANCE)
-		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	else if (gl_lightmap_format == GL_INTENSITY)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glColor4f (1,1,1,1);
-	}
-	else if (gl_lightmap_format == GL_RGBA) // KH
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glColor4f (0,0,0,1);
-		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	switch (gl_lightmap_format){
+		case GL_LUMINANCE:
+			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		case GL_INTENSITY:
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glColor4f (1,1,1,1);
+			break;
+		case GL_RGBA:
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor4f (0,0,0,1);
+			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		default:
+			break;
 	}
 
 	glDepthMask (1);		// back to normal Z buffering
@@ -1466,7 +1471,6 @@ void GL_BuildLightmaps (void)
 	if (COM_CheckParm ("-lm_4"))
 		gl_lightmap_format = GL_RGBA;
 	
-	lightmap_bytes = 1;
 	switch (gl_lightmap_format)
 	{
 	case GL_RGBA:
