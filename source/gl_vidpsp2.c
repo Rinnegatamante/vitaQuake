@@ -83,7 +83,6 @@ static float vid_gamma = 1.0;
 bool is8bit = false;
 bool isPermedia = false;
 bool gl_mtexable = false;
-bool gl_arb_mtex = false; // KH
 int gl_mtex_enum = GL_TEXTURE0;
 
 /*-----------------------------------------------------------------------*/
@@ -97,7 +96,6 @@ void D_EndDirectRect (int x, int y, int width, int height)
 
 void VID_Shutdown(void)
 {
-	vglEnd();
 }
 
 void VID_ShiftPalette(unsigned char *p)
@@ -167,7 +165,7 @@ void	VID_SetPalette (unsigned char *palette)
 	
 	// Storing a [0,1] float table for particles rendering
 	for (i=0; i < 256; i++){
-		d_8to32ftable[i] = d_8to24table[i] / 255.0f;
+		d_8to32ftable[i] = (1.0f * d_8to24table[i]) / 255.0f;
 	}
 	
 }
@@ -211,8 +209,8 @@ void GL_Init (void)
 
 	//->glShadeModel (GL_FLAT);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -285,7 +283,7 @@ int findres(int *width, int *height)
 
 bool VID_Is8bit(void)
 {
-	return false;
+	return is8bit;
 }
 
 void VID_Init8bitPalette(void) 
@@ -362,7 +360,7 @@ void VID_Init(unsigned char *palette)
 	vid.conheight = height;
 	
 	GL_Init();
-
+	
 	sprintf (gldir, "%s/glquake", com_gamedir);
 	Sys_mkdir (gldir);
 
@@ -370,7 +368,7 @@ void VID_Init(unsigned char *palette)
 	VID_SetPalette(palette);
 
 	// Check for 3DFX Extensions and initialize them.
-	VID_Init8bitPalette();
+	//VID_Init8bitPalette();
 
 	Con_SafePrintf ("Video mode %dx%d initialized.\n", width, height);
 

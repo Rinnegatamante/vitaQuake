@@ -210,7 +210,12 @@ void BuildTris (void)
 	int		bestverts[1024];
 	int		besttris[1024];
 	int		type;
-
+	
+	union {
+		float f;
+		int i;
+	} temp;
+	
 	//
 	// build tristrips
 	//
@@ -224,6 +229,7 @@ void BuildTris (void)
 			continue;
 
 		bestlen = 0;
+		besttype = 0;
 		for (type = 0 ; type < 2 ; type++)
 //	type = 1;
 		{
@@ -268,8 +274,10 @@ void BuildTris (void)
 			s = (s + 0.5) / pheader->skinwidth;
 			t = (t + 0.5) / pheader->skinheight;
 
-			*(float *)&commands[numcommands++] = s;
-			*(float *)&commands[numcommands++] = t;
+			temp.f = s;
+			commands[numcommands++] = temp.i;
+			temp.f = t;
+			commands[numcommands++] = temp.i;
 		}
 	}
 

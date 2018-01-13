@@ -441,7 +441,7 @@ int main(int argc, char **argv)
 	
 	vita2d_fini();
 	
-	vglInit(0x1000000);
+	vglInit(0x1400000);
 	
 	// Mods support
 	if (modname != NULL && strcmp(modname,"id1")) {
@@ -588,12 +588,7 @@ int main(int argc, char **argv)
 
 	}
 
-	// I'm sure those can be removed
-	free(parms.membase);
-	free(modname);
-	if (mod_path != NULL) free(mod_path);
-	//===============================
-
+	vglEnd();
 	sceKernelExitProcess(0);
 	return 0;
 }

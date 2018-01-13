@@ -90,9 +90,9 @@ cvar_t	gl_clear = {"gl_clear","0"};
 cvar_t	gl_cull = {"gl_cull","1"};
 cvar_t	gl_texsort = {"gl_texsort","1"};
 cvar_t	gl_smoothmodels = {"gl_smoothmodels","1"};
-cvar_t	gl_affinemodels = {"gl_affinemodels","0"};
+cvar_t	gl_affinemodels = {"gl_affinemodels","1"};
 cvar_t	gl_polyblend = {"gl_polyblend","1"};
-cvar_t	gl_flashblend = {"gl_flashblend","1", true};
+cvar_t	gl_flashblend = {"gl_flashblend","0"};
 cvar_t	gl_playermip = {"gl_playermip","0"};
 cvar_t	gl_nocolors = {"gl_nocolors","0"};
 cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","0"};
@@ -223,13 +223,13 @@ void R_DrawSpriteModel (entity_t *e)
 		right = vright;
 	}
 
-	glColor4f (1,1,1,1);  //glColor3f (1,1,1);   30/01/2000 changed: M.Tretene
+	glColor4f (1,1,1,1);
 
 	GL_DisableMultitexture();
 
     GL_Bind(frame->gl_texturenum);
 	glEnable (GL_ALPHA_TEST);
-	glEnable (GL_BLEND);   // 30/01/2000 added: M.Tretene
+
 	float* pPoint = gVertexBuffer;
 	float texCoords[] = {
 		0, 1,
@@ -258,7 +258,7 @@ void R_DrawSpriteModel (entity_t *e)
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	glDisable (GL_ALPHA_TEST);
-	glDisable (GL_BLEND);       // 30/01/2000 added: M.Tretene
+
 }
 
 /*
@@ -330,6 +330,10 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		else
 			primType = GL_TRIANGLE_STRIP;
 		
+		
+		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
+		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+		glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 		pColor = gColorBuffer;
 		pPos = gVertexBuffer;
 		pTexCoord = gTexCoordBuffer;
@@ -356,9 +360,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			verts++;
 		} while (--c);
 		
-		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
-		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-		glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 		glDrawArrays(primType, 0, count);
 		
 	}
@@ -562,8 +563,8 @@ void R_DrawAliasModel (entity_t *e)
 	shadelight = shadelight / 200.0;
 	
 	an = e->angles[1]/180*M_PI;
-	shadevector[0] = cos(-an);
-	shadevector[1] = sin(-an);
+	shadevector[0] = cosf(-an);
+	shadevector[1] = sinf(-an);
 	shadevector[2] = 1;
 	VectorNormalize (shadevector);
 
@@ -584,7 +585,7 @@ void R_DrawAliasModel (entity_t *e)
 	R_RotateForEntity (e);
 
 	if (!strcmp (clmodel->name, "progs/eyes.mdl") && gl_doubleeyes.value) {
-		glTranslatef (paliashdr->scale_origin[0], paliashdr->scale_origin[1], paliashdr->scale_origin[2] - (22 + 8));
+		glTranslatef (paliashdr->scale_origin[0], paliashdr->scale_origin[1], paliashdr->scale_origin[2] - 30);
 // double size of eyes, since they are really hard to see in gl
 		glScalef (paliashdr->scale[0]*2, paliashdr->scale[1]*2, paliashdr->scale[2]*2);
 	} else {
@@ -735,9 +736,7 @@ void R_DrawAliasModel (entity_t *e)
 		R_RotateForEntity (e);
 		glDisable (GL_TEXTURE_2D);
 		glEnable (GL_BLEND);
-		// Quick-fix issue with self-overlapping alias triangles.
-		glColor4f (0,0,0,0.5); // Original.
-		//glColor4f (0.0f, 0.0f, 0.0f, 1.0f); // KH
+		glColor4f (0,0,0,0.5);
 		GL_DrawAliasShadow (paliashdr, lastposenum);
 		glEnable (GL_TEXTURE_2D);
 		glDisable (GL_BLEND);
@@ -778,8 +777,6 @@ void R_DrawEntitiesOnList (void)
 		}
 	}
 	
-	glDepthMask (GL_FALSE);    // don't bother writing Z
-	
 	for (i=0 ; i<cl_numvisedicts ; i++)
 	{
 		currententity = cl_visedicts[i];
@@ -791,8 +788,7 @@ void R_DrawEntitiesOnList (void)
 			break;
 		}
 	}
-	
-	glDepthMask (GL_TRUE);    // don't bother writing Z
+
 	//glEnable (GL_DEPTH_TEST);
 
 }
@@ -1089,9 +1085,9 @@ void R_SetupGL (void)
 	//
 	// set drawing parms
 	//
-	/*if (gl_cull.value)
+	if (gl_cull.value)
 		glEnable(GL_CULL_FACE);
-	else*/
+	else
 		glDisable(GL_CULL_FACE);
 
 	glDisable(GL_BLEND);
@@ -1126,9 +1122,7 @@ void R_RenderScene (void)
 
 	R_RenderDlights ();
 	
-	glDepthMask (GL_FALSE);    // don't bother writing Z
 	R_DrawParticles ();
-	glDepthMask (GL_TRUE);     // back writing Z
 	
 #ifdef GLTEST
 	Test_Draw ();
