@@ -312,7 +312,7 @@ void GL_Init (void)
 		fs[i] = glCreateShader(GL_FRAGMENT_SHADER);
 	}
 	for (i=0;i<4;i++){
-		fs[i] = glCreateShader(GL_VERTEX_SHADER);
+		vs[i] = glCreateShader(GL_VERTEX_SHADER);
 	}
 	GL_LoadShader("app0:shaders/modulate_f.gxp", MODULATE, GL_TRUE);
 	GL_LoadShader("app0:shaders/modulate_rgba_f.gxp", MODULATE_WITH_COLOR, GL_TRUE);
