@@ -641,9 +641,9 @@ void R_DrawParticles (void)
     GL_Bind(particletexture);
 	
 	glEnable (GL_BLEND);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	GL_EnableState(GL_MODULATE);
+	GL_EnableState(GL_COLOR_ARRAY);
 	
-	glEnableClientState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
 	VectorScale (vup, 1.50, up);
@@ -794,14 +794,14 @@ void R_DrawParticles (void)
 	}
 
 #ifdef GLQUAKE
-	vglVertexPointer(3, GL_FLOAT, 0, num_vertices, gVertexBuffer);
-	vglTexCoordPointer(2, GL_FLOAT, 0, num_vertices, gTexCoordBuffer);
-	vglColorPointer(4, GL_FLOAT, 0, num_vertices, gColorBuffer);
-	vglDrawObjects(GL_TRIANGLES, num_vertices);
-	glDisableClientState(GL_COLOR_ARRAY);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, num_vertices, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, num_vertices, gTexCoordBuffer);
+	vglVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, num_vertices, gColorBuffer);
+	vglDrawObjects(GL_TRIANGLES, num_vertices, GL_TRUE);
+	GL_DisableState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glDisable (GL_BLEND);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	GL_EnableState(GL_REPLACE);
 #else
 	D_EndParticles ();
 #endif

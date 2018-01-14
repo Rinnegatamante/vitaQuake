@@ -331,14 +331,14 @@ void R_DrawSequentialPoly (msurface_t *s)
 			pUV2 += sizeof(float)*2;
 		}
 		
-		vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-        vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer);
-        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 
 		GL_Bind (lightmap_textures + s->lightmaptexturenum);
 		glEnable (GL_BLEND);
-		vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer2);
-        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer2);
+        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 
 		glDisable (GL_BLEND);	
 
@@ -416,9 +416,10 @@ void DrawGLWaterPoly (glpoly_t *p)
 		memcpy(pnt, &v[3], sizeof(float)*2);
 		pnt +=2;
 	}
-	vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-	vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+	
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 }
 
 void DrawGLWaterPolyLightmap (glpoly_t *p)
@@ -441,9 +442,9 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 		memcpy(pnt, &v[5], sizeof(float)*2);
 		pnt +=2;
 	}
-	vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-	vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts,gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 }
 
 void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
@@ -473,14 +474,14 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 		memcpy(pnt2, &v[5], sizeof(float)*2);
 		pnt2 +=2;
 	}
-	vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-	vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 
 	GL_Bind (t2);
 	glEnable (GL_BLEND);
-	vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer2);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer2);
+	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 	glDisable (GL_BLEND);
 }
 
@@ -504,10 +505,10 @@ void DrawGLPoly (glpoly_t *p)
 		pnt +=2;
 	}
 	
-	vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-    vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
 	glDisable (GL_BLEND);
-    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 }
 
 void DrawGLPolyLightmap (glpoly_t *p)
@@ -525,10 +526,10 @@ void DrawGLPolyLightmap (glpoly_t *p)
 		pnt +=2;
 	}
 	
-	vglVertexPointer(3, GL_FLOAT, 0, p->numverts, gVertexBuffer);
-    vglTexCoordPointer(2, GL_FLOAT, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
 	glDisable (GL_BLEND);
-    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts);
+    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
 }
 
 
@@ -556,7 +557,7 @@ void R_BlendLightmaps (void)
 			glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 			break;
 		default:
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			GL_EnableState(GL_MODULATE);
 			glColor4f (0,0,0,1);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
@@ -602,11 +603,11 @@ void R_BlendLightmaps (void)
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 		case GL_INTENSITY:
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			GL_EnableState(GL_REPLACE);
 			glColor4f (1,1,1,1);
 			break;
 		case GL_RGBA:
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			GL_EnableState(GL_MODULATE);
 			glColor4f (0,0,0,1);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
@@ -789,7 +790,7 @@ void R_DrawWaterSurfaces (void)
 	if (r_wateralpha.value < 1.0) {
 		glEnable (GL_BLEND);
 		glColor4f (1,1,1,r_wateralpha.value);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		GL_EnableState(GL_MODULATE);
 	}
 
 	if (!gl_texsort.value) {
@@ -828,7 +829,7 @@ void R_DrawWaterSurfaces (void)
 	}
 
 	if (r_wateralpha.value < 1.0) {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		GL_EnableState(GL_REPLACE);
 
 		glColor4f (1,1,1,1);
 		glDisable (GL_BLEND);
@@ -1132,9 +1133,6 @@ void R_DrawWorld (void)
 
 	glColor3f (1,1,1);
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
-#ifdef QUAKE2
-	R_ClearSkyBox ();
-#endif
 
 	R_RecursiveWorldNode (cl.worldmodel->nodes);
 
@@ -1142,9 +1140,6 @@ void R_DrawWorld (void)
 
 	R_BlendLightmaps ();
 
-#ifdef QUAKE2
-	R_DrawSkyBox ();
-#endif
 }
 
 
@@ -1460,10 +1455,8 @@ void GL_BuildLightmaps (void)
 			GL_CreateSurfaceLightmap (m->surfaces + i);
 			if ( m->surfaces[i].flags & SURF_DRAWTURB )
 				continue;
-#ifndef QUAKE2
 			if ( m->surfaces[i].flags & SURF_DRAWSKY )
 				continue;
-#endif
 			BuildSurfaceDisplayList (m->surfaces + i);
 		}
 	}

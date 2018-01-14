@@ -90,7 +90,7 @@ void R_InitParticleTexture (void)
 	}
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	GL_EnableState(GL_MODULATE);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -193,9 +193,6 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&gl_texsort);
 
- 	if (gl_mtexable)
-		Cvar_SetValue ("gl_texsort", 0.0);
-
 	Cvar_RegisterVariable (&gl_cull);
 	Cvar_RegisterVariable (&gl_smoothmodels);
 	Cvar_RegisterVariable (&gl_affinemodels);
@@ -213,10 +210,6 @@ void R_Init (void)
 
 	R_InitParticles ();
 	R_InitParticleTexture ();
-
-#ifdef GLTEST
-	Test_Init ();
-#endif
 
 	playertextures = texture_extension_number;
 	texture_extension_number += 16;
@@ -357,7 +350,7 @@ void R_TranslatePlayerSkin (int playernum)
 	}
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	GL_EnableState(GL_MODULATE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	free(pixels);
@@ -402,9 +395,6 @@ void R_NewMap (void)
 			mirrortexturenum = i;
  		cl.worldmodel->textures[i]->texturechain = NULL;
 	}
-#ifdef QUAKE2
-	R_LoadSkys ();
-#endif
 }
 
 

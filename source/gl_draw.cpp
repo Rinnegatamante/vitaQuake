@@ -459,14 +459,16 @@ void Draw_Init (void)
 	draw_backtile = Draw_PicFromWad ("backtile");
 }
 
-void DrawQuad_NoTex(float x, float y, float w, float h)
+void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float b, float a)
 {
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
-  short index[4] = {0, 1, 2, 3};
-  vglVertexPointer( 3, GL_FLOAT, 0, 4, vertex);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  vglDrawObjects(GL_TRIANGLE_FAN, 4);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  float color[4] = {r,g,b,a};
+  unsigned short index[4] = {0, 1, 2, 3};
+  GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+  vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+  glUniform4fv(monocolor, 1, color);
+  vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+  GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, float vh)
@@ -474,9 +476,9 @@ void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, fl
   float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
   unsigned short index[4] = {0, 1, 2, 3};
-  vglTexCoordPointer( 2, GL_FLOAT, 0, 4, texcoord);
-  vglVertexPointer( 3, GL_FLOAT, 0, 4, vertex);
-  vglDrawObjects(GL_TRIANGLE_FAN, 4);
+  vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+  vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
+  vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
 }
 
 /*
@@ -571,8 +573,6 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	gl = (glpic_t *)pic->data;
 	glDisable(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//	glCullFace(GL_FRONT);
 	glColor4f (1,1,1,alpha);
 	GL_Bind (gl->texnum);
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
@@ -727,11 +727,7 @@ Fills a box of pixels with a single color
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
 	glDisable (GL_TEXTURE_2D);
-	glColor3f (host_basepal[c*3]/255.0,
-		host_basepal[c*3+1]/255.0,
-		host_basepal[c*3+2]/255.0);
-
-	DrawQuad_NoTex(x, y, w, h);
+	DrawQuad_NoTex(x, y, w, h, host_basepal[c*3]/255.0, host_basepal[c*3+1]/255.0, host_basepal[c*3+2]/255.0, 1);
 	glColor3f (1,1,1);
 	glEnable (GL_TEXTURE_2D);
 }
@@ -747,8 +743,7 @@ void Draw_FadeScreen (void)
 {
 	glEnable (GL_BLEND);
 	glDisable (GL_TEXTURE_2D);
-	glColor4f (0, 0, 0, 0.8);
-	DrawQuad_NoTex(0, 0, vid.width, vid.height);
+	DrawQuad_NoTex(0, 0, vid.width, vid.height, 0, 0, 0, 0.8f);
 	glColor4f (1,1,1,1);
 	glEnable (GL_TEXTURE_2D);
 	glDisable (GL_BLEND);

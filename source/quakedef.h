@@ -388,3 +388,31 @@ void GL_SelectTexture (GLenum target);
 extern float gVertexBuffer[VERTEXARRAYSIZE];
 extern float gColorBuffer[VERTEXARRAYSIZE];
 extern float gTexCoordBuffer[VERTEXARRAYSIZE];
+
+// Fragment shaders
+#define MODULATE_WITH_COLOR  0
+#define MODULATE             1
+#define REPLACE              2
+#define MONO_COLOR           4
+
+// Vertex shaders
+#define TEXTURE2D            0
+#define TEXTURE2D_WITH_COLOR 1
+#define COLOR                2
+#define VERTEX_ONLY          3
+
+// Shader programs
+#define TEX2D_REPL      0
+#define TEX2D_MODUL     1
+#define TEX2D_MODUL_CLR 2
+#define RGBA_COLOR      3
+#define NO_COLOR        4
+
+extern GLuint fs[5];
+extern GLuint vs[4];
+extern GLuint programs[5];
+extern GLint monocolor;
+extern GLint modulcolor;
+
+void GL_EnableState(GLenum state);
+void GL_DisableState(GLenum state);
