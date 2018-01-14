@@ -109,9 +109,9 @@ void R_RenderDlight (dlight_t *light)
 			*pPos++ = light->origin[j] + vright[j]*cos(a)*rad
 				+ vup[j]*sin(a)*rad;
 	}
-	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 18);
+	vglVertexPointer(3, GL_FLOAT, 0, 18, gVertexBuffer);
+	vglColorPointer(4, GL_FLOAT, 0, 18, gColorBuffer);
+	vglDrawObjects(GL_TRIANGLE_FAN, 18);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glColor3f(0,0,0); // Ensure the color ends up being zero just like the non-OpenGLES code

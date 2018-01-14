@@ -170,14 +170,8 @@ void	VID_SetPalette (unsigned char *palette)
 	
 }
 
-void CheckMultiTextureExtensions(void) 
-{
-	void *prjobj;
-
-	if (strstr(gl_extensions, "GL_SGIS_multitexture ") && !COM_CheckParm("-nomtex")) {
-		Con_Printf("Found GL_SGIS_multitexture...\n");
-	}
-}
+#define MAX_INDICES 4096
+uint16_t* indices;
 
 /*
 ===============
@@ -197,8 +191,6 @@ void GL_Init (void)
 	Con_Printf ("GL_EXTENSIONS: %s\n", gl_extensions);
 	
 //	Con_Printf ("%s %s\n", gl_renderer, gl_version);
-
-	CheckMultiTextureExtensions ();
 
 	glClearColor (1,0,0,0);
 	glCullFace(GL_FRONT);
@@ -225,6 +217,12 @@ void GL_Init (void)
 	Cvar_RegisterVariable (&show_fps); // muff
 	Cvar_RegisterVariable(&vid_vsync);
 	
+	int i;
+	indices = (uint16_t*)malloc(sizeof(uint16_t*)*MAX_INDICES);
+	for (i=0;i<MAX_INDICES;i++){
+		indices[i] = i;
+	}
+	
 }
 
 /*
@@ -242,6 +240,7 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 	*height = scr_height;
 
 	vglStartRendering();
+	vglIndexPointer(GL_SHORT, 0, MAX_INDICES, indices);
 }
 
 void GL_EndRendering (void)
@@ -257,28 +256,6 @@ void GL_EndRendering (void)
 		vglStopRenderingTerm();
 	}else vglStopRendering();
 	 
-}
-
-#define NUM_RESOLUTIONS 1
-
-static int resolutions[NUM_RESOLUTIONS][3]={ 
-	960,544,  0
-};
-
-int findres(int *width, int *height)
-{
-	int i;
-
-	for(i=0;i<NUM_RESOLUTIONS;i++)
-		if((*width<=resolutions[i][0]) && (*height<=resolutions[i][1])) {
-			*width = resolutions[i][0];
-			*height = resolutions[i][1];
-			return resolutions[i][2];
-		}
-        
-	*width = 640;
-	*height = 480;
-	return 1;
 }
 
 bool VID_Is8bit(void)

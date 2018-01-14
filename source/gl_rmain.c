@@ -225,8 +225,6 @@ void R_DrawSpriteModel (entity_t *e)
 
 	glColor4f (1,1,1,1);
 
-	GL_DisableMultitexture();
-
     GL_Bind(frame->gl_texturenum);
 	glEnable (GL_ALPHA_TEST);
 
@@ -237,7 +235,7 @@ void R_DrawSpriteModel (entity_t *e)
 		1, 0,
 		1, 1
 	};
-
+	
 	VectorMA (e->origin, frame->down, up, point);
 	VectorMA (point, frame->left, right, pPoint);
 	pPoint += 3;
@@ -253,9 +251,9 @@ void R_DrawSpriteModel (entity_t *e)
 	VectorMA (e->origin, frame->down, up, point);
 	VectorMA (point, frame->right, right, pPoint);
 
-	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	vglVertexPointer(3, GL_FLOAT, 0, 4, gVertexBuffer);
+	vglTexCoordPointer(2, GL_FLOAT, 0, 4, texCoords);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4);
 
 	glDisable (GL_ALPHA_TEST);
 
@@ -321,7 +319,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		float* pColor;
 		float* pTexCoord;
 		float* pPos;
-		
 		if (count < 0)
 		{
 			count = -count;
@@ -330,10 +327,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		else
 			primType = GL_TRIANGLE_STRIP;
 		
-		
-		glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
-		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-		glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 		pColor = gColorBuffer;
 		pPos = gVertexBuffer;
 		pTexCoord = gTexCoordBuffer;
@@ -360,7 +353,10 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			verts++;
 		} while (--c);
 		
-		glDrawArrays(primType, 0, count);
+		vglTexCoordPointer(2, GL_FLOAT, 0, count, gTexCoordBuffer);
+		vglVertexPointer(3, GL_FLOAT, 0, count, gVertexBuffer);
+		vglColorPointer(4, GL_FLOAT, 0, count, gColorBuffer);
+		vglDrawObjects(primType, count);
 		
 	}
 	
@@ -436,11 +432,12 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 
 			pVertex += 3;
 			verts++;
+			
 		}
 
-		glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
+		vglVertexPointer(3, GL_FLOAT, 0, count, gVertexBuffer);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDrawArrays(primType, 0, count);
+		vglDrawObjects(primType, count);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	}	
 }
@@ -579,8 +576,6 @@ void R_DrawAliasModel (entity_t *e)
 	// draw all the triangles
 	//
 
-	GL_DisableMultitexture();
-
     glPushMatrix ();
 	R_RotateForEntity (e);
 
@@ -659,7 +654,7 @@ void R_DrawAliasModel (entity_t *e)
 			glEnableClientState(GL_COLOR_ARRAY);
 			float* pPos = gVertexBuffer;
 			float* pColor = gColorBuffer;
-		    
+			
 		    // Diminish torch flare inversely with distance.
 		    intensity = (1024.0f - distance) / 1024.0f;
 
@@ -686,7 +681,7 @@ void R_DrawAliasModel (entity_t *e)
 			*pColor++ = 0.4f*intensity;
 			*pColor++ = 0.1f;
 			*pColor++ = 1.0f;
-
+			
 		    for (i=0 ; i<3 ; i++)
 		        *pPos++ = lightorigin[i] - vpn[i]*radius;
 			
@@ -698,10 +693,13 @@ void R_DrawAliasModel (entity_t *e)
 		        float a = i/16.0f * M_PI*2;
 		        for (j=0; j<3; j++)
 		            *pPos++ =  lightorigin[j] + 
-		                    vright[j]*cos(a)*radius +
-		                    vup[j]*sin(a)*radius;
+		            vright[j]*cos(a)*radius +
+		            vup[j]*sin(a)*radius;
 		    }
-		    glDrawArrays(GL_TRIANGLE_FAN, 0, 18);
+			
+			vglVertexPointer(3, GL_FLOAT, 0, 18, gVertexBuffer);
+			vglColorPointer(4, GL_FLOAT, 0, 18, gColorBuffer);
+		    vglDrawObjects(GL_TRIANGLE_FAN, 18);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
 			
@@ -853,13 +851,13 @@ void R_DrawViewModel (void)
 			ambientlight += add;
 	}
 
-	ambient[0] = ambient[1] = ambient[2] = ambient[3] = (float)ambientlight / 128;
-	diffuse[0] = diffuse[1] = diffuse[2] = diffuse[3] = (float)shadelight / 128;
+	ambient[0] = ambient[1] = ambient[2] = ambient[3] = (float)ambientlight / 128.0f;
+	diffuse[0] = diffuse[1] = diffuse[2] = diffuse[3] = (float)shadelight / 128.0f;
 
 	// hack the depth range to prevent view model from poking into walls
-	glDepthRange (gldepthmin, gldepthmin + 0.3*(gldepthmax-gldepthmin));
+	glDepthRangef (gldepthmin, gldepthmin + 0.3f*(gldepthmax-gldepthmin));
 	R_DrawAliasModel (currententity);
-	glDepthRange (gldepthmin, gldepthmax);
+	glDepthRangef (gldepthmin, gldepthmax);
 }
 
 
@@ -874,8 +872,6 @@ void R_PolyBlend (void)
 		return;
 	if (!v_blend[3])
 		return;
-
-	GL_DisableMultitexture();
 
 	glDisable (GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
@@ -895,9 +891,10 @@ void R_PolyBlend (void)
 		10, -100, -100,
 		10, 100, -100
 	};
+
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer( 3, GL_FLOAT, 0, vertex);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	vglVertexPointer( 3, GL_FLOAT, 0, 4, vertex);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glDisable (GL_BLEND);
@@ -1118,8 +1115,6 @@ void R_RenderScene (void)
 		
 	R_DrawEntitiesOnList ();
 
-	GL_DisableMultitexture();
-
 	R_RenderDlights ();
 	
 	R_DrawParticles ();
@@ -1184,7 +1179,7 @@ void R_Clear (void)
 		glDepthFunc (GL_LEQUAL);
 	}
 
-	glDepthRange (gldepthmin, gldepthmax);
+	glDepthRangef (gldepthmin, gldepthmax);
 }
 
 /*
@@ -1220,17 +1215,17 @@ void R_Mirror (void)
 		cl_numvisedicts++;
 	}
 
-	gldepthmin = 0.5;
-	gldepthmax = 1;
-	glDepthRange (gldepthmin, gldepthmax);
+	gldepthmin = 0.5f;
+	gldepthmax = 1.0f;
+	glDepthRangef (gldepthmin, gldepthmax);
 	glDepthFunc (GL_LEQUAL);
 
 	R_RenderScene ();
 	R_DrawWaterSurfaces ();
 
-	gldepthmin = 0;
-	gldepthmax = 0.5;
-	glDepthRange (gldepthmin, gldepthmax);
+	gldepthmin = 0.0f;
+	gldepthmax = 0.5f;
+	glDepthRangef (gldepthmin, gldepthmax);
 	glDepthFunc (GL_LEQUAL);
 
 	// blend on top

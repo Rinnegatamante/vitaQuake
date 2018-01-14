@@ -644,9 +644,6 @@ void R_DrawParticles (void)
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	
 	glEnableClientState(GL_COLOR_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, gVertexBuffer);
-	glTexCoordPointer(2, GL_FLOAT, 0, gTexCoordBuffer);
-	glColorPointer(4, GL_FLOAT, 0, gColorBuffer);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
 	VectorScale (vup, 1.50, up);
@@ -797,7 +794,10 @@ void R_DrawParticles (void)
 	}
 
 #ifdef GLQUAKE
-	glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+	vglVertexPointer(3, GL_FLOAT, 0, num_vertices, gVertexBuffer);
+	vglTexCoordPointer(2, GL_FLOAT, 0, num_vertices, gTexCoordBuffer);
+	vglColorPointer(4, GL_FLOAT, 0, num_vertices, gColorBuffer);
+	vglDrawObjects(GL_TRIANGLES, num_vertices);
 	glDisableClientState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glDisable (GL_BLEND);

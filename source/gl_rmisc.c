@@ -245,8 +245,6 @@ void R_TranslatePlayerSkin (int playernum)
 	unsigned	frac, fracstep;
 	extern	byte		**player_8bit_texels_tbl;
 
-	GL_DisableMultitexture();
-
 	top = cl.scores[playernum].colors & 0xf0;
 	bottom = (cl.scores[playernum].colors &15)<<4;
 

@@ -463,9 +463,9 @@ void DrawQuad_NoTex(float x, float y, float w, float h)
 {
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
   short index[4] = {0, 1, 2, 3};
-  glVertexPointer( 3, GL_FLOAT, 0, vertex);
+  vglVertexPointer( 3, GL_FLOAT, 0, 4, vertex);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, index);
+  vglDrawObjects(GL_TRIANGLE_FAN, 4);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
@@ -474,9 +474,9 @@ void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, fl
   float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
   unsigned short index[4] = {0, 1, 2, 3};
-  glTexCoordPointer( 2, GL_FLOAT, 0, texcoord);
-  glVertexPointer( 3, GL_FLOAT, 0, vertex);
-  glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_SHORT, index);
+  vglTexCoordPointer( 2, GL_FLOAT, 0, 4, texcoord);
+  vglVertexPointer( 3, GL_FLOAT, 0, 4, vertex);
+  vglDrawObjects(GL_TRIANGLE_FAN, 4);
 }
 
 /*
@@ -1079,7 +1079,7 @@ void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, scaled);
 	if (mipmap)
 	{
-		//glGenerateMipmap(GL_TEXTURE_2D);
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 done: ;
 
