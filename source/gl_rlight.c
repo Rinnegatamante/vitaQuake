@@ -111,10 +111,10 @@ void R_RenderDlight (dlight_t *light)
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);
 	vglVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 18, gColorBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, 18, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 18);
 	GL_DisableState(GL_COLOR_ARRAY);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
-	glColor3f(0,0,0); // Ensure the color ends up being zero just like the non-OpenGLES code
+	GL_Color(0,0,0,1); // Ensure the color ends up being zero just like the non-OpenGLES code
 }
 
 /*
@@ -146,7 +146,7 @@ void R_RenderDlights (void)
 		R_RenderDlight (l);
 	}
 
-	glColor3f (1,1,1);
+	GL_Color(1,1,1,1);
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // 30/01/2000 removed: M.Tretene

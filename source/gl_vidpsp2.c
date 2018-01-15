@@ -173,11 +173,11 @@ void	VID_SetPalette (unsigned char *palette)
 #define MAX_INDICES 4096
 uint16_t* indices;
 
-GLuint fs[5];
+GLuint fs[10];
 GLuint vs[4];
-GLuint programs[5];
+GLuint programs[10];
 
-void* GL_LoadShader(const* filename, GLuint idx, GLboolean fragment){
+void* GL_LoadShader(const char* filename, GLuint idx, GLboolean fragment){
 	FILE* f = fopen(filename, "rb");
 	fseek(f, 0, SEEK_END);
 	long int size = ftell(f);
@@ -193,9 +193,54 @@ void* GL_LoadShader(const* filename, GLuint idx, GLboolean fragment){
 int state_mask = 0;
 int texenv_mask = 0;
 int texcoord_state = 0;
+int alpha_state = 0;
 int color_state = 0;
-GLint monocolor;
-GLint modulcolor;
+GLint monocolor[2];
+GLint modulcolor[2];
+
+void GL_SetProgram(){
+	switch (state_mask + texenv_mask){
+		case 0x00: // Everything off
+		case 0x04: // Modulate
+			glUseProgram(programs[NO_COLOR]);
+			break;
+		case 0x01: // Texcoord
+		case 0x03: // Replace + Texcoord + Color
+			glUseProgram(programs[TEX2D_REPL]);
+			break;
+		case 0x02: // Color
+		case 0x06: // Color + Modulate
+			glUseProgram(programs[RGBA_COLOR]);
+			break;
+		case 0x05: // Modulate + Texcoord
+			glUseProgram(programs[TEX2D_MODUL]);
+			break;
+		case 0x07: // Modulate + Texcoord + Color
+			glUseProgram(programs[TEX2D_MODUL_CLR]);
+			break;
+		case 0x08: // Alpha Test
+		case 0x0C: // Alpha Test + Modulate
+			glUseProgram(programs[NO_COLOR_A]);
+			break;
+		case 0x09: // Alpha Test + Texcoord
+		case 0x0B: // Alpha Test + Color + Texcoord
+			glUseProgram(programs[TEX2D_REPL_A]);
+			break;
+		case 0x0A: // Alpha Test + Color
+		case 0x0E: // Alpha Test + Modulate + Color
+			glUseProgram(programs[RGBA_CLR_A]);
+			break;
+		case 0x0D: // Alpha Test + Modulate + Texcoord
+			glUseProgram(programs[TEX2D_MODUL_A]);
+			break;
+		case 0x0F: // Alpha Test + Modulate + Texcood + Color
+			glUseProgram(programs[FULL_A]);
+			break;
+		default:
+			break;
+	}
+}
+
 void GL_EnableState(GLenum state){	
 	switch (state){
 		case GL_TEXTURE_COORD_ARRAY:
@@ -213,30 +258,17 @@ void GL_EnableState(GLenum state){
 		case GL_MODULATE:
 			texenv_mask = 0x04;
 			break;
-		default:
+		case GL_REPLACE:
 			texenv_mask = 0;
 			break;
-	}
-	switch (state_mask + texenv_mask){
-		case 0x00: // Everything off
-			glUseProgram(programs[NO_COLOR]);
-			break;
-		case 0x01: // Texcoord
-			glUseProgram(programs[TEX2D_REPL]);
-			break;
-		case 0x02: // Color
-			glUseProgram(programs[RGBA_COLOR]);
-			break;
-		case 0x05: // Modulate + Texcoord
-			glUseProgram(programs[TEX2D_MODUL]);
-			break;
-		case 0x03: // Replace + Texcoord + Color
-		case 0x07: // Modulate + Texcoord + Color
-			glUseProgram(programs[TEX2D_MODUL_CLR]);
-			break;
-		default:
+		case GL_ALPHA_TEST:
+			if (!alpha_state){
+				state_mask += 0x08;
+				alpha_state = 1;
+			} 
 			break;
 	}
+	GL_SetProgram();
 }
 
 void GL_DisableState(GLenum state){	
@@ -253,29 +285,31 @@ void GL_DisableState(GLenum state){
 				color_state = 0;
 			}
 			break;
-		default:
-			break;
-	}
-	switch (state_mask + texenv_mask){
-		case 0x00: // Everything off
-			glUseProgram(programs[NO_COLOR]);
-			break;
-		case 0x01: // Texcoord
-			glUseProgram(programs[TEX2D_REPL]);
-			break;
-		case 0x02: // Color
-			glUseProgram(programs[RGBA_COLOR]);
-			break;
-		case 0x05: // Modulate + Texcoord
-			glUseProgram(programs[TEX2D_MODUL]);
-			break;
-		case 0x03: // Replace + Texcoord + Color
-		case 0x07: // Modulate + Texcoord + Color
-			glUseProgram(programs[TEX2D_MODUL_CLR]);
+		case GL_ALPHA_TEST:
+			if (alpha_state){
+				state_mask -= 0x08;
+				alpha_state = 0;
+			} 
 			break;
 		default:
 			break;
 	}
+	GL_SetProgram();
+}
+
+float cur_clr[4];
+
+void GL_DrawPolygon(GLenum prim, int num){
+	if ((state_mask + texenv_mask) == 0x05) glUniform4fv(modulcolor[0], 1, cur_clr);
+	else if ((state_mask + texenv_mask) == 0x0D) glUniform4fv(modulcolor[1], 1, cur_clr);
+	vglDrawObjects(prim, num, GL_TRUE);
+}
+
+void GL_Color(float r, float g, float b, float a){
+	cur_clr[0] = r;
+	cur_clr[1] = g;
+	cur_clr[2] = b;
+	cur_clr[3] = a;
 }
 
 /*
@@ -301,14 +335,11 @@ void GL_Init (void)
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
 
-	glEnable (GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.666);
-
 	//->glShadeModel (GL_FLAT);
 	
 	// Loading shaders
 	int i;
-	for (i=0;i<5;i++){
+	for (i=0;i<10;i++){
 		fs[i] = glCreateShader(GL_FRAGMENT_SHADER);
 	}
 	for (i=0;i<4;i++){
@@ -319,13 +350,18 @@ void GL_Init (void)
 	GL_LoadShader("app0:shaders/replace_f.gxp", REPLACE, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_f.gxp", RGBA_COLOR, GL_TRUE);
 	GL_LoadShader("app0:shaders/vertex_f.gxp", MONO_COLOR, GL_TRUE);
+	GL_LoadShader("app0:shaders/modulate_alpha_f.gxp", MODULATE_A, GL_TRUE);
+	GL_LoadShader("app0:shaders/modulate_rgba_alpha_f.gxp", MODULATE_COLOR_A, GL_TRUE);
+	GL_LoadShader("app0:shaders/replace_alpha_f.gxp", REPLACE_A, GL_TRUE);
+	GL_LoadShader("app0:shaders/rgba_alpha_f.gxp", RGBA_A, GL_TRUE);
+	GL_LoadShader("app0:shaders/vertex_alpha_f.gxp", MONO_COLOR_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_v.gxp", COLOR, GL_FALSE);
 	GL_LoadShader("app0:shaders/texture2d_v.gxp", TEXTURE2D, GL_FALSE);
 	GL_LoadShader("app0:shaders/texture2d_rgba_v.gxp", TEXTURE2D_WITH_COLOR, GL_FALSE);
 	GL_LoadShader("app0:shaders/vertex_v.gxp", VERTEX_ONLY, GL_FALSE);
 	
 	// Setting up programs
-	for (i=0;i<5;i++){
+	for (i=0;i<10;i++){
 		programs[i] = glCreateProgram();
 		switch (i){
 			case TEX2D_REPL:
@@ -335,11 +371,11 @@ void GL_Init (void)
 				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
 				break;
 			case TEX2D_MODUL:
-				glAttachShader(programs[i], fs[REPLACE]); // Note: Replace with MODULATE, modulcolor handling is still not managed
+				glAttachShader(programs[i], fs[MODULATE]);
 				glAttachShader(programs[i], vs[TEXTURE2D]);
 				vglBindAttribLocation(programs[i], 0, "position", 3, GL_FLOAT);
 				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
-				modulcolor = glGetUniformLocation(programs[i], "vColor");
+				modulcolor[0] = glGetUniformLocation(programs[i], "vColor");
 				break;
 			case TEX2D_MODUL_CLR:
 				glAttachShader(programs[i], fs[MODULATE_WITH_COLOR]);
@@ -358,7 +394,39 @@ void GL_Init (void)
 				glAttachShader(programs[i], fs[MONO_COLOR]);
 				glAttachShader(programs[i], vs[VERTEX_ONLY]);
 				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
-				monocolor = glGetUniformLocation(programs[i], "color");
+				monocolor[0] = glGetUniformLocation(programs[i], "color");
+				break;
+			case TEX2D_REPL_A:
+				glAttachShader(programs[i], fs[REPLACE_A]);
+				glAttachShader(programs[i], vs[TEXTURE2D]);
+				vglBindAttribLocation(programs[i], 0, "position", 3, GL_FLOAT);
+				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
+				break;
+			case TEX2D_MODUL_A:
+				glAttachShader(programs[i], fs[MODULATE_A]);
+				glAttachShader(programs[i], vs[TEXTURE2D]);
+				vglBindAttribLocation(programs[i], 0, "position", 3, GL_FLOAT);
+				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
+				modulcolor[1] = glGetUniformLocation(programs[i], "vColor");
+				break;
+			case FULL_A:
+				glAttachShader(programs[i], fs[MODULATE_COLOR_A]);
+				glAttachShader(programs[i], vs[TEXTURE2D_WITH_COLOR]);
+				vglBindAttribLocation(programs[i], 0, "position", 3, GL_FLOAT);
+				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
+				vglBindAttribLocation(programs[i], 2, "color", 4, GL_FLOAT);
+				break;
+			case RGBA_CLR_A:
+				glAttachShader(programs[i], fs[RGBA_A]);
+				glAttachShader(programs[i], vs[COLOR]);
+				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
+				vglBindAttribLocation(programs[i], 1, "aColor", 4, GL_FLOAT);
+				break;
+			case NO_COLOR_A:
+				glAttachShader(programs[i], fs[MONO_COLOR_A]);
+				glAttachShader(programs[i], vs[VERTEX_ONLY]);
+				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
+				monocolor[1] = glGetUniformLocation(programs[i], "color");
 				break;
 		}
 		glLinkProgram(programs[i]);
@@ -370,8 +438,9 @@ void GL_Init (void)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	
 	glEnableClientState(GL_VERTEX_ARRAY);
+	GL_EnableState(GL_ALPHA_TEST);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 	
 	Cvar_RegisterVariable (&show_fps); // muff

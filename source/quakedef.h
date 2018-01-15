@@ -394,6 +394,11 @@ extern float gTexCoordBuffer[VERTEXARRAYSIZE];
 #define MODULATE             1
 #define REPLACE              2
 #define MONO_COLOR           4
+#define MODULATE_COLOR_A     5
+#define MODULATE_A           6
+#define RGBA_A               7
+#define REPLACE_A            8
+#define MONO_COLOR_A         9
 
 // Vertex shaders
 #define TEXTURE2D            0
@@ -407,12 +412,19 @@ extern float gTexCoordBuffer[VERTEXARRAYSIZE];
 #define TEX2D_MODUL_CLR 2
 #define RGBA_COLOR      3
 #define NO_COLOR        4
+#define TEX2D_REPL_A    5
+#define TEX2D_MODUL_A   6
+#define RGBA_CLR_A      7
+#define FULL_A          8
+#define NO_COLOR_A      9
 
-extern GLuint fs[5];
+extern GLuint fs[10];
 extern GLuint vs[4];
-extern GLuint programs[5];
-extern GLint monocolor;
-extern GLint modulcolor;
+extern GLuint programs[10];
+extern GLint monocolor[2];
+extern GLint modulcolor[2];
 
 void GL_EnableState(GLenum state);
 void GL_DisableState(GLenum state);
+void GL_DrawPolygon(GLenum prim, int num);
+void GL_Color(float r, float g, float b, float a);

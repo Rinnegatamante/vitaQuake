@@ -125,7 +125,7 @@ void DrawPuff (puff_t *p)
 		}
 	}
 
-	glColor3f (1, 0, 0);
+	GL_Color(1, 0, 0, 1);
 
 	glBegin (GL_QUADS);
 	for (i=0 ; i<3 ; i++)

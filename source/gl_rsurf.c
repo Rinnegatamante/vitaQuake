@@ -333,12 +333,12 @@ void R_DrawSequentialPoly (msurface_t *s)
 		
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+        GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 
 		GL_Bind (lightmap_textures + s->lightmaptexturenum);
 		glEnable (GL_BLEND);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer2);
-        vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+        GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 
 		glDisable (GL_BLEND);	
 
@@ -419,7 +419,7 @@ void DrawGLWaterPoly (glpoly_t *p)
 	
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
 void DrawGLWaterPolyLightmap (glpoly_t *p)
@@ -444,7 +444,7 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
 void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
@@ -476,12 +476,12 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 
 	GL_Bind (t2);
 	glEnable (GL_BLEND);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer2);
-	vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	glDisable (GL_BLEND);
 }
 
@@ -508,7 +508,7 @@ void DrawGLPoly (glpoly_t *p)
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
 	glDisable (GL_BLEND);
-    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+    GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
 void DrawGLPolyLightmap (glpoly_t *p)
@@ -529,7 +529,7 @@ void DrawGLPolyLightmap (glpoly_t *p)
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
 	glDisable (GL_BLEND);
-    vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+    GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
 
@@ -558,7 +558,7 @@ void R_BlendLightmaps (void)
 			break;
 		default:
 			GL_EnableState(GL_MODULATE);
-			glColor4f (0,0,0,1);
+			GL_Color(0,0,0,1);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 	}
@@ -604,11 +604,11 @@ void R_BlendLightmaps (void)
 			break;
 		case GL_INTENSITY:
 			GL_EnableState(GL_REPLACE);
-			glColor4f (1,1,1,1);
+			GL_Color(1,1,1,1);
 			break;
 		case GL_RGBA:
 			GL_EnableState(GL_MODULATE);
-			glColor4f (0,0,0,1);
+			GL_Color(0,0,0,1);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 		default:
@@ -789,7 +789,7 @@ void R_DrawWaterSurfaces (void)
 
 	if (r_wateralpha.value < 1.0) {
 		glEnable (GL_BLEND);
-		glColor4f (1,1,1,r_wateralpha.value);
+		GL_Color(1,1,1,r_wateralpha.value);
 		GL_EnableState(GL_MODULATE);
 	}
 
@@ -831,7 +831,7 @@ void R_DrawWaterSurfaces (void)
 	if (r_wateralpha.value < 1.0) {
 		GL_EnableState(GL_REPLACE);
 
-		glColor4f (1,1,1,1);
+		GL_Color(1,1,1,1);
 		glDisable (GL_BLEND);
 	}
 
@@ -915,7 +915,7 @@ void R_DrawBrushModel (entity_t *e)
 	if (R_CullBox (mins, maxs))
 		return;
 
-	glColor3f (1,1,1);
+	GL_Color(1,1,1,1);
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
 
 	VectorSubtract (r_refdef.vieworg, e->origin, modelorg);
@@ -1131,7 +1131,7 @@ void R_DrawWorld (void)
 	currententity = &ent;
 	currenttexture = -1;
 
-	glColor3f (1,1,1);
+	GL_Color(1,1,1,1);
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
 
 	R_RecursiveWorldNode (cl.worldmodel->nodes);

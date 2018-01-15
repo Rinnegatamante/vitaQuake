@@ -797,7 +797,7 @@ void R_DrawParticles (void)
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, num_vertices, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, num_vertices, gTexCoordBuffer);
 	vglVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, num_vertices, gColorBuffer);
-	vglDrawObjects(GL_TRIANGLES, num_vertices, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLES, num_vertices);
 	GL_DisableState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glDisable (GL_BLEND);

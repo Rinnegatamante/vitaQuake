@@ -466,8 +466,8 @@ void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float 
   unsigned short index[4] = {0, 1, 2, 3};
   GL_DisableState(GL_TEXTURE_COORD_ARRAY);
   vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-  glUniform4fv(monocolor, 1, color);
-  vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+  glUniform4fv(monocolor[0], 1, color);
+  GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
   GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 }
 
@@ -478,7 +478,7 @@ void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, fl
   unsigned short index[4] = {0, 1, 2, 3};
   vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
   vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
-  vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+  GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 }
 
 /*
@@ -514,16 +514,16 @@ void Draw_Character (int x, int y, int num)
 	fcol = col*0.0625;
 	size = 0.0625;
 	
-	glDisable(GL_ALPHA_TEST); // 30/01/2000 added: M.Tretene
+	GL_DisableState(GL_ALPHA_TEST); // 30/01/2000 added: M.Tretene
 	glEnable (GL_BLEND);
-	glColor4f (1,1,1,(float) 1);
+	GL_Color(1,1,1,(float) 1);
 	
 	GL_Bind (char_texture);
 
 	DrawQuad(x, y, 8, 8, fcol, frow, size, size);
 	
-	glColor4f (1,1,1,1);
-	glEnable(GL_ALPHA_TEST);
+	GL_Color(1,1,1,1);
+	GL_EnableState(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 	
 }
@@ -571,13 +571,13 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	if (scrap_dirty)
 		Scrap_Upload ();
 	gl = (glpic_t *)pic->data;
-	glDisable(GL_ALPHA_TEST);
+	GL_DisableState(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
-	glColor4f (1,1,1,alpha);
+	GL_Color(1,1,1,alpha);
 	GL_Bind (gl->texnum);
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
-	glColor4f (1,1,1,1);
-	glEnable(GL_ALPHA_TEST);
+	GL_Color(1,1,1,1);
+	GL_EnableState(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 }
 
@@ -623,14 +623,14 @@ void Draw_TransPic (int x, int y, qpic_t *pic)
 		Sys_Error ("Draw_TransPic: bad coordinates");
 	}
 	
-	glDisable(GL_ALPHA_TEST);     // 30/01/2000 added: M.Tretene
+	GL_DisableState(GL_ALPHA_TEST);     // 30/01/2000 added: M.Tretene
 	glEnable (GL_BLEND);
-	glColor4f (1,1,1,1);
+	GL_Color(1,1,1,1);
 	
 	Draw_Pic (x, y, pic);
 	
-	glColor4f (1,1,1,1);          // 30/01/2000 added: M.Tretene
-	glEnable(GL_ALPHA_TEST);
+	GL_Color(1,1,1,1);          // 30/01/2000 added: M.Tretene
+	GL_EnableState(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
 }
 
@@ -672,7 +672,7 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glColor3f (1,1,1);
+	GL_Color(1,1,1, 1);
 	DrawQuad(x, y, pic->width, pic->height, 0, 0, 1, 1);
 }
 
@@ -709,7 +709,7 @@ typedef union ByteToInt_t {
 
 void Draw_TileClear (int x, int y, int w, int h)
 {
-	glColor3f (1,1,1);
+	GL_Color(1,1,1,1);
 	ByteToInt b;
 	memcpy(b.b, draw_backtile->data, sizeof(b.b));
 	GL_Bind (b.i);
@@ -728,7 +728,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 {
 	glDisable (GL_TEXTURE_2D);
 	DrawQuad_NoTex(x, y, w, h, host_basepal[c*3]/255.0, host_basepal[c*3+1]/255.0, host_basepal[c*3+2]/255.0, 1);
-	glColor3f (1,1,1);
+	GL_Color(1,1,1,1);
 	glEnable (GL_TEXTURE_2D);
 }
 //=============================================================================
@@ -744,7 +744,7 @@ void Draw_FadeScreen (void)
 	glEnable (GL_BLEND);
 	glDisable (GL_TEXTURE_2D);
 	DrawQuad_NoTex(0, 0, vid.width, vid.height, 0, 0, 0, 0.8f);
-	glColor4f (1,1,1,1);
+	GL_Color(1,1,1,1);
 	glEnable (GL_TEXTURE_2D);
 	glDisable (GL_BLEND);
 
@@ -804,9 +804,9 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	glDisable (GL_ALPHA_TEST);
+	GL_DisableState(GL_ALPHA_TEST);
 
-	glColor4f (1,1,1,1);
+	GL_Color(1,1,1,1);
 }
 
 //====================================================================
@@ -996,22 +996,12 @@ static	unsigned	scaled[1024*512];	// [512*256];
 		GL_ResampleTexture (data, width, height, scaled, scaled_width, scaled_height);
 	
 	glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-	if (mipmap)
-	{
-		glGenerateMipmap(GL_TEXTURE_2D);		
-	}
-done: ;
 
-	if (mipmap)
-	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-	}
-	else
-	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-	}
+done: ;
+	
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 }
 
 void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha) 

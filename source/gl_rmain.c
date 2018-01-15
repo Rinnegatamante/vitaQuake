@@ -223,10 +223,10 @@ void R_DrawSpriteModel (entity_t *e)
 		right = vright;
 	}
 
-	glColor4f (1,1,1,1);
+	GL_Color(1,1,1,1);
 
     GL_Bind(frame->gl_texturenum);
-	glEnable (GL_ALPHA_TEST);
+	GL_EnableState(GL_ALPHA_TEST);
 
 	float* pPoint = gVertexBuffer;
 	float texCoords[] = {
@@ -253,9 +253,9 @@ void R_DrawSpriteModel (entity_t *e)
 
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texCoords);
-	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 
-	glDisable (GL_ALPHA_TEST);
+	GL_DisableState(GL_ALPHA_TEST);
 
 }
 
@@ -356,7 +356,7 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, count, gVertexBuffer);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, count, gTexCoordBuffer);
 		vglVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, count, gColorBuffer);
-		vglDrawObjects(primType, count, GL_TRUE);
+		GL_DrawPolygon(primType, count);
 		
 	}
 	
@@ -437,9 +437,9 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 
 		GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 		const float color[] = {0,0,0,0.5f};
-		glUniform4fv(monocolor, 1, color);
+		glUniform4fv(monocolor[0], 1, color);
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, count, gVertexBuffer);
-		vglDrawObjects(primType, count, GL_TRUE);
+		GL_DrawPolygon(primType, count);
 		GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 	}	
 }
@@ -701,14 +701,14 @@ void R_DrawAliasModel (entity_t *e)
 			
 			vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);
 			vglVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 18, gColorBuffer);
-		    vglDrawObjects(GL_TRIANGLE_FAN, 18, GL_TRUE);
+		    GL_DrawPolygon(GL_TRIANGLE_FAN, 18);
 			GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 			GL_DisableState(GL_COLOR_ARRAY);
 			
 		    // Restore previous matrix! KH
 		    glPopMatrix();
 
-		    glColor3f (1,1,1);
+		    GL_Color(1,1,1,1);
 		    glDisable (GL_BLEND);
 		    glEnable (GL_TEXTURE_2D);
 		    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -739,7 +739,7 @@ void R_DrawAliasModel (entity_t *e)
 		GL_DrawAliasShadow (paliashdr, lastposenum);
 		glEnable (GL_TEXTURE_2D);
 		glDisable (GL_BLEND);
-		glColor4f (1,1,1,1);
+		GL_Color(1,1,1,1);
 		glPopMatrix ();
 	}
 
@@ -874,7 +874,7 @@ void R_PolyBlend (void)
 	if (!v_blend[3])
 		return;
 
-	glDisable (GL_ALPHA_TEST);
+	GL_DisableState(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_TEXTURE_2D);
@@ -884,7 +884,7 @@ void R_PolyBlend (void)
     glRotatef (-90,  1, 0, 0);	    // put Z going up
     glRotatef (90,  0, 0, 1);	    // put Z going up
 
-	glColor4fv (v_blend);
+	GL_Color(v_blend[0],v_blend[1],v_blend[2],v_blend[3]);
 	
 	float vertex[3*4] = {
 		10, 100, 100,
@@ -895,13 +895,13 @@ void R_PolyBlend (void)
 
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-	glUniform4fv(monocolor, 1, v_blend);
-	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+	glUniform4fv(monocolor[0], 1, v_blend);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
-	glEnable (GL_ALPHA_TEST);
+	GL_EnableState(GL_ALPHA_TEST);
 }
 
 
@@ -1090,7 +1090,7 @@ void R_SetupGL (void)
 		glDisable(GL_CULL_FACE);
 
 	glDisable(GL_BLEND);
-	glDisable(GL_ALPHA_TEST);
+	GL_DisableState(GL_ALPHA_TEST);
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -1242,13 +1242,13 @@ void R_Mirror (void)
 
 	glLoadMatrixf (r_base_world_matrix);
 
-	glColor4f (1,1,1,r_mirroralpha.value);
+	GL_Color(1,1,1,r_mirroralpha.value);
 	s = cl.worldmodel->textures[mirrortexturenum]->texturechain;
 	for ( ; s ; s=s->texturechain)
 		R_RenderBrushPoly (s);
 	cl.worldmodel->textures[mirrortexturenum]->texturechain = NULL;
 	glDisable (GL_BLEND);
-	glColor4f (1,1,1,1);
+	GL_Color(1,1,1,1);
 }
 
 /*

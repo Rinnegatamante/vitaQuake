@@ -218,7 +218,7 @@ void EmitWaterPolys (msurface_t *fa)
 		}
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-		vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+		GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	}
 }
 
@@ -261,7 +261,7 @@ void EmitSkyPolys (msurface_t *fa)
 		}
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
-		vglDrawObjects(GL_TRIANGLE_FAN, p->numverts, GL_TRUE);
+		GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	}
 }
 
