@@ -463,7 +463,6 @@ void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float 
 {
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
   float color[4] = {r,g,b,a};
-  unsigned short index[4] = {0, 1, 2, 3};
   GL_DisableState(GL_TEXTURE_COORD_ARRAY);
   vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
   glUniform4fv(monocolor[0], 1, color);
@@ -475,7 +474,6 @@ void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, fl
 {
   float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
   float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
-  unsigned short index[4] = {0, 1, 2, 3};
   vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
   vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
   GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
@@ -672,7 +670,7 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	GL_Color(1,1,1, 1);
+	GL_Color(1,1,1,1);
 	DrawQuad(x, y, pic->width, pic->height, 0, 0, 1, 1);
 }
 
@@ -997,7 +995,7 @@ static	unsigned	scaled[1024*512];	// [512*256];
 	
 	glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 
-done: ;
+done:
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
