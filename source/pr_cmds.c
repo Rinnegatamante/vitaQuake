@@ -157,10 +157,10 @@ void SetMinMaxSize(edict_t *e, float *min, float *max, bool rotate)
 
 		a = angles[1] / 180 * M_PI;
 
-		xvector[0] = cos(a);
-		xvector[1] = sin(a);
-		yvector[0] = -sin(a);
-		yvector[1] = cos(a);
+		xvector[0] = cosf(a);
+		xvector[1] = sinf(a);
+		yvector[0] = -sinf(a);
+		yvector[1] = cosf(a);
 
 		VectorCopy(min, bounds[0]);
 		VectorCopy(max, bounds[1]);
@@ -1163,8 +1163,8 @@ void PF_walkmove(void)
 
 	yaw = yaw*M_PI * 2 / 360;
 
-	move[0] = cos(yaw)*dist;
-	move[1] = sin(yaw)*dist;
+	move[0] = cosf(yaw)*dist;
+	move[1] = sinf(yaw)*dist;
 	move[2] = 0;
 
 	// save program state, because SV_movestep may call other progs
@@ -1807,12 +1807,12 @@ void PF_WaterMove(void)
 
 void PF_sin(void)
 {
-	G_FLOAT(OFS_RETURN) = sin(G_FLOAT(OFS_PARM0));
+	G_FLOAT(OFS_RETURN) = sinf(G_FLOAT(OFS_PARM0));
 }
 
 void PF_cos(void)
 {
-	G_FLOAT(OFS_RETURN) = cos(G_FLOAT(OFS_PARM0));
+	G_FLOAT(OFS_RETURN) = cosf(G_FLOAT(OFS_PARM0));
 }
 
 void PF_sqrt(void)

@@ -106,7 +106,7 @@ void R_RenderDlight (dlight_t *light)
 		*pColor++ = 0.0f;
 		a = i/16.0 * M_PI*2;
 		for (j=0 ; j<3 ; j++)
-			*pPos++ = light->origin[j] + vright[j]*cos(a)*rad
+			*pPos++ = light->origin[j] + vright[j]*cosf(a)*rad
 				+ vup[j]*sin(a)*rad;
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);

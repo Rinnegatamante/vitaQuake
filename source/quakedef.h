@@ -46,7 +46,7 @@ extern int m_state;
 #define	QUAKE_GAME			// as opposed to utilities
 
 #define ENGINE_NAME			"VitaQuake"
-#define	VERSION				2.1
+#define	VERSION				2.5
 #define VERSION_PROQUAKE	3.50
 #define	GLQUAKE_VERSION	    1.00
 
@@ -354,7 +354,6 @@ void Chase_Update (void);
 void DrawQuad_NoTex(GLfloat x, GLfloat y, GLfloat w, GLfloat h);
 void DrawQuad(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat u, GLfloat v, GLfloat uw, GLfloat vh);
 
-bool VID_Is8bit(void);
 void GL_SubdivideSurface (msurface_t *fa);
 void GL_MakeAliasModelDisplayLists (model_t *m, aliashdr_t *hdr);
 int R_LightPoint (vec3_t p);
