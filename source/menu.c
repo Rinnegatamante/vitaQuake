@@ -27,12 +27,11 @@ STATIC_CVAR (d_mipcap,		0, CVAR_ARCHIVE)
 CVAR (d_mipscale,	1, CVAR_ARCHIVE)
 CVAR (d_dither,		0, CVAR_ARCHIVE)
 CVAR (vid_vsync, 1, CVAR_ARCHIVE)
-extern void VID_ChangeRes(float);
 extern cvar_t	inverted;
 extern cvar_t	pstv_rumble;
 extern cvar_t	res_val;
 extern cvar_t	retrotouch;
-extern cvar_t	always_run;
+extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 int m_state = m_none;
 
@@ -1050,8 +1049,8 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("volume", volume.value);
 		break;
 
-	case 9:	// always run
-		Cvar_SetValue ("always_run", !always_run.value);
+	case 9:	// show weapon
+		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
 
 	case 10:	// invert mouse
@@ -1081,19 +1080,12 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("show_fps", !show_fps.value);
 		break;
 		
-	case 16:	// vsync
-		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
-		vglWaitVblankStart(vid_vsync.value);
+	case 16:	// dynamic torchflares
+		Cvar_SetValue ("gl_torchflares", !gl_torchflares.value);
 		break;
 		
-	case 17:	// change res
-		res_val.value += dir * 0.333;
-		if (res_val.value < 0)
-			res_val.value = 0;
-		if (res_val.value > 1)
-			res_val.value = 1;
-		Cvar_SetValue ("render_res",res_val.value);
-		VID_ChangeRes(res_val.value);
+	case 17:	// dynamic shadows
+		Cvar_SetValue ("r_shadows", !r_shadows.value);
 		break;
 		
 	case 18:	// performance test
@@ -1164,8 +1156,8 @@ void M_Options_Draw (void)
 	r = volume.value;
 	M_DrawSlider (220, 96, r);
 
-	M_Print (16, 104,  "           Always Run");
-	M_DrawCheckbox (220, 104, always_run.value);
+	M_Print (16, 104,  "          Show Weapon");
+	M_DrawCheckbox (220, 104, r_drawviewmodel.value);
 
 	M_Print (16, 112, "         Invert Camera");
 	M_DrawCheckbox (220, 112, inverted.value);
@@ -1187,12 +1179,11 @@ void M_Options_Draw (void)
 	M_Print (16, 152, "        Show Framerate");
 	M_DrawCheckbox (220, 152, show_fps.value);
 	
-	M_Print (16, 160, "                 VSync");
-	M_DrawCheckbox (220, 160, vid_vsync.value);
+	M_Print (16, 160, " Dynamic Torches Light");
+	M_DrawCheckbox (220, 160, gl_torchflares.value);
 	
-	//if (vid_menudrawfn)
-	M_Print (16, 168, "       Game Resolution");
-	M_DrawSlider (220, 168, res_val.value);
+	M_Print (16, 168, "       Dynamic Shadows");
+	M_DrawCheckbox (220, 168, r_shadows.value);
 	
 	M_Print (50, 182, res_string);
 	
