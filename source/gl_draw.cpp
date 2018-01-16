@@ -71,6 +71,247 @@ typedef struct
 gltexture_t	gltextures[MAX_GLTEXTURES];
 int numgltextures = 0;
 
+/*
+ * Texture Manager - derived from glesquake
+ */
+#define TEXTURE_STORE_NAME "glquake/texture.store"
+
+class textureStore {
+
+private:
+    static const GLuint UNUSED = (GLuint) -2;
+    static const GLuint PAGED_OUT = (GLuint) -1;
+
+    struct entry
+    {
+        entry* next;
+        entry* prev;
+        GLuint real_texnum;    // UNUSED, PAGED_OUT
+        byte* pData; // 0 ==> not created by us.
+        size_t size;
+        bool alpha;
+        int width;
+        int height;
+        bool mipmap;
+
+        entry() {
+            next = 0;
+            prev = 0;
+            real_texnum = UNUSED;
+            pData = 0;
+        }
+
+
+        void unlink() {
+            if (next) {
+                next->prev = prev;
+            }
+            if (prev) {
+                prev->next = next;
+            }
+            next = 0;
+            prev = 0;
+        }
+
+        void insertBefore(entry* e){
+            if (e) {
+                prev = e->prev;
+                if ( prev ) {
+                    prev->next = this;
+                }
+                next = e;
+                e->prev = this;
+            }
+            else {
+                prev = 0;
+                next = 0;
+            }
+        }
+    };
+
+public:
+
+    static textureStore* get() {
+        if (g_pTextureCache == 0) {
+            g_pTextureCache = new textureStore();
+        }
+        return g_pTextureCache;
+    }
+
+    // Equivalent of glBindTexture, but uses the virtual texture table
+
+    void bind(int virtTexNum) {
+        if ( (unsigned int) virtTexNum >= TEXTURE_STORE_NUM_TEXTURES) {
+            Sys_Error("not in the range we're managing");
+        }
+        mBoundTextureID = virtTexNum;
+        entry* e = &mTextures[virtTexNum];
+
+        if ( e->real_texnum == UNUSED) {
+            glGenTextures( 1, &e->real_texnum);
+        }
+
+        if ( e->pData == 0) {
+            glBindTexture(GL_TEXTURE_2D, e->real_texnum);
+            return;
+        }
+
+        update(e);
+    }
+
+    void update(entry* e)
+    {
+        // Update the "LRU" part of the cache
+        unlink(e);
+        e->insertBefore(mFirst);
+        mFirst = e;
+        if (! mLast) {
+            mLast = e;
+        }
+
+        if (e->real_texnum == PAGED_OUT ) {
+            // Create a real texture
+            // Make sure there is enough room for this texture
+            ensure(e->size);
+
+            glGenTextures( 1, &e->real_texnum);
+
+            glBindTexture(GL_TEXTURE_2D, e->real_texnum);
+            GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
+                    e->alpha);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, e->real_texnum);
+        }
+    }
+
+    // Create a texture, and remember the data so we can create
+    // it again later.
+
+    void create(int width, int height, byte* data, bool mipmap,
+            bool alpha) {
+        int size = width * height;
+        if (size + mLength > mCapacity) {
+            Sys_Error("Ran out of virtual texture space. %d", size);
+        };
+        entry* e = &mTextures[mBoundTextureID];
+
+        // Call evict in case the currently bound texture id is already
+        // in use. (Shouldn't happen in Quake.)
+        // To Do: reclaim the old texture memory from the virtual memory.
+
+        evict(e);
+
+        e->alpha = alpha;
+        e->pData = mBase + mLength;
+        memcpy(e->pData, data, size);
+        e->size = size;
+        e->width = width;
+        e->height = height;
+        e->mipmap = mipmap;
+        e->real_texnum = PAGED_OUT;
+        mLength += size;
+
+        update(e);
+    }
+
+    // Re-upload the current textures because we've been reset.
+    void rebindAll() {
+        grabMagicTextureIds();
+        for (entry* e = mFirst; e; e = e->next ) {
+            if (! (e->real_texnum == UNUSED || e->real_texnum == PAGED_OUT)) {
+                glBindTexture(GL_TEXTURE_2D, e->real_texnum);
+                if (e->pData) {
+                    GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
+                        e->alpha);
+                }
+            }
+        }
+    }
+
+private:
+
+    textureStore() {
+        grabMagicTextureIds();
+        mFirst = 0;
+        mLast = 0;
+        mTextureCount = 0;
+
+        mBase = (byte*)malloc(TEXTURE_STORE_SIZE);
+		mBase[TEXTURE_STORE_SIZE-1] = 0;
+		
+        mLength = 0;
+        mCapacity = TEXTURE_STORE_SIZE;
+        mRamUsed = 0;
+        mRamSize = LIVE_TEXTURE_LIMIT;
+    }
+
+    ~textureStore() {
+        free(mBase);
+    }
+
+    void grabMagicTextureIds() {
+        // reserve these two texture ids.
+        glBindTexture(GL_TEXTURE_2D, UNUSED);
+        glBindTexture(GL_TEXTURE_2D, PAGED_OUT);
+    }
+
+    void unlink(entry* e) {
+        if (e == mFirst) {
+            mFirst = e->next;
+        }
+        if (e == mLast) {
+            mLast = e->prev;
+        }
+        e->unlink();
+    }
+
+    void ensure(int size) {
+        while ( mRamSize - mRamUsed < (unsigned int) size) {
+            entry* e = mLast;
+            if(! e) {
+                Sys_Error("Ran out of entries");
+                return;
+            }
+            evict(e);
+        }
+        mRamUsed += size;
+    }
+
+    void evict(entry* e) {
+        unlink(e);
+        if ( e->pData ) {
+            glDeleteTextures(1, &e->real_texnum);
+            e->real_texnum = PAGED_OUT;
+            mRamUsed -= e->size;
+        }
+    }
+
+    static const size_t TEXTURE_STORE_SIZE = 16 * 1024 * 1024;
+    static const size_t LIVE_TEXTURE_LIMIT = 1 * 1024 * 1024;
+    static const size_t TEXTURE_STORE_NUM_TEXTURES = 512;
+
+    byte* mBase;
+    size_t mLength;
+    size_t mCapacity;
+
+    // Keep track of texture RAM.
+    size_t mRamUsed;
+    size_t mRamSize;
+
+    // The virtual textures
+    entry mTextures[MAX_GLTEXTURES];
+    entry* mFirst; // LRU queue
+    entry* mLast;
+    size_t mTextureCount; // How many virtual textures have been allocated
+
+    static textureStore* g_pTextureCache;
+
+    int mBoundTextureID;
+};
+
+textureStore* textureStore::g_pTextureCache;
+
 void GL_Bind (int texnum)
 {
 	if (gl_nobind.value)
@@ -79,7 +320,7 @@ void GL_Bind (int texnum)
 		return;
 	currenttexture = texnum;
 
-	glBindTexture(GL_TEXTURE_2D, texnum);
+	textureStore::get()->bind(texnum);
 
 }
 
@@ -465,7 +706,7 @@ void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float 
   float color[4] = {r,g,b,a};
   GL_DisableState(GL_TEXTURE_COORD_ARRAY);
   vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-  glUniform4fv(monocolor[0], 1, color);
+  glUniform4fv(monocolor, 1, color);
   GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
   GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 }
@@ -994,12 +1235,21 @@ static	unsigned	scaled[1024*512];	// [512*256];
 		GL_ResampleTexture (data, width, height, scaled, scaled_width, scaled_height);
 	
 	glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-
-done:
+	if (mipmap) glGenerateMipmap(GL_TEXTURE_2D);
 	
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+done: ;
+	
+	if (mipmap)
+	{
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+	}
+	else
+	{
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+	}
+	
 }
 
 void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha) 
@@ -1165,7 +1415,7 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 
 	GL_Bind(texture_extension_number );
 
-	GL_Upload8 (data, width, height, mipmap, alpha);
+	textureStore::get()->create(width, height, data, mipmap, alpha);
 
 	texture_extension_number++;
 
