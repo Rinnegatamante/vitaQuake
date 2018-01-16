@@ -173,9 +173,9 @@ void	VID_SetPalette (unsigned char *palette)
 #define MAX_INDICES 4096
 uint16_t* indices;
 
-GLuint fs[10];
+GLuint fs[9];
 GLuint vs[4];
-GLuint programs[10];
+GLuint programs[9];
 
 void* GL_LoadShader(const char* filename, GLuint idx, GLboolean fragment){
 	FILE* f = fopen(filename, "rb");
@@ -195,13 +195,15 @@ int texenv_mask = 0;
 int texcoord_state = 0;
 int alpha_state = 0;
 int color_state = 0;
-GLint monocolor[2];
+GLint monocolor;
 GLint modulcolor[2];
 
 void GL_SetProgram(){
 	switch (state_mask + texenv_mask){
 		case 0x00: // Everything off
 		case 0x04: // Modulate
+		case 0x08: // Alpha Test
+		case 0x0C: // Alpha Test + Modulate
 			glUseProgram(programs[NO_COLOR]);
 			break;
 		case 0x01: // Texcoord
@@ -217,10 +219,6 @@ void GL_SetProgram(){
 			break;
 		case 0x07: // Modulate + Texcoord + Color
 			glUseProgram(programs[TEX2D_MODUL_CLR]);
-			break;
-		case 0x08: // Alpha Test
-		case 0x0C: // Alpha Test + Modulate
-			glUseProgram(programs[NO_COLOR_A]);
 			break;
 		case 0x09: // Alpha Test + Texcoord
 		case 0x0B: // Alpha Test + Color + Texcoord
@@ -354,14 +352,13 @@ void GL_Init (void)
 	GL_LoadShader("app0:shaders/modulate_rgba_alpha_f.gxp", MODULATE_COLOR_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/replace_alpha_f.gxp", REPLACE_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_alpha_f.gxp", RGBA_A, GL_TRUE);
-	GL_LoadShader("app0:shaders/vertex_alpha_f.gxp", MONO_COLOR_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_v.gxp", COLOR, GL_FALSE);
 	GL_LoadShader("app0:shaders/texture2d_v.gxp", TEXTURE2D, GL_FALSE);
 	GL_LoadShader("app0:shaders/texture2d_rgba_v.gxp", TEXTURE2D_WITH_COLOR, GL_FALSE);
 	GL_LoadShader("app0:shaders/vertex_v.gxp", VERTEX_ONLY, GL_FALSE);
 	
 	// Setting up programs
-	for (i=0;i<10;i++){
+	for (i=0;i<9;i++){
 		programs[i] = glCreateProgram();
 		switch (i){
 			case TEX2D_REPL:
@@ -394,7 +391,7 @@ void GL_Init (void)
 				glAttachShader(programs[i], fs[MONO_COLOR]);
 				glAttachShader(programs[i], vs[VERTEX_ONLY]);
 				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
-				monocolor[0] = glGetUniformLocation(programs[i], "color");
+				monocolor = glGetUniformLocation(programs[i], "color");
 				break;
 			case TEX2D_REPL_A:
 				glAttachShader(programs[i], fs[REPLACE_A]);
@@ -421,12 +418,6 @@ void GL_Init (void)
 				glAttachShader(programs[i], vs[COLOR]);
 				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
 				vglBindAttribLocation(programs[i], 1, "aColor", 4, GL_FLOAT);
-				break;
-			case NO_COLOR_A:
-				glAttachShader(programs[i], fs[MONO_COLOR_A]);
-				glAttachShader(programs[i], vs[VERTEX_ONLY]);
-				vglBindAttribLocation(programs[i], 0, "aPosition", 3, GL_FLOAT);
-				monocolor[1] = glGetUniformLocation(programs[i], "color");
 				break;
 		}
 		glLinkProgram(programs[i]);

@@ -398,7 +398,6 @@ extern float gTexCoordBuffer[VERTEXARRAYSIZE];
 #define MODULATE_A           6
 #define RGBA_A               7
 #define REPLACE_A            8
-#define MONO_COLOR_A         9
 
 // Vertex shaders
 #define TEXTURE2D            0
@@ -416,12 +415,11 @@ extern float gTexCoordBuffer[VERTEXARRAYSIZE];
 #define TEX2D_MODUL_A   6
 #define RGBA_CLR_A      7
 #define FULL_A          8
-#define NO_COLOR_A      9
 
-extern GLuint fs[10];
+extern GLuint fs[9];
 extern GLuint vs[4];
-extern GLuint programs[10];
-extern GLint monocolor[2];
+extern GLuint programs[9];
+extern GLint monocolor;
 extern GLint modulcolor[2];
 
 void GL_EnableState(GLenum state);
