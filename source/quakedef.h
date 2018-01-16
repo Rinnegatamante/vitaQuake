@@ -21,13 +21,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //#define	GLTEST			// experimental stuff
 
-enum {m_none, m_main, m_singleplayer, m_load, m_save, m_multiplayer, m_setup, m_net, m_options, m_video, m_keys, m_help, m_quit, m_lanconfig, m_gameoptions, m_search, m_slist, m_onlineserverlist, m_benchmark} m_state;
+#define m_none 0 
+#define m_main 1
+#define m_singleplayer 2
+#define m_load 3 
+#define m_save 4
+#define m_multiplayer 5
+#define m_setup 6
+#define m_net 7
+#define m_options 8
+#define m_video 9
+#define m_keys 10
+#define m_help 11
+#define m_quit 12
+#define m_lanconfig 13
+#define m_gameoptions 14
+#define m_search 15
+#define m_slist 16
+#define m_onlineserverlist 17
+#define m_benchmark 18
+
+extern int m_state;
 
 #define	QUAKE_GAME			// as opposed to utilities
 
 #define ENGINE_NAME			"VitaQuake"
 #define	VERSION				2.1
 #define VERSION_PROQUAKE	3.50
+#define	GLQUAKE_VERSION	    1.00
 
 //define	PARANOID			// speed sapping error checking
 
@@ -238,8 +259,12 @@ typedef struct
 #include "progs.h"
 #include "server.h"
 
+#ifdef GLQUAKE
+#include "gl_model.h"
+#else
 #include "model.h"
 #include "d_iface.h"
+#endif
 
 #include "input.h"
 #include "world.h"
@@ -250,6 +275,9 @@ typedef struct
 #include "crc.h"
 #include "cdaudio.h"
 
+#ifdef GLQUAKE
+#include "glquake.h"
+#endif
 
 //=============================================================================
 
@@ -322,3 +350,79 @@ extern	cvar_t	chase_active;
 void Chase_Init (void);
 void Chase_Reset (void);
 void Chase_Update (void);
+
+void DrawQuad_NoTex(GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+void DrawQuad(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat u, GLfloat v, GLfloat uw, GLfloat vh);
+
+bool VID_Is8bit(void);
+void GL_SubdivideSurface (msurface_t *fa);
+void GL_MakeAliasModelDisplayLists (model_t *m, aliashdr_t *hdr);
+int R_LightPoint (vec3_t p);
+void R_DrawBrushModel (entity_t *e);
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
+void R_AnimateLight (void);
+void V_CalcBlend (void);
+void R_DrawWorld (void);
+void R_RenderDlights(void);
+void R_DrawParticles (void);
+void R_DrawWaterSurfaces (void);
+void R_RenderBrushPoly (msurface_t *fa);
+void R_InitParticles (void);
+void GL_Upload8_EXT (byte *data, int width, int height,  bool mipmap, bool alpha);
+void R_ClearParticles (void);
+void GL_BuildLightmaps (void);
+void EmitWaterPolys (msurface_t *fa);
+void EmitSkyPolys (msurface_t *fa);
+void EmitBothSkyLayers (msurface_t *fa);
+void R_DrawSkyChain (msurface_t *s);
+bool R_CullBox (vec3_t mins, vec3_t maxs);
+void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
+void R_RotateForEntity (entity_t *e);
+void R_StoreEfrags (efrag_t **ppefrag);
+void GL_Set2D (void);
+void GL_DrawFPS(void);
+void GL_DrawBenchmark(void);
+void GL_SelectTexture (GLenum target);
+
+#define VERTEXARRAYSIZE 18360
+extern float gVertexBuffer[VERTEXARRAYSIZE];
+extern float gColorBuffer[VERTEXARRAYSIZE];
+extern float gTexCoordBuffer[VERTEXARRAYSIZE];
+
+// Fragment shaders
+#define MODULATE_WITH_COLOR  0
+#define MODULATE             1
+#define REPLACE              2
+#define MONO_COLOR           4
+#define MODULATE_COLOR_A     5
+#define MODULATE_A           6
+#define RGBA_A               7
+#define REPLACE_A            8
+
+// Vertex shaders
+#define TEXTURE2D            0
+#define TEXTURE2D_WITH_COLOR 1
+#define COLOR                2
+#define VERTEX_ONLY          3
+
+// Shader programs
+#define TEX2D_REPL      0
+#define TEX2D_MODUL     1
+#define TEX2D_MODUL_CLR 2
+#define RGBA_COLOR      3
+#define NO_COLOR        4
+#define TEX2D_REPL_A    5
+#define TEX2D_MODUL_A   6
+#define RGBA_CLR_A      7
+#define FULL_A          8
+
+extern GLuint fs[9];
+extern GLuint vs[4];
+extern GLuint programs[9];
+extern GLint monocolor;
+extern GLint modulcolor[2];
+
+void GL_EnableState(GLenum state);
+void GL_DisableState(GLenum state);
+void GL_DrawPolygon(GLenum prim, int num);
+void GL_Color(float r, float g, float b, float a);

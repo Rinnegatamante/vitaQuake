@@ -18,17 +18,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include <vitaGL.h>
 #include "quakedef.h"
 #include "r_local.h"
 
-#define MAX_PARTICLES			2048	// default max # of particles at one
-										//  time
-#define ABSOLUTE_MIN_PARTICLES	512		// no fewer than this no matter what's
-										//  on the command line
+#define DEFAULT_NUM_PARTICLES	1024	// default max # of particles at one time
+#define ABSOLUTE_MIN_PARTICLES	512		// no fewer than this no matter what's on the command line
+#define ABSOLUTE_MAX_PARTICLES	8192
 
-int		ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
-int		ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
-int		ramp3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
+static int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
+static int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
+static int ramp3[8] = {0x6d, 0x6b, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01};
 
 particle_t	*active_particles, *free_particles;
 
@@ -37,6 +37,7 @@ int			r_numparticles;
 
 vec3_t			r_pright, r_pup, r_ppn;
 
+extern float d_8to32ftable[];
 
 /*
 ===============
@@ -47,64 +48,20 @@ void R_InitParticles (void)
 {
 	int		i;
 
-	i = COM_CheckParm ("-particles");
-
-	if (i)
+	if ((i = COM_CheckParm ("-particles"))  && i+1 < com_argc)
 	{
 		r_numparticles = (int)(Q_atoi(com_argv[i+1]));
-		if (r_numparticles < ABSOLUTE_MIN_PARTICLES)
-			r_numparticles = ABSOLUTE_MIN_PARTICLES;
+		if (r_numparticles < ABSOLUTE_MIN_PARTICLES) r_numparticles = ABSOLUTE_MIN_PARTICLES;
+		else if (r_numparticles > ABSOLUTE_MAX_PARTICLES) r_numparticles = ABSOLUTE_MAX_PARTICLES;
 	}
 	else
 	{
-		r_numparticles = MAX_PARTICLES;
+		r_numparticles = DEFAULT_NUM_PARTICLES;
 	}
 
 	particles = (particle_t *)
 			Hunk_AllocName (r_numparticles * sizeof(particle_t), "particles");
 }
-
-#ifdef QUAKE2
-void R_DarkFieldParticles (entity_t *ent)
-{
-	int			i, j, k;
-	particle_t	*p;
-	float		vel;
-	vec3_t		dir;
-	vec3_t		org;
-
-	org[0] = ent->origin[0];
-	org[1] = ent->origin[1];
-	org[2] = ent->origin[2];
-	for (i=-16 ; i<16 ; i+=8)
-		for (j=-16 ; j<16 ; j+=8)
-			for (k=0 ; k<32 ; k+=8)
-			{
-				if (!free_particles)
-					return;
-				p = free_particles;
-				free_particles = p->next;
-				p->next = active_particles;
-				active_particles = p;
-		
-				p->die = cl.time + 0.2 + (rand()&7) * 0.02;
-				p->color = 150 + rand()%6;
-				p->type = pt_slowgrav;
-				
-				dir[0] = j*8;
-				dir[1] = i*8;
-				dir[2] = k*8;
-	
-				p->org[0] = org[0] + i + (rand()&3);
-				p->org[1] = org[1] + j + (rand()&3);
-				p->org[2] = org[2] + k + (rand()&3);
-	
-				VectorNormalize (dir);						
-				vel = 50 + (rand()&63);
-				VectorScale (dir, vel, p->vel);
-			}
-}
-#endif
 
 
 /*
@@ -132,7 +89,7 @@ void R_EntityParticles (entity_t *ent)
 	float		dist;
 	
 	dist = 64;
-	count = 50;
+	count = 25;
 
 if (!avelocities[0][0])
 {
@@ -144,14 +101,14 @@ avelocities[0][i] = (rand()&255) * 0.01;
 	for (i=0 ; i<NUMVERTEXNORMALS ; i++)
 	{
 		angle = cl.time * avelocities[i][0];
-		sy = sin(angle);
-		cy = cos(angle);
+		sy = sinf(angle);
+		cy = cosf(angle);
 		angle = cl.time * avelocities[i][1];
-		sp = sin(angle);
-		cp = cos(angle);
+		sp = sinf(angle);
+		cp = cosf(angle);
 		angle = cl.time * avelocities[i][2];
-		sr = sin(angle);
-		cr = cos(angle);
+		sr = sinf(angle);
+		cr = cosf(angle);
 	
 		forward[0] = cp*cy;
 		forward[1] = cp*sy;
@@ -202,7 +159,7 @@ void R_ReadPointFile_f (void)
 	particle_t	*p;
 	char	name[MAX_OSPATH];
 	
-	sprintf (name,"maps/%s.pts", sv.name);
+	snprintf(name, sizeof(name), "maps/%s.pts", sv.name);
 
 	COM_FOpenFile (name, &f);
 	if (!f)
@@ -215,7 +172,25 @@ void R_ReadPointFile_f (void)
 	c = 0;
 	for ( ;; )
 	{
-		r = fscanf (f,"%f %f %f\n", &org[0], &org[1], &org[2]);
+		// Read the line into a string.
+		char line[128];
+		int chars = 0;
+		do
+		{
+			if (chars >= (sizeof(line) - 2))
+			{
+				Sys_Error("Line buffer overflow when reading point file");
+			}
+
+			if (!Sys_FileRead(f, &line[chars++], 1) != 1)
+			{
+				break;
+			}
+		}
+		while (line[chars - 1] != '\n');
+		line[chars] = '\0';
+
+		r = sscanf (line, "%f %f %f\n", &org[0], &org[1], &org[2]);
 		if (r != 3)
 			break;
 		c++;
@@ -237,7 +212,7 @@ void R_ReadPointFile_f (void)
 		VectorCopy (org, p->org);
 	}
 
-	fclose (f);
+	Sys_FileClose (f);
 	Con_Printf ("%i points read\n", c);
 }
 
@@ -655,18 +630,24 @@ void R_DrawParticles (void)
 	float			time1;
 	float			dvel;
 	float			frametime;
-	
+	float*			pPos = gVertexBuffer;
+	float*	pColor = (float*) gColorBuffer;
+	float*  pUV = (float*) gTexCoordBuffer;
+
 #ifdef GLQUAKE
 	vec3_t			up, right;
 	float			scale;
-
+	
     GL_Bind(particletexture);
+	
 	glEnable (GL_BLEND);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBegin (GL_TRIANGLES);
+	GL_EnableState(GL_MODULATE);
+	GL_EnableState(GL_COLOR_ARRAY);
+	
+	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
-	VectorScale (vup, 1.5, up);
-	VectorScale (vright, 1.5, right);
+	VectorScale (vup, 1.50, up);
+	VectorScale (vright, 1.50, right);
 #else
 	D_StartParticles ();
 
@@ -681,6 +662,7 @@ void R_DrawParticles (void)
 	grav = frametime * sv_gravity.value * 0.05;
 	dvel = 4*frametime;
 	
+	int num_vertices = 0;
 	for ( ;; ) 
 	{
 		kill = active_particles;
@@ -710,20 +692,44 @@ void R_DrawParticles (void)
 		}
 
 #ifdef GLQUAKE
+		num_vertices += 3;
+
 		// hack a scale up to keep particles from disapearing
 		scale = (p->org[0] - r_origin[0])*vpn[0] + (p->org[1] - r_origin[1])*vpn[1]
 			+ (p->org[2] - r_origin[2])*vpn[2];
 		if (scale < 20)
-			scale = 1;
+			scale = 1.08f; //johnfitz -- added .08 to be consistent
 		else
 			scale = 1 + scale * 0.004;
-		glColor3ubv ((byte *)&d_8to24table[(int)p->color]);
-		glTexCoord2f (0,0);
-		glVertex3fv (p->org);
-		glTexCoord2f (1,0);
-		glVertex3f (p->org[0] + up[0]*scale, p->org[1] + up[1]*scale, p->org[2] + up[2]*scale);
-		glTexCoord2f (0,1);
-		glVertex3f (p->org[0] + right[0]*scale, p->org[1] + right[1]*scale, p->org[2] + right[2]*scale);
+				
+		
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
+		pColor[3] = 1.0f;
+		pColor += 4;
+		*pUV++ = 0.0f;
+		*pUV++ = 0.0f;
+		*pPos++ = p->org[0];
+		*pPos++ = p->org[1];
+		*pPos++ = p->org[2];
+
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
+		pColor[3] = 1.0f;
+		pColor += 4;
+		*pUV++ = 1.0f;
+		*pUV++ = 0.0f;
+		*pPos++ = (p->org[0] + up[0]*scale);
+		*pPos++ = (p->org[1] + up[1]*scale);
+		*pPos++ = (p->org[2] + up[2]*scale);
+
+		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
+		pColor[3] = 1.0f;
+		pColor += 4;
+		*pUV++ = 0.0;
+		*pUV++ = 1.0;
+		*pPos++ = (p->org[0] + right[0]*scale);
+		*pPos++ = (p->org[1] + right[1]*scale);
+		*pPos++ = (p->org[2] + right[2]*scale);
+
 #else
 		D_DrawParticle (p);
 #endif
@@ -779,20 +785,23 @@ void R_DrawParticles (void)
 			break;
 
 		case pt_grav:
-#ifdef QUAKE2
-			p->vel[2] -= grav * 20;
-			break;
-#endif
 		case pt_slowgrav:
 			p->vel[2] -= grav;
+			break;
+		default:		
 			break;
 		}
 	}
 
 #ifdef GLQUAKE
-	glEnd ();
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, num_vertices, gVertexBuffer);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, num_vertices, gTexCoordBuffer);
+	vglVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, num_vertices, gColorBuffer);
+	GL_DrawPolygon(GL_TRIANGLES, num_vertices);
+	GL_DisableState(GL_COLOR_ARRAY);
+	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glDisable (GL_BLEND);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	GL_EnableState(GL_REPLACE);
 #else
 	D_EndParticles ();
 #endif

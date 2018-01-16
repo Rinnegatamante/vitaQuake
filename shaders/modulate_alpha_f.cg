@@ -1,0 +1,10 @@
+﻿float4 main(
+	float2 vTexcoord : TEXCOORD0,
+	uniform float4 vColor,
+	uniform sampler2D tex
+	)
+{	
+	float4 c = tex2D(tex, vTexcoord) * vColor;
+	if (c.a > 0.666) return c;
+	else discard;
+}
