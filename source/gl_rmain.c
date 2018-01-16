@@ -82,7 +82,7 @@ cvar_t	r_lightmap = {"r_lightmap","0"};
 cvar_t	r_shadows = {"r_shadows","1"}; 
 cvar_t	r_mirroralpha = {"r_mirroralpha","1"};
 cvar_t	r_wateralpha = {"r_wateralpha","1"};
-cvar_t	r_dynamic = {"r_dynamic","1"};
+cvar_t	r_dynamic = {"r_dynamic","0"};
 cvar_t	r_novis = {"r_novis","0"};
 
 cvar_t	gl_finish = {"gl_finish","0"};
@@ -437,7 +437,7 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 
 		GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 		const float color[] = {0,0,0,0.5f};
-		glUniform4fv(monocolor[0], 1, color);
+		glUniform4fv(monocolor, 1, color);
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, count, gVertexBuffer);
 		GL_DrawPolygon(primType, count);
 		GL_EnableState(GL_TEXTURE_COORD_ARRAY);
@@ -895,7 +895,7 @@ void R_PolyBlend (void)
 
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-	glUniform4fv(monocolor[0], 1, v_blend);
+	glUniform4fv(monocolor, 1, v_blend);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 
