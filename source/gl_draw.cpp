@@ -74,8 +74,6 @@ int numgltextures = 0;
 /*
  * Texture Manager - derived from glesquake
  */
-#define TEXTURE_STORE_NAME "glquake/texture.store"
-
 class textureStore {
 
 private:

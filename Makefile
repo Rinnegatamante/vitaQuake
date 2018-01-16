@@ -75,7 +75,7 @@ OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -w -fno-lto -Wl,-q -O3 -g -DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DDEBUG -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\" 
+CFLAGS  = -fno-lto -w -Wl,-q -O3 -g -DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP -DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\" 
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
@@ -87,7 +87,7 @@ $(TARGET).vpk: $(TARGET).velf
 	cp -f param.sfo build/sce_sys/param.sfo
 	
 	#------------ Comment this if you don't have 7zip ------------------
-	7z a -tzip ./$(TARGET).vpk -r .\build\sce_sys\* .\build\eboot.bin 
+	7z a -tzip ./$(TARGET).vpk -r .\build\sce_sys\* .\build\eboot.bin .\build\shaders\*
 	#-------------------------------------------------------------------
 	
 %.velf: %.elf
