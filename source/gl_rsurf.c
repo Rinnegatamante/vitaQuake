@@ -326,9 +326,9 @@ void R_DrawSequentialPoly (msurface_t *s)
 			memcpy(pUV, v+3, sizeof(float)*2);
 			memcpy(pUV2, v+5, sizeof(float)*2);
 			v += VERTEXSIZE;
-			pPoint += sizeof(vec3_t);
-			pUV += sizeof(float)*2;
-			pUV2 += sizeof(float)*2;
+			pPoint += 3;
+			pUV += 2;
+			pUV2 += 2;
 		}
 		
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
@@ -778,7 +778,7 @@ void R_DrawWaterSurfaces (void)
 	msurface_t	*s;
 	texture_t	*t;
 
-	if (r_wateralpha.value == 1.0 && gl_texsort.value)
+	if (r_wateralpha.value == 1.0)
 		return;
 
 	//
@@ -793,39 +793,25 @@ void R_DrawWaterSurfaces (void)
 		GL_EnableState(GL_MODULATE);
 	}
 
-	if (!gl_texsort.value) {
-		if (!waterchain)
-			return;
+	for (i=0 ; i<cl.worldmodel->numtextures ; i++)
+	{
+		t = cl.worldmodel->textures[i];
+		if (!t)
+			continue;
+		s = t->texturechain;
+		if (!s)
+			continue;
+		if ( !(s->flags & SURF_DRAWTURB ) )
+			continue;
 
-		for ( s = waterchain ; s ; s=s->texturechain) {
-			GL_Bind (s->texinfo->texture->gl_texturenum);
+		// set modulate mode explicitly
+			
+		GL_Bind (t->gl_texturenum);
+
+		for ( ; s ; s=s->texturechain)
 			EmitWaterPolys (s);
-		}
-		
-		waterchain = NULL;
-	} else {
-
-		for (i=0 ; i<cl.worldmodel->numtextures ; i++)
-		{
-			t = cl.worldmodel->textures[i];
-			if (!t)
-				continue;
-			s = t->texturechain;
-			if (!s)
-				continue;
-			if ( !(s->flags & SURF_DRAWTURB ) )
-				continue;
-
-			// set modulate mode explicitly
 			
-			GL_Bind (t->gl_texturenum);
-
-			for ( ; s ; s=s->texturechain)
-				EmitWaterPolys (s);
-			
-			t->texturechain = NULL;
-		}
-
+		t->texturechain = NULL;
 	}
 
 	if (r_wateralpha.value < 1.0) {
