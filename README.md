@@ -12,7 +12,7 @@ vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on w
 - CDAudio (Soundtracks) support
 - Multiplayer support for both online and locale lobbies
 
-#TODO List
+# TODO List
 
 Priority: HIGH:
 - Increase engine limits (FitzQuake's protocol)
@@ -25,7 +25,7 @@ Priority: LOW
 - Improve CVAR system
 - Separate menus according to your hardware (PSVita/PSTV)
 
-#Credits
+# Credits
 - idSoftware for winQuake sourcecode
 - MasterFeizz for ctrQuake sourcecode i studied to understand how winQuake works
 - xerpi for vita2dlib
