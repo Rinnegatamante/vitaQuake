@@ -312,12 +312,12 @@ extern	entity_t	entities[MAX_MAP_ENTITIES];
 void	ParseEntities (void);
 void	UnparseEntities (void);
 
-void 	SetKeyValue (entity_t *ent, char *key, char *value);
-char 	*ValueForKey (entity_t *ent, char *key);
+void 	SetKeyValue (entity_t *ent, signed char *key, signed char *value);
+signed char 	*ValueForKey (entity_t *ent, signed char *key);
 // will return "" if not present
 
-vec_t	FloatForKey (entity_t *ent, char *key);
-void 	GetVectorForKey (entity_t *ent, char *key, vec3_t vec);
+vec_t	FloatForKey (entity_t *ent, signed char *key);
+void 	GetVectorForKey (entity_t *ent, signed char *key, vec3_t vec);
 
 epair_t *ParseEpair (void);
 

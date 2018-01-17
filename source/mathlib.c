@@ -524,7 +524,7 @@ fixed16_t Invert24To16(fixed16_t val)
 
 #endif
 
-int ParseFloats(char *s, float *f, int *f_size) {
+int ParseFloats(signed char *s, float *f, int *f_size) {
 	int i, argc;
 
 	if (!s || !f || !f_size)

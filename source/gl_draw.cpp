@@ -62,7 +62,7 @@ int		texels;
 typedef struct
 {
 	int		texnum;
-	char	identifier[64];
+	char identifier[64];
 	int		width, height;
 	bool	mipmap;
 } gltexture_t;
@@ -789,7 +789,7 @@ This is for debugging lockups by drawing different chars in different parts
 of the code.
 ================
 */
-void Draw_DebugChar (char num)
+void Draw_DebugChar (signed char num)
 {
 }
 

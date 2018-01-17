@@ -47,7 +47,7 @@ cvar_t		vid_mode = {"vid_mode","5",false};
 cvar_t		vid_redrawfull = {"vid_redrawfull","0",false};
 cvar_t		vid_waitforrefresh = {"vid_waitforrefresh","0",true};
  
-char	*framebuffer_ptr;
+signed char *framebuffer_ptr;
 
 int     mouse_buttons;
 int     mouse_buttonstate;
@@ -117,7 +117,7 @@ void	VID_SetPalette (unsigned char *palette)
 	unsigned short i;
 	unsigned	*table;
 	FILE *f;
-	char s[255];
+	signed char s[255];
 	int dist, bestdist;
 	static bool palflag = false;
 
@@ -477,11 +477,6 @@ void GL_EndRendering (void)
 	 
 }
 
-bool VID_Is8bit(void)
-{
-	return is8bit;
-}
-
 static void Check_Gamma (unsigned char *pal)
 {
 	float	f, inf;
@@ -510,7 +505,6 @@ static void Check_Gamma (unsigned char *pal)
 void VID_Init(unsigned char *palette)
 {
 	int i;
-	GLint attribs[32];
 	char	gldir[MAX_OSPATH];
 	int width = scr_width, height = scr_height;
 

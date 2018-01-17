@@ -301,7 +301,7 @@ void GL_MakeAliasModelDisplayLists (model_t *m, aliashdr_t *hdr)
 	maliasgroup_t	*paliasgroup;
 	int			*cmds;
 	trivertx_t	*verts;
-	char	cache[MAX_QPATH], fullpath[MAX_OSPATH], *c;
+	signed char	cache[MAX_QPATH], fullpath[MAX_OSPATH], *c;
 	FILE	*f;
 	int		len;
 	byte	*data;

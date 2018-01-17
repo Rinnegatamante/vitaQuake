@@ -173,7 +173,7 @@ void R_ReadPointFile_f (void)
 	for ( ;; )
 	{
 		// Read the line into a string.
-		char line[128];
+		signed char line[128];
 		int chars = 0;
 		do
 		{
