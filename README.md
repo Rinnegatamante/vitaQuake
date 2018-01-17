@@ -2,21 +2,19 @@
 vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on winQuake.
 
 # Features
-- Software GPU rendering
+- Hardware accelerated GPU rendering
 - Native 960x544 resolution
 - Native IME for inputing commands/text
 - Sound support
 - Analogs support for camera and movement
 - Right analogs sensibility interchangeable in Options menu
 - Savestates support
-- Resolution rescaler in options menu
 - CDAudio (Soundtracks) support
 - Multiplayer support for both online and locale lobbies
 
 #TODO List
 
 Priority: HIGH:
-- Switch to Hardware GPU rendering
 - Increase engine limits (FitzQuake's protocol)
 
 Priority: LOW
