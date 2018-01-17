@@ -315,7 +315,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			break;		// done
 		
 		int primType;
-		int c;
 		float* pColor;
 		float* pTexCoord;
 		float* pPos;
@@ -330,8 +329,8 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		pColor = gColorBuffer;
 		pPos = gVertexBuffer;
 		pTexCoord = gTexCoordBuffer;
-		c = count;
-		do
+		int c;
+		for (c = 0; c < count; ++c)
 		{
 			// texture coordinates come from the draw list
 			*pTexCoord++ = ((float *)order)[0];
@@ -350,8 +349,8 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			*pPos++ = verts->v[0];
 			*pPos++ = verts->v[1];
 			*pPos++ = verts->v[2];
-			verts++;
-		} while (--c);
+			++verts;
+		}
 		
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, count, gVertexBuffer);
 		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, count, gTexCoordBuffer);

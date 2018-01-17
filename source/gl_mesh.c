@@ -32,7 +32,7 @@ ALIAS MODEL DISPLAY LIST GENERATION
 model_t		*aliasmodel;
 aliashdr_t	*paliashdr;
 
-bool	used[8192];
+int 	used[8192];
 
 // the command list holds counts and s/t values that are valid for
 // every frame
@@ -55,7 +55,7 @@ int		stripcount;
 StripLength
 ================
 */
-int	StripLength (int starttri, int startv)
+static int	StripLength (int starttri, int startv)
 {
 	int			m1, m2;
 	int			j;
@@ -124,7 +124,7 @@ done:
 FanLength
 ===========
 */
-int	FanLength (int starttri, int startv)
+static int	FanLength (int starttri, int startv)
 {
 	int		m1, m2;
 	int		j;
@@ -195,30 +195,20 @@ Generate a list of trifans or strips
 for the model, which holds for all frames
 ================
 */
-void BuildTris (void)
+static void BuildTris (void)
 {
 	int		i, j, k;
 	int		startv;
-	mtriangle_t	*last, *check;
-	int		m1, m2;
-	int		striplength;
-	trivertx_t	*v;
-	mtriangle_t *tv;
-	float	s, t;
-	int		index;
+	float  s, t;
 	int		len, bestlen, besttype;
 	int		bestverts[1024];
 	int		besttris[1024];
 	int		type;
 	
-	union {
-		float f;
-		int i;
-	} temp;
-	
 	//
 	// build tristrips
 	//
+	besttype = 0;
 	numorder = 0;
 	numcommands = 0;
 	memset (used, 0, sizeof(used));
@@ -229,7 +219,6 @@ void BuildTris (void)
 			continue;
 
 		bestlen = 0;
-		besttype = 0;
 		for (type = 0 ; type < 2 ; type++)
 //	type = 1;
 		{
@@ -274,10 +263,8 @@ void BuildTris (void)
 			s = (s + 0.5) / pheader->skinwidth;
 			t = (t + 0.5) / pheader->skinheight;
 
-			temp.f = s;
-			commands[numcommands++] = temp.i;
-			temp.f = t;
-			commands[numcommands++] = temp.i;
+			*(float *)&commands[numcommands++] = s;
+			*(float *)&commands[numcommands++] = t;
 		}
 	}
 
@@ -297,68 +284,21 @@ GL_MakeAliasModelDisplayLists
 */
 void GL_MakeAliasModelDisplayLists (model_t *m, aliashdr_t *hdr)
 {
-	int		i, j;
-	maliasgroup_t	*paliasgroup;
-	int			*cmds;
-	trivertx_t	*verts;
-	signed char	cache[MAX_QPATH], fullpath[MAX_OSPATH], *c;
-	FILE	*f;
-	int		len;
-	byte	*data;
-
+	int i,j;
 	aliasmodel = m;
 	paliashdr = hdr;	// (aliashdr_t *)Mod_Extradata (m);
 
-	//
-	// look for a cached version
-	//
-	strcpy (cache, "glquake/");
-	COM_StripExtension (m->name+strlen("progs/"), cache+strlen("glquake/"));
-	strcat (cache, ".ms2");
-
-	COM_FOpenFile (cache, &f);	
-	if (f)
-	{
-		fread (&numcommands, 4, 1, f);
-		fread (&numorder, 4, 1, f);
-		fread (&commands, numcommands * sizeof(commands[0]), 1, f);
-		fread (&vertexorder, numorder * sizeof(vertexorder[0]), 1, f);
-		fclose (f);
-	}
-	else
-	{
-		//
-		// build it from scratch
-		//
-		Con_Printf ("meshing %s...\n",m->name);
-
-		BuildTris ();		// trifans or lists
-
-		//
-		// save out the cached version
-		//
-		sprintf (fullpath, "%s/%s", com_gamedir, cache);
-		f = fopen (fullpath, "wb");
-		if (f)
-		{
-			fwrite (&numcommands, 4, 1, f);
-			fwrite (&numorder, 4, 1, f);
-			fwrite (&commands, numcommands * sizeof(commands[0]), 1, f);
-			fwrite (&vertexorder, numorder * sizeof(vertexorder[0]), 1, f);
-			fclose (f);
-		}
-	}
-
-
+	BuildTris ();		// trifans or lists
+	
 	// save the data out
 
 	paliashdr->poseverts = numorder;
 
-	cmds = Hunk_Alloc (numcommands * 4);
+	int* cmds = (int*)Hunk_Alloc (numcommands * 4);
 	paliashdr->commands = (byte *)cmds - (byte *)paliashdr;
 	memcpy (cmds, commands, numcommands * 4);
 
-	verts = Hunk_Alloc (paliashdr->numposes * paliashdr->poseverts 
+	trivertx_t* verts = (trivertx_t*)Hunk_Alloc (paliashdr->numposes * paliashdr->poseverts 
 		* sizeof(trivertx_t) );
 	paliashdr->posedata = (byte *)verts - (byte *)paliashdr;
 	for (i=0 ; i<paliashdr->numposes ; i++)
