@@ -88,7 +88,7 @@ cvar_t		scr_showram = {"showram","1"};
 cvar_t		scr_showturtle = {"showturtle","0"};
 cvar_t		scr_showpause = {"showpause","1"};
 cvar_t		scr_printspeed = {"scr_printspeed","8"};
-cvar_t		gl_triplebuffer = {"gl_triplebuffer", "1", true };
+cvar_t		gl_triplebuffer = {"gl_triplebuffer", "0", true };
 
 extern	cvar_t	crosshair;
 

@@ -1225,6 +1225,7 @@ static	unsigned	scaled[1024*512];	// [512*256];
 		if (!mipmap)
 		{
 			glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
 			goto done;
 		}
 		memcpy (scaled, data, width*height*4);

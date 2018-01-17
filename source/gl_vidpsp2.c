@@ -482,29 +482,6 @@ bool VID_Is8bit(void)
 	return is8bit;
 }
 
-void VID_Init8bitPalette(void) 
-{
-	// Check for 8bit Extensions and initialize them.
-	int i;
-	void *prjobj;
-
-	if (COM_CheckParm("-no8bit"))
-		return;
-	
-	GLubyte table[256][4];
-	char *oldpal;
-	oldpal = (char *) d_8to24table; //d_8to24table3dfx;
-	for (i=0;i<256;i++) {
-		table[i][0] = *oldpal++;
-		table[i][1] = *oldpal++;
-		table[i][2] = *oldpal++;
-		table[i][3] = 255;
-		oldpal++;
-	}
-	glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, (void*)table);
-	is8bit = true;
-}
-
 static void Check_Gamma (unsigned char *pal)
 {
 	float	f, inf;
@@ -535,7 +512,7 @@ void VID_Init(unsigned char *palette)
 	int i;
 	GLint attribs[32];
 	char	gldir[MAX_OSPATH];
-	int width = 960, height = 544;
+	int width = scr_width, height = scr_height;
 
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&vid_redrawfull);
@@ -562,9 +539,6 @@ void VID_Init(unsigned char *palette)
 
 	Check_Gamma(palette);
 	VID_SetPalette(palette);
-
-	// Check for 3DFX Extensions and initialize them.
-	//VID_Init8bitPalette();
 
 	Con_SafePrintf ("Video mode %dx%d initialized.\n", width, height);
 
