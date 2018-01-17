@@ -556,10 +556,13 @@ void R_BlendLightmaps (void)
 		case GL_LUMINANCE:
 			glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 			break;
-		default:
+		case GL_MODULATE:
+		case GL_RGBA:
 			GL_EnableState(GL_MODULATE);
 			GL_Color(0,0,0,1);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		default:
 			break;
 	}
 
@@ -1070,23 +1073,13 @@ void R_RecursiveWorldNode (mnode_t *node)
 				if ( !(surf->flags & SURF_UNDERWATER) && ( (dot < 0) ^ !!(surf->flags & SURF_PLANEBACK)) )
 					continue;		// wrong side
 
-				// if sorting by texture, just store it out
-				if (gl_texsort.value)
+				// just store it out
+				if (!mirror
+				|| surf->texinfo->texture != cl.worldmodel->textures[mirrortexturenum])
 				{
-					if (!mirror
-					|| surf->texinfo->texture != cl.worldmodel->textures[mirrortexturenum])
-					{
-						surf->texturechain = surf->texinfo->texture->texturechain;
-						surf->texinfo->texture->texturechain = surf;
-					}
-				} else if (surf->flags & SURF_DRAWSKY) {
-					surf->texturechain = skychain;
-					skychain = surf;
-				} else if (surf->flags & SURF_DRAWTURB) {
-					surf->texturechain = waterchain;
-					waterchain = surf;
-				} else
-					R_DrawSequentialPoly (surf);
+					surf->texturechain = surf->texinfo->texture->texturechain;
+					surf->texinfo->texture->texturechain = surf;
+				}
 
 			}
 		}

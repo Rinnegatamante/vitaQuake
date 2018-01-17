@@ -80,10 +80,7 @@ const char *gl_extensions;
 
 static float vid_gamma = 1.0;
 
-bool is8bit = false;
 bool isPermedia = false;
-bool gl_mtexable = false;
-int gl_mtex_enum = GL_TEXTURE0;
 
 /*-----------------------------------------------------------------------*/
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
@@ -452,8 +449,6 @@ GL_BeginRendering
 */
 void GL_BeginRendering (int *x, int *y, int *width, int *height)
 {
-	extern cvar_t gl_clear;
-
 	*x = *y = 0;
 	*width = scr_width;
 	*height = scr_height;
@@ -523,8 +518,9 @@ void VID_Init(unsigned char *palette)
 	vid.width = width;
 	vid.height = height;
 
-	vid.conwidth = width;
-	vid.conheight = height;
+	// Enforcing 960x544 mode on console so that (experimental) supersampling is not affected
+	vid.conwidth = 960;
+	vid.conheight = 544;
 	
 	GL_Init();
 	

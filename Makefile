@@ -52,7 +52,6 @@ COMMON_OBJS =	source/chase.o \
 	source/gl_rmisc.o \
 	source/gl_rsurf.o \
 	source/gl_screen.o \
-	source/gl_test.o \
 	source/gl_warp.o \
 	source/r_part.o \
 	source/snd_dma.o \

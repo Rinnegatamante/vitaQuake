@@ -1343,22 +1343,6 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 /****************************************/
 
 static GLenum oldtarget = 0; // KH
-extern int gl_mtex_enum;
-
-void GL_SelectTexture (GLenum target) 
-{
-
-	if (!gl_mtexable)
-		return;
-	
-	glActiveTexture(target+gl_mtex_enum);
-	
-	if (target == oldtarget) 
-		return;
-	cnttextures[oldtarget] = currenttexture; // KH
-	currenttexture = cnttextures[target]; // KH
-	oldtarget = target;
-}
 
 float gVertexBuffer[VERTEXARRAYSIZE];
 float gColorBuffer[VERTEXARRAYSIZE];
