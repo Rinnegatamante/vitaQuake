@@ -33,6 +33,7 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
+extern cvar_t gl_fog;
 int m_state = m_none;
 
 void (*vid_menudrawfn)(void);
@@ -1026,13 +1027,7 @@ void M_AdjustSliders (int dir)
 			sensitivity.value = 11;
 		Cvar_SetValue ("sensitivity", sensitivity.value);
 		break;
-	case 6:	// depth of field
-		d_mipscale.value -= dir;
-		if (d_mipscale.value > 40) d_mipscale.value = 40;
-		else if (d_mipscale.value < 0) d_mipscale.value = 0;
-		Cvar_SetValue ("d_mipscale", d_mipscale.value);
-		break;
-	case 7:	// music volume
+	case 6:	// music volume
 		bgmvolume.value += dir * 0.1;
 		if (bgmvolume.value < 0)
 			bgmvolume.value = 0;
@@ -1040,7 +1035,7 @@ void M_AdjustSliders (int dir)
 			bgmvolume.value = 1;
 		Cvar_SetValue ("bgmvolume", bgmvolume.value);
 		break;
-	case 8:	// sfx volume
+	case 7:	// sfx volume
 		volume.value += dir * 0.1;
 		if (volume.value < 0)
 			volume.value = 0;
@@ -1048,7 +1043,11 @@ void M_AdjustSliders (int dir)
 			volume.value = 1;
 		Cvar_SetValue ("volume", volume.value);
 		break;
-
+	case 8:	// Fog
+		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
+		Cvar_SetValue ("gl_fog", !gl_fog.value);
+		reset_shaders = true;
+		break;
 	case 9:	// show weapon
 		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
@@ -1144,18 +1143,17 @@ void M_Options_Draw (void)
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 72, r);
 
-	M_Print (16, 80, "        Depth of Field");
-	r = (40 - d_mipscale.value) / 40;
-	M_DrawSlider (220, 80, r);
-
-	M_Print (16, 88, "          Music Volume");
+	M_Print (16, 80, "          Music Volume");
 	r = bgmvolume.value;
+	M_DrawSlider (220, 80, r);
+	
+	M_Print (16, 88, "          Sound Volume");
+	r = volume.value;
 	M_DrawSlider (220, 88, r);
 	
-	M_Print (16, 96, "          Sound Volume");
-	r = volume.value;
-	M_DrawSlider (220, 96, r);
-
+	M_Print (16, 96, "         Fog Rendering");
+	M_DrawCheckbox (220, 96, gl_fog.value);
+	
 	M_Print (16, 104,  "          Show Weapon");
 	M_DrawCheckbox (220, 104, r_drawviewmodel.value);
 
@@ -1221,8 +1219,6 @@ void M_Options_Key (int k)
 			Cbuf_AddText ("exec default.cfg\n");
 			
 			IN_ResetInputs();
-			d_mipscale.value = 1;
-			Cvar_SetValue ("d_mipscale", d_mipscale.value);
 			fov.value = 90;
 			Cvar_SetValue ("fov", fov.value);
 			break;

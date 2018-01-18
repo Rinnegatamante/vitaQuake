@@ -33,6 +33,7 @@ unsigned	d_8to24table[256];
 float	d_8to32ftable[256];
 unsigned char d_15to8table[65536];
 CVAR (show_fps, 0, CVAR_ARCHIVE)
+CVAR (gl_fog, 0, CVAR_ARCHIVE)
 extern int isKeyboard;
 
 int num_shades=32;
@@ -307,51 +308,55 @@ void GL_Color(float r, float g, float b, float a){
 	cur_clr[3] = a;
 }
 
-/*
-===============
-GL_Init
-===============
-*/
-void GL_Init (void)
-{
-	gl_vendor = glGetString (GL_VENDOR);
-	Con_Printf ("GL_VENDOR: %s\n", gl_vendor);
-	gl_renderer = glGetString (GL_RENDERER);
-	Con_Printf ("GL_RENDERER: %s\n", gl_renderer);
-
-	gl_version = glGetString (GL_VERSION);
-	Con_Printf ("GL_VERSION: %s\n", gl_version);
-	gl_extensions = glGetString (GL_EXTENSIONS);
-	Con_Printf ("GL_EXTENSIONS: %s\n", gl_extensions);
-	
-//	Con_Printf ("%s %s\n", gl_renderer, gl_version);
-
-	glClearColor (1,0,0,0);
-	glCullFace(GL_FRONT);
-	glEnable(GL_TEXTURE_2D);
-
-	//->glShadeModel (GL_FLAT);
+bool reset_shaders = false;
+bool shaders_set = false;
+void GL_ResetShaders(){
+	glFinish();
+	int i;
+	if (shaders_set){
+		for (i=0;i<9;i++){
+			glDeleteProgram(programs[i]);
+		}
+		for (i=0;i<9;i++){
+			glDeleteShader(fs[i]);
+		}
+		for (i=0;i<4;i++){
+			glDeleteShader(vs[i]);
+		}
+	}else shaders_set = true; 
 	
 	// Loading shaders
-	int i;
-	for (i=0;i<10;i++){
+	for (i=0;i<9;i++){
 		fs[i] = glCreateShader(GL_FRAGMENT_SHADER);
 	}
 	for (i=0;i<4;i++){
 		vs[i] = glCreateShader(GL_VERTEX_SHADER);
 	}
-	GL_LoadShader("app0:shaders/modulate_f.gxp", MODULATE, GL_TRUE);
-	GL_LoadShader("app0:shaders/modulate_rgba_f.gxp", MODULATE_WITH_COLOR, GL_TRUE);
-	GL_LoadShader("app0:shaders/replace_f.gxp", REPLACE, GL_TRUE);
+	
+	if (gl_fog.value){
+		GL_LoadShader("app0:shaders/modulate_fog_f.gxp", MODULATE, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_rgba_fog_f.gxp", MODULATE_WITH_COLOR, GL_TRUE);
+		GL_LoadShader("app0:shaders/replace_fog_f.gxp", REPLACE, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_alpha_fog_f.gxp", MODULATE_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_rgba_alpha_fog_f.gxp", MODULATE_COLOR_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/replace_alpha_fog_f.gxp", REPLACE_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/texture2d_fog_v.gxp", TEXTURE2D, GL_FALSE);
+		GL_LoadShader("app0:shaders/texture2d_rgba_fog_v.gxp", TEXTURE2D_WITH_COLOR, GL_FALSE);
+	}else{
+		GL_LoadShader("app0:shaders/modulate_f.gxp", MODULATE, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_rgba_f.gxp", MODULATE_WITH_COLOR, GL_TRUE);
+		GL_LoadShader("app0:shaders/replace_f.gxp", REPLACE, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_alpha_f.gxp", MODULATE_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/modulate_rgba_alpha_f.gxp", MODULATE_COLOR_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/replace_alpha_f.gxp", REPLACE_A, GL_TRUE);
+		GL_LoadShader("app0:shaders/texture2d_v.gxp", TEXTURE2D, GL_FALSE);
+		GL_LoadShader("app0:shaders/texture2d_rgba_v.gxp", TEXTURE2D_WITH_COLOR, GL_FALSE);
+	}
+	
 	GL_LoadShader("app0:shaders/rgba_f.gxp", RGBA_COLOR, GL_TRUE);
 	GL_LoadShader("app0:shaders/vertex_f.gxp", MONO_COLOR, GL_TRUE);
-	GL_LoadShader("app0:shaders/modulate_alpha_f.gxp", MODULATE_A, GL_TRUE);
-	GL_LoadShader("app0:shaders/modulate_rgba_alpha_f.gxp", MODULATE_COLOR_A, GL_TRUE);
-	GL_LoadShader("app0:shaders/replace_alpha_f.gxp", REPLACE_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_alpha_f.gxp", RGBA_A, GL_TRUE);
 	GL_LoadShader("app0:shaders/rgba_v.gxp", COLOR, GL_FALSE);
-	GL_LoadShader("app0:shaders/texture2d_v.gxp", TEXTURE2D, GL_FALSE);
-	GL_LoadShader("app0:shaders/texture2d_rgba_v.gxp", TEXTURE2D_WITH_COLOR, GL_FALSE);
 	GL_LoadShader("app0:shaders/vertex_v.gxp", VERTEX_ONLY, GL_FALSE);
 	
 	// Setting up programs
@@ -419,7 +424,35 @@ void GL_Init (void)
 		}
 		glLinkProgram(programs[i]);
 	}
+}
 
+/*
+===============
+GL_Init
+===============
+*/
+void GL_Init (void)
+{
+	gl_vendor = glGetString (GL_VENDOR);
+	Con_Printf ("GL_VENDOR: %s\n", gl_vendor);
+	gl_renderer = glGetString (GL_RENDERER);
+	Con_Printf ("GL_RENDERER: %s\n", gl_renderer);
+
+	gl_version = glGetString (GL_VERSION);
+	Con_Printf ("GL_VERSION: %s\n", gl_version);
+	gl_extensions = glGetString (GL_EXTENSIONS);
+	Con_Printf ("GL_EXTENSIONS: %s\n", gl_extensions);
+	
+//	Con_Printf ("%s %s\n", gl_renderer, gl_version);
+
+	glClearColor (1,0,0,0);
+	glCullFace(GL_FRONT);
+	glEnable(GL_TEXTURE_2D);
+
+	//->glShadeModel (GL_FLAT);
+	Cvar_RegisterVariable (&gl_fog);
+	GL_ResetShaders();
+	
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -434,6 +467,7 @@ void GL_Init (void)
 	Cvar_RegisterVariable (&show_fps); // muff
 	Cvar_RegisterVariable(&vid_vsync);
 	
+	int i;
 	indices = (uint16_t*)malloc(sizeof(uint16_t*)*MAX_INDICES);
 	for (i=0;i<MAX_INDICES;i++){
 		indices[i] = i;
@@ -469,7 +503,12 @@ void GL_EndRendering (void)
 		vglUpdateCommonDialog();
 		vglStopRenderingTerm();
 	}else vglStopRendering();
-	 
+	
+	if (reset_shaders){
+		reset_shaders = false;
+		GL_ResetShaders();
+	}
+	
 }
 
 static void Check_Gamma (unsigned char *pal)

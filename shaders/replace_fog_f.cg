@@ -1,0 +1,12 @@
+﻿float4 main(
+	float2 vTexcoord : TEXCOORD0,
+	float vFog : FOG,
+	uniform sampler2D tex
+	)
+{	
+	float4 c = tex2D(tex, vTexcoord);
+	
+	c.rgb = c.rgb * vFog;
+	
+	return c;
+}

@@ -425,3 +425,6 @@ void GL_EnableState(GLenum state);
 void GL_DisableState(GLenum state);
 void GL_DrawPolygon(GLenum prim, int num);
 void GL_Color(float r, float g, float b, float a);
+void GL_ResetShaders();
+
+extern bool reset_shaders;
