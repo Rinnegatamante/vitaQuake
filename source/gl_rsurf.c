@@ -322,9 +322,9 @@ void R_DrawSequentialPoly (msurface_t *s)
 		int j;
 		float* v = &p->verts[0][0];
 		for (j=0;j<p->numverts;j++){
-			memcpy(pPoint, v, sizeof(vec3_t));
-			memcpy(pUV, v+3, sizeof(float)*2);
-			memcpy(pUV2, v+5, sizeof(float)*2);
+			memcpy(pPoint, &v[0], sizeof(vec3_t));
+			memcpy(pUV, &v[3], sizeof(float)*2);
+			memcpy(pUV2, &v[5], sizeof(float)*2);
 			v += VERTEXSIZE;
 			pPoint += 3;
 			pUV += 2;
@@ -556,7 +556,7 @@ void R_BlendLightmaps (void)
 		case GL_LUMINANCE:
 			glBlendFunc (GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 			break;
-		case GL_MODULATE:
+		case GL_INTENSITY:
 		case GL_RGBA:
 			GL_EnableState(GL_MODULATE);
 			GL_Color(0,0,0,1);
@@ -956,10 +956,7 @@ e->angles[0] = -e->angles[0];	// stupid quake bug
 		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 		{
-			if (gl_texsort.value)
-				R_RenderBrushPoly (psurf);
-			else
-				R_DrawSequentialPoly (psurf);
+			R_RenderBrushPoly (psurf);
 		}
 	}
 
@@ -1233,9 +1230,6 @@ BuildSurfaceDisplayList
 void BuildSurfaceDisplayList (msurface_t *fa)
 {
 	int			i, lindex, lnumverts, s_axis, t_axis;
-	//float		dist, lastdist, lzi, scale, u, v, frac;
-	//unsigned	mask;
-	//vec3_t		local, transformed;
 	medge_t		*pedges, *r_pedge;
 	mplane_t	*pplane;
 	int			vertpage, newverts, newpage, lastvert;

@@ -208,9 +208,9 @@ void EmitWaterPolys (msurface_t *fa)
 			os = v[3];
 			ot = v[4];
 			s = os + turbsin[(int)((ot*0.125+realtime) * TURBSCALE) & 255];
-			s *= (1.0/64);
+			s *= (0.015625f);
 			t = ot + turbsin[(int)((os*0.125+realtime) * TURBSCALE) & 255];
-			t *= (1.0/64);
+			t *= (0.015625f);
 			*pUV++ = s;
 			*pUV++ = t;
 			memcpy(pPoint, &v[0], sizeof(vec3_t));
@@ -249,11 +249,11 @@ void EmitSkyPolys (msurface_t *fa)
 			dir[2] *= 3;    // flatten the sphere
 			length = dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2];
 			length = sqrt (length);
-			length = 6*63/length;
+			length = 378/length;
 			dir[0] *= length;
 			dir[1] *= length;
-			s = (speedscale + dir[0]) * (1.0/128);
-			t = (speedscale + dir[1]) * (1.0/128);
+			s = (speedscale + dir[0]) * (0.0078125f);
+			t = (speedscale + dir[1]) * (0.0078125f);
 			*pUV++ = s;
 			*pUV++ = t;
 			memcpy(pPoint, &v[0], sizeof(vec3_t));
@@ -340,7 +340,7 @@ void R_InitSky (texture_t *mt)
 {
 	int			i, j, p;
 	byte		*src;
-	unsigned	trans[128*128];
+	unsigned	trans[16384];
 	unsigned	transpix;
 	int			r, g, b;
 	unsigned	*rgba;
@@ -362,9 +362,9 @@ void R_InitSky (texture_t *mt)
 			b += ((byte *)rgba)[2];
 		}
 
-	((byte *)&transpix)[0] = r/(128*128);
-	((byte *)&transpix)[1] = g/(128*128);
-	((byte *)&transpix)[2] = b/(128*128);
+	((byte *)&transpix)[0] = r/(16384);
+	((byte *)&transpix)[1] = g/(16384);
+	((byte *)&transpix)[2] = b/(16384);
 	((byte *)&transpix)[3] = 0;
 
 
