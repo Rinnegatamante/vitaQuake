@@ -312,6 +312,12 @@ void M_Main_Draw (void)
 	f = (int)(host_time * 10)%6;
 
 	M_DrawTransPic (54, 32 + m_main_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
+	
+	M_Print (-40, 300, "Huge thanks for their awesome support on Patreon to:");
+	M_Print (-40, 308, "- Arkanite");
+	M_Print (-40, 316, "- Styde Pregny");
+	M_Print (-40, 324, "- Billy McLaughlin II");
+	M_Print (-40, 332, "- XandridFire");
 }
 
 

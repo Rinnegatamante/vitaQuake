@@ -279,8 +279,6 @@ extern	float	speedscale;		// for top sky and bottom sky
 void DrawGLWaterPoly (glpoly_t *p);
 void DrawGLWaterPolyLightmap (glpoly_t *p);
 
-void GL_SelectTexture (GLenum target);
-
 /*
 ================
 R_DrawSequentialPoly
@@ -320,7 +318,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 		float* gTexCoordBuffer2 = pUV2;
 		
 		int j;
-		float* v = &p->verts[0][0];
+		float* v = &p->verts[0];
 		for (j=0;j<p->numverts;j++){
 			memcpy(pPoint, &v[0], sizeof(vec3_t));
 			memcpy(pUV, &v[3], sizeof(float)*2);
