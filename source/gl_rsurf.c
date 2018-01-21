@@ -422,6 +422,7 @@ void DrawGLWaterPoly (glpoly_t *p)
 
 void DrawGLWaterPolyLightmap (glpoly_t *p)
 {
+	return; // FIXME: https://github.com/Rinnegatamante/vitaQuake/issues/32
 	int		i;
 	float	*v;
 	float	s, t, os, ot;
