@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+extern cvar_t scr_sbaralpha;
 
 int			sb_updates;		// if >= vid.numpages, no update needed
 
@@ -267,6 +268,20 @@ void Sbar_DrawPic (int x, int y, qpic_t *pic)
 
 /*
 =============
+Sbar_DrawPicAlpha
+=============
+*/
+Sbar_DrawPicAlpha (int x, int y, qpic_t *pic, float alpha)
+{
+	if (cl.gametype == GAME_DEATHMATCH)
+		Draw_AlphaPic (x /* + ((vid.width - 320)>>1)*/, y + (vid.height-SBAR_HEIGHT), pic, alpha);
+	else
+		Draw_AlphaPic (x + ((vid.width - 320)>>1), y + (vid.height-SBAR_HEIGHT), pic, alpha);
+	
+}
+
+/*
+=============
 Sbar_DrawTransPic
 =============
 */
@@ -508,13 +523,13 @@ void Sbar_DrawInventory (void)
 	if (rogue)
 	{
 		if ( cl.stats[STAT_ACTIVEWEAPON] >= RIT_LAVA_NAILGUN )
-			Sbar_DrawPic (0, -24, rsb_invbar[0]);
+			Sbar_DrawPicAlpha (0, -24, rsb_invbar[0], scr_sbaralpha.value);
 		else
-			Sbar_DrawPic (0, -24, rsb_invbar[1]);
+			Sbar_DrawPicAlpha (0, -24, rsb_invbar[1], scr_sbaralpha.value);
 	}
 	else
 	{
-		Sbar_DrawPic (0, -24, sb_ibar);
+		Sbar_DrawPicAlpha (0, -24, sb_ibar, scr_sbaralpha.value);
 	}
 
 // weapons
@@ -890,8 +905,8 @@ void Sbar_Draw (void)
 
 	sb_updates++;
 
-	if (sb_lines && vid.width > 320) 
-		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);
+	/*if (sb_lines && vid.width > 320) 
+		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);*/
 
 	if (sb_lines > 24)
 	{
@@ -902,13 +917,13 @@ void Sbar_Draw (void)
 
 	if (sb_showscores || cl.stats[STAT_HEALTH] <= 0)
 	{
-		Sbar_DrawPic (0, 0, sb_scorebar);
+		Sbar_DrawPicAlpha (0, 0, sb_scorebar, scr_sbaralpha.value);
 		Sbar_DrawScoreboard ();
 		sb_updates = 0;
 	}
 	else if (sb_lines)
 	{
-		Sbar_DrawPic (0, 0, sb_sbar);
+		Sbar_DrawPicAlpha (0, 0, sb_sbar, scr_sbaralpha.value);
 
    // keys (hipnotic only)
       //MED 01/04/97 moved keys here so they would not be overwritten

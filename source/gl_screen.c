@@ -79,11 +79,12 @@ int			scr_copyeverything;
 float		scr_con_current;
 float		scr_conlines;		// lines of console to display
 
-float		oldscreensize, oldfov;
+float		oldscreensize, oldfov, oldsbaralpha;
 cvar_t		scr_viewsize = {"viewsize","100", true};
 cvar_t		scr_fov = {"fov","90"};	// 10 - 170
 cvar_t		scr_conspeed = {"scr_conspeed","300"};
 cvar_t		scr_centertime = {"scr_centertime","2"};
+cvar_t		scr_sbaralpha = {"scr_sbaralpha", "0.50", true};
 cvar_t		scr_showram = {"showram","1"};
 cvar_t		scr_showturtle = {"showturtle","0"};
 cvar_t		scr_showpause = {"showpause","1"};
@@ -286,12 +287,7 @@ static void SCR_CalcRefdef (void)
 	else
 		size = scr_viewsize.value;
 
-	if (size >= 120)
-		sb_lines = 0;		// no status bar at all
-	else if (size >= 110)
-		sb_lines = 24;		// no inventory
-	else
-		sb_lines = 24+16+8;
+	sb_lines = 48;
 
 	if (scr_viewsize.value >= 100.0) {
 		full = true;
@@ -372,6 +368,7 @@ void SCR_Init (void)
 
 	Cvar_RegisterVariable (&scr_fov);
 	Cvar_RegisterVariable (&scr_viewsize);
+	Cvar_RegisterVariable (&scr_sbaralpha);
 	Cvar_RegisterVariable (&scr_conspeed);
 	Cvar_RegisterVariable (&scr_showram);
 	Cvar_RegisterVariable (&scr_showturtle);
@@ -860,6 +857,12 @@ void SCR_UpdateScreen (void)
 	if (oldscreensize != scr_viewsize.value)
 	{
 		oldscreensize = scr_viewsize.value;
+		vid.recalc_refdef = true;
+	}
+	
+	if (oldsbaralpha != scr_sbaralpha.value)
+	{
+		oldsbaralpha = scr_sbaralpha.value;
 		vid.recalc_refdef = true;
 	}
 
