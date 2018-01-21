@@ -36,6 +36,9 @@ extern cvar_t	show_fps;
 extern cvar_t gl_fog;
 int m_state = m_none;
 
+extern ModsList* mods;
+extern int max_mod_idx;
+
 void (*vid_menudrawfn)(void);
 void (*vid_menukeyfn)(int key);
 
@@ -68,6 +71,7 @@ void M_Main_Draw (void);
 	void M_Options_Draw (void);
 		void M_Keys_Draw (void);
 		void M_Video_Draw (void);
+		void M_Mods_Draw (void);
 	void M_Help_Draw (void);
 	void M_Quit_Draw (void);
 void M_LanConfig_Draw (void);
@@ -86,6 +90,7 @@ void M_Main_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
 		void M_Video_Key (int key);
+		void M_Mods_key (int key);
 	void M_Help_Key (int key);
 	void M_Quit_Key (int key);
 void M_LanConfig_Key (int key);
@@ -987,6 +992,88 @@ void M_Net_Key (int k)
 }
 
 //=============================================================================
+/* MODS MENU */
+
+int		mods_cursor;
+
+void M_Menu_Mods_f (void)
+{
+	key_dest = key_menu;
+	m_state = m_mods;
+	m_entersound = true;
+}
+
+ModsList* cur = NULL;
+
+void M_Mods_Draw (void)
+{
+	float		r;
+	qpic_t	*p;
+
+	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
+	
+	M_Print (60, 10, "Select the mod to load");
+	
+	ModsList* ptr = mods;
+	int j = 0;
+	while (ptr != NULL){
+		M_Print (60, 32 + j * 8, ptr->name);
+		if (j == mods_cursor) cur = ptr;
+		ptr = ptr->next;
+		j++;
+	}
+		
+	// cursor
+	M_DrawCharacter (50, 32 + mods_cursor*8, 12+((int)(realtime*4)&1));
+}
+
+
+void M_Mods_Key (int k)
+{
+	switch (k)
+	{
+	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
+		M_Menu_Options_f ();
+		break;
+	
+	case K_CIRCLE:
+	case K_CROSS:
+		m_entersound = true;
+		char cmd[128];
+		sprintf(cmd, "game %s\n", cur->name);
+		Cbuf_AddText (cmd);
+		M_Menu_Main_f ();
+		return;
+
+	case K_UPARROW:
+		S_LocalSound ("misc/menu1.wav");
+		mods_cursor--;
+		if (mods_cursor < 0)
+			mods_cursor = max_mod_idx;
+		break;
+
+	case K_DOWNARROW:
+		S_LocalSound ("misc/menu1.wav");
+		mods_cursor++;
+		if (mods_cursor > max_mod_idx)
+			mods_cursor = 0;
+		break;
+
+	}
+
+	if (mods_cursor > max_mod_idx)
+	{
+		if (k == K_UPARROW)
+			mods_cursor = max_mod_idx;
+		else
+			mods_cursor = 0;
+	}
+
+}
+
+//=============================================================================
 /* OPTIONS MENU */
 
 #define	OPTIONS_ITEMS 18
@@ -1141,9 +1228,7 @@ void M_Options_Draw (void)
 	r = (viewsize.value - 30) / (120 - 30);
 	M_DrawSlider (220, 56, r);
 
-	M_Print (16, 64, "            Brightness");
-	r = (1.0 - v_gamma.value) / 0.5;
-	M_DrawSlider (220, 64, r);
+	M_Print (16, 64, "       Go to Mods Menu");
 
 	M_Print (16, 72, "    Camera Sensitivity");
 	r = (sensitivity.value - 1)/10;
@@ -1228,7 +1313,9 @@ void M_Options_Key (int k)
 			fov.value = 90;
 			Cvar_SetValue ("fov", fov.value);
 			break;
-
+		case 4:
+			M_Menu_Mods_f ();
+			break;
 		default:
 			M_AdjustSliders (1);
 			break;
@@ -2686,7 +2773,11 @@ void M_Draw (void)
 	case m_options:
 		M_Options_Draw ();
 		break;
-
+	
+	case m_mods:
+		M_Mods_Draw();
+		break;
+	
 	case m_keys:
 		M_Keys_Draw ();
 		break;
@@ -2778,7 +2869,11 @@ void M_Keydown (int key)
 	case m_options:
 		M_Options_Key (key);
 		return;
-
+	
+	case m_mods:
+		M_Mods_Key (key);
+		return;
+	
 	case m_keys:
 		M_Keys_Key (key);
 		return;

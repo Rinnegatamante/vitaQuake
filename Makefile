@@ -3,7 +3,7 @@ TITLE		:= QUAK00001
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 
 LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
-	-lc -lvita2d -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
+	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
 	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
@@ -61,7 +61,6 @@ COMMON_OBJS =	source/chase.o \
 	source/net_bsd.o \
 	source/net_udp_psp2.o \
 	source/in_psp2.o \
-	source/mods_psp2.o \
 	source/gl_vidpsp2.o
 	
 CPPSOURCES	:= source/audiodec

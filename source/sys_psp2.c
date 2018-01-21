@@ -29,9 +29,23 @@ int sys_bigstack_cursize;
 
 // Mods support
 int max_mod_idx = -1;
-extern bool CheckForMod(char* dir);
-extern void MOD_SelectModMenu(char *basedir);
-extern char* modname;
+
+ModsList* mods;
+
+ModsList* addMod(char* name, ModsList* db){
+	ModsList* entry = (ModsList*)malloc(sizeof(ModsList));
+	strcpy(entry->name, name);
+	if (db == NULL) return entry;
+	else{
+		ModsList* ptr = db;
+		while (ptr->next != NULL){
+			ptr = ptr->next;
+		}
+		ptr->next = entry;
+		return db;
+	}
+}
+
 
 int old_char;
 extern int setup_cursor;
@@ -396,6 +410,20 @@ void simulateKeyPress(char* text){
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
 
+bool CheckForMod(char* dir)
+{
+	int dd = sceIoDopen(dir);
+	SceIoDirent entry;
+	int res;
+	bool ret = false;
+
+	while ((res = sceIoDread(dd, &entry)) > 0 && (!ret))
+		if ( strstr(strtolower(entry.d_name),".pak") != NULL || !strcmp(strtolower(entry.d_name), "progs.dat") ) ret = true;	// Enable checks for progs.dat only mods
+	
+	sceIoDclose(dd);
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	
@@ -423,8 +451,13 @@ int main(int argc, char **argv)
 	parms.membase = malloc(parms.memsize);
 	parms.basedir = "ux0:/data/Quake";
 	
-	// Initializing vita2d
-	vita2d_init();
+	// Initializing empty ModList
+	mods = NULL;
+	int i = 0;
+	int max_idx = -1;
+	
+	int int_argc = 1;
+	char* int_argv[12];
 	
 	// Scanning main folder in search of mods
 	int dd = sceIoDopen(parms.basedir);
@@ -432,35 +465,32 @@ int main(int argc, char **argv)
 	int res;
 	while (sceIoDread(dd, &entry) > 0){
 		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name)))
+			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))){
+				mods = addMod(entry.d_name, mods);
 				max_mod_idx++;
+				
+				// Dropping official mission packs directly
+				if (!strcmp(entry.d_name, "hipnotic")){
+					int_argv[int_argc] = "-hipnotic";
+					int_argv[int_argc+1] = "";
+					int_argc += 2;
+				}
+				if (!strcmp(entry.d_name, "rogue")){
+					int_argv[int_argc] = "-rogue";
+					int_argv[int_argc+1] = "";
+					int_argc += 2;
+				}
+				
+			}
 		}
 	}
 	sceIoDclose(dd);
 	
-	// Do we have at least a mod running here?
-	if (max_mod_idx > 0) 
-		MOD_SelectModMenu(parms.basedir);
-	
-	vita2d_fini();
-	
+	// Initializing vitaGL
 	vglInit(0x1400000);
 	
 	// Mods support
-	if (modname != NULL && strcmp(modname,"id1")) {
-		int int_argc = 3;
-		char* int_argv[3];
-		int_argv[0] = int_argv[2] = "";
-
-		// Special check for official missionpacks.
-		if (!strcmp(modname, "hipnotic"))	int_argv[1] = "-hipnotic";
-		else if (!strcmp(modname, "rogue")) int_argv[1] = "-rogue";
-		else {
-			int_argv[1] = "-game";
-			int_argv[2] = modname;
-		}
-		COM_InitArgv(3, int_argv);
-	}else COM_InitArgv(argc, argv);
+	COM_InitArgv(int_argc, int_argv);
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;

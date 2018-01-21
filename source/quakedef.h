@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define m_slist 16
 #define m_onlineserverlist 17
 #define m_benchmark 18
+#define m_mods 19
 
 extern int m_state;
 
@@ -428,3 +429,9 @@ void GL_Color(float r, float g, float b, float a);
 void GL_ResetShaders();
 
 extern bool reset_shaders;
+
+// Mods support
+typedef struct ModsList{
+	char name[256];
+	struct ModsList* next;
+}ModsList;
