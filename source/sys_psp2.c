@@ -42,6 +42,7 @@ extern cvar_t res_val;
 extern cvar_t psvita_touchmode;
 extern cvar_t vid_vsync;
 
+bool isDedicated;
 uint64_t initialTime = 0;
 int hostInitialized = 0;
 SceCtrlData pad, oldpad;

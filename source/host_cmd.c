@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern cvar_t	pausable;
 
+extern int com_nummissionpacks; //johnfitz
+
 int	current_skill;
 
 void Mod_Print (void);
@@ -47,6 +49,406 @@ void Host_Quit_f (void)
 	Sys_Quit ();
 }
 
+//==============================================================================
+//johnfitz -- dynamic gamedir stuff
+//==============================================================================
+
+// Declarations shared with common.c:
+typedef struct
+{
+	char    name[MAX_QPATH];
+	int             filepos, filelen;
+} packfile_t;
+
+typedef struct pack_s
+{
+	char    filename[MAX_OSPATH];
+	int             handle;
+	int             numfiles;
+	packfile_t      *files;
+} pack_t;
+
+typedef struct searchpath_s
+{
+	char    filename[MAX_OSPATH];
+	pack_t  *pack;          // only one of filename / pack will be used
+	struct searchpath_s *next;
+} searchpath_t;
+
+extern bool com_modified;
+extern searchpath_t *com_searchpaths;
+pack_t *COM_LoadPackFile (char *packfile);
+
+// Kill all the search packs until the game path is found. Kill it, then return
+// the next path to it.
+void KillGameDir(searchpath_t *search)
+{
+	searchpath_t *search_killer;
+	while (search)
+	{
+		if (*search->filename)
+		{
+			com_searchpaths = search->next;
+			Z_Free(search);
+			return; //once you hit the dir, youve already freed the paks
+		}
+		Sys_FileClose (search->pack->handle); //johnfitz
+		search_killer = search->next;
+		Z_Free(search->pack->files);
+		Z_Free(search->pack);
+		Z_Free(search);
+		search = search_killer;
+	}
+}
+
+// Return the number of games in memory
+int NumGames(searchpath_t *search)
+{
+	int found = 0;
+	while (search)
+	{
+		if (*search->filename)
+			found++;
+		search = search->next;
+	}
+	return found;
+}
+
+void ExtraMaps_NewGame (void);
+
+/*
+==================
+Host_Game_f
+==================
+*/
+void Host_Game_f (void)
+{
+	int i;
+	searchpath_t *search = com_searchpaths;
+	pack_t *pak;
+	char   pakfile[MAX_OSPATH]; //FIXME: it's confusing to use this string for two different things
+
+	if (Cmd_Argc() > 1)
+	{
+
+		if (!registered.value) //disable command for shareware quake
+		{
+			Con_Printf("You must have the registered version to use modified games\n");
+			return;
+		}
+
+		if (strstr(Cmd_Argv(1), ".."))
+		{
+			Con_Printf ("Relative pathnames are not allowed.\n");
+			return;
+		}
+
+		strcpy (pakfile, va("%s/%s", host_parms.basedir, Cmd_Argv(1)));
+		if (!strcasecmp(pakfile, com_gamedir)) //no change
+		{
+			Con_Printf("\"game\" is already \"%s\"\n", COM_SkipPath(com_gamedir));
+			return;
+		}
+
+		com_modified = true;
+
+		//Kill the server
+		CL_Disconnect ();
+		Host_ShutdownServer(true);
+
+		//Write config file
+		Host_WriteConfiguration ();
+
+		//Kill the extra game if it is loaded
+		if (NumGames(com_searchpaths) > 1 + com_nummissionpacks)
+			KillGameDir(com_searchpaths);
+
+		strcpy (com_gamedir, pakfile);
+
+		if (strcasecmp(Cmd_Argv(1), GAMENAME_DIR)) //game is not id1
+		{
+			search = Z_Malloc(sizeof(searchpath_t));
+			strcpy (search->filename, pakfile);
+			search->next = com_searchpaths;
+			com_searchpaths = search;
+
+			//Load the paks if any are found:
+			for (i = 0; ; i++)
+			{
+				sprintf (pakfile, "%s/pak%i.pak", com_gamedir, i);
+				pak = COM_LoadPackFile (pakfile);
+				if (!pak)
+				break;
+				search = Z_Malloc(sizeof(searchpath_t));
+				search->pack = pak;
+				search->next = com_searchpaths;
+				com_searchpaths = search;
+			}
+		}
+
+		//clear out and reload appropriate data
+		Cache_Flush ();
+		ExtraMaps_NewGame ();
+		//Cbuf_InsertText ("exec quake.rc\n");
+
+		Con_Printf("\"game\" changed to \"%s\"\n", COM_SkipPath(com_gamedir));
+	}
+	else //Diplay the current gamedir
+		Con_Printf("\"game\" is \"%s\"\n", COM_SkipPath(com_gamedir));
+}
+
+//==============================================================================
+//johnfitz -- extramaps management
+//==============================================================================
+
+typedef struct extralevel_s
+{
+	char				name[32];
+	struct extralevel_s	*next;
+} extralevel_t;
+
+extralevel_t	*extralevels;
+
+void ExtraMaps_Add (char *name)
+{
+	extralevel_t	*level,*cursor,*prev;
+
+	//ingore duplicate
+	for (level = extralevels; level; level = level->next)
+		if (!Q_strcmp (name, level->name))
+			return;
+
+	level = Z_Malloc(sizeof(extralevel_t));
+	strcpy (level->name, name);
+
+	//insert each entry in alphabetical order
+    if (extralevels == NULL || strcasecmp(level->name, extralevels->name) < 0) //insert at front
+	{
+        level->next = extralevels;
+        extralevels = level;
+    }
+    else //insert later
+	{
+        prev = extralevels;
+        cursor = extralevels->next;
+        while (cursor && (strcasecmp(level->name, cursor->name) > 0))
+		{
+            prev = cursor;
+            cursor = cursor->next;
+        }
+        level->next = prev->next;
+        prev->next = level;
+    }
+}
+
+void ExtraMaps_Init (void) //TODO: move win32 specific stuff to sys_win.c
+{
+#ifdef _WIN32
+	WIN32_FIND_DATA	FindFileData;
+	HANDLE			Find;
+	char			filestring[MAX_OSPATH];
+	char			mapname[32];
+	char			ignorepakdir[32];
+	searchpath_t    *search;
+	pack_t          *pak;
+	int             i;
+
+	//we don't want to list the maps in id1 pakfiles, becuase these are not "add-on" levels
+	sprintf (ignorepakdir, "/%s/", GAMENAME);
+
+	for (search = com_searchpaths ; search ; search = search->next)
+	{
+		if (*search->filename) //directory
+		{
+			sprintf (filestring,"%s/maps/*.bsp",search->filename);
+			Find = FindFirstFile(filestring, &FindFileData);
+			if (Find == INVALID_HANDLE_VALUE)
+				continue;
+			do
+			{
+				COM_StripExtension(FindFileData.cFileName, mapname);
+				ExtraMaps_Add (mapname);
+			} while (FindNextFile(Find, &FindFileData));
+		}
+		else //pakfile
+		{
+			if (!strstr(search->pack->filename, ignorepakdir)) //don't list standard id maps
+				for (i=0, pak=search->pack; i<pak->numfiles ; i++)
+					if (strstr(pak->files[i].name, ".bsp"))
+						if (pak->files[i].filelen > 32*1024) // don't list files under 32k (ammo boxes etc)
+						{
+							COM_StripExtension(pak->files[i].name + 5, mapname);
+							ExtraMaps_Add (mapname);
+						}
+		}
+	}
+#endif
+}
+
+void ExtraMaps_Clear (void)
+{
+	extralevel_t *blah;
+
+	while (extralevels)
+	{
+		blah = extralevels->next;
+		Z_Free(extralevels);
+		extralevels = blah;
+	}
+}
+
+void ExtraMaps_NewGame (void)
+{
+	ExtraMaps_Clear ();
+	ExtraMaps_Init ();
+}
+
+/*
+==================
+Host_Maps_f
+==================
+*/
+void Host_Maps_f (void)
+{
+	int i;
+	extralevel_t	*level;
+
+	for (level=extralevels, i=0; level; level=level->next, i++)
+		Con_SafePrintf ("   %s\n", level->name);
+
+	if (i)
+		Con_SafePrintf ("%i map(s)\n", i);
+	else
+		Con_SafePrintf ("no maps found\n");
+}
+
+//==============================================================================
+//johnfitz -- modlist management
+//==============================================================================
+
+typedef struct mod_s
+{
+	char			name[MAX_OSPATH];
+	struct mod_s	*next;
+} mod_t;
+
+mod_t	*modlist;
+
+void Modlist_Add (char *name)
+{
+	mod_t	*mod,*cursor,*prev;
+
+	//ingore duplicate
+	for (mod = modlist; mod; mod = mod->next)
+		if (!Q_strcmp (name, mod->name))
+			return;
+
+	mod = Z_Malloc(sizeof(mod_t));
+	strcpy (mod->name, name);
+
+	//insert each entry in alphabetical order
+    if (modlist == NULL || strcasecmp(mod->name, modlist->name) < 0) //insert at front
+	{
+        mod->next = modlist;
+        modlist = mod;
+    }
+    else //insert later
+	{
+        prev = modlist;
+        cursor = modlist->next;
+        while (cursor && (strcasecmp(mod->name, cursor->name) > 0))
+		{
+            prev = cursor;
+            cursor = cursor->next;
+        }
+        mod->next = prev->next;
+        prev->next = mod;
+    }
+}
+
+void Modlist_Init (void) //TODO: move win32 specific stuff to sys_win.c
+{
+#ifdef _WIN32
+	WIN32_FIND_DATA	FindFileData, FindChildData;
+	HANDLE			Find, FindProgs, FindPak;
+	char			filestring[MAX_OSPATH], childstring[MAX_OSPATH];
+	int				temp;
+
+	sprintf (filestring,"%s/*", host_parms.basedir);
+	Find = FindFirstFile(filestring, &FindFileData);
+	if (Find == INVALID_HANDLE_VALUE)
+	{
+		FindClose (Find);
+		return;
+	}
+
+	do
+	{
+		sprintf (childstring,"%s/%s/progs.dat", host_parms.basedir, FindFileData.cFileName);
+		FindProgs = FindFirstFile(childstring, &FindChildData);
+
+		sprintf (childstring,"%s/%s/*.pak", host_parms.basedir, FindFileData.cFileName);
+		FindPak = FindFirstFile(childstring, &FindChildData);
+
+		if (FindProgs != INVALID_HANDLE_VALUE || FindPak != INVALID_HANDLE_VALUE)
+			Modlist_Add (FindFileData.cFileName);
+
+		FindClose (FindProgs);
+		FindClose (FindPak);
+	} while (FindNextFile(Find, &FindFileData));
+
+	FindClose (Find);
+#endif
+}
+
+/*
+==================
+Host_Mods_f -- johnfitz
+
+list all potential mod directories (contain either a pak file or a progs.dat)
+==================
+*/
+void Host_Mods_f (void)
+{
+	int i;
+	mod_t	*mod;
+
+	for (mod = modlist, i=0; mod; mod = mod->next, i++)
+		Con_SafePrintf ("   %s\n", mod->name);
+
+	if (i)
+		Con_SafePrintf ("%i mod(s)\n", i);
+	else
+		Con_SafePrintf ("no mods found\n");
+}
+
+//==============================================================================
+
+/*
+=============
+Host_Mapname_f -- johnfitz
+=============
+*/
+void Host_Mapname_f (void)
+{
+	char name[MAX_QPATH];
+
+	if (sv.active)
+	{
+		COM_StripExtension (sv.worldmodel->name + 5, name);
+		Con_Printf ("\"mapname\" is \"%s\"\n", name);
+		return;
+	}
+
+	if (cls.state == ca_connected)
+	{
+		COM_StripExtension (cl.worldmodel->name + 5, name);
+		Con_Printf ("\"mapname\" is \"%s\"\n", name);
+		return;
+	}
+
+	Con_Printf ("no map loaded\n");
+}
 
 /*
 ==================
@@ -1812,7 +2214,7 @@ Host_Startdemos_f
 */
 void Host_Startdemos_f (void)
 {
-	/*int		i, c;
+	int		i, c;
 
 	if (cls.state == ca_dedicated)
 	{
@@ -1838,7 +2240,7 @@ void Host_Startdemos_f (void)
 		CL_NextDemo ();
 	}
 	else
-		cls.demonum = -1;*/
+		cls.demonum = -1;
 }
 
 
@@ -1885,6 +2287,8 @@ Host_InitCommands
 */
 void Host_InitCommands (void)
 {
+	Cmd_AddCommand ("game", Host_Game_f); //johnfitz
+	
 	Cmd_AddCommand ("status", Host_Status_f);
 	Cmd_AddCommand ("quit", Host_Quit_f);
 	Cmd_AddCommand ("god", Host_God_f);
@@ -1893,17 +2297,12 @@ void Host_InitCommands (void)
 	Cmd_AddCommand ("map", Host_Map_f);
 	Cmd_AddCommand ("restart", Host_Restart_f);
 	Cmd_AddCommand ("changelevel", Host_Changelevel_f);
-#ifdef QUAKE2
-	Cmd_AddCommand ("changelevel2", Host_Changelevel2_f);
-#endif
 	Cmd_AddCommand ("connect", Host_Connect_f);
 	Cmd_AddCommand ("reconnect", Host_Reconnect_f);
 	Cmd_AddCommand ("name", Host_Name_f);
 	Cmd_AddCommand ("noclip", Host_Noclip_f);
 	Cmd_AddCommand ("version", Host_Version_f);
-#ifdef IDGODS
-	Cmd_AddCommand ("please", Host_Please_f);
-#endif
+	
 	Cmd_AddCommand ("say", Host_Say_f);
 	Cmd_AddCommand ("say_team", Host_Say_Team_f);
 	Cmd_AddCommand ("tell", Host_Tell_f);

@@ -15,6 +15,7 @@
 #include "quakedef.h"
 
 #define	ZONE_DEFAULT_SIZE	0x100000	// 1Mb
+#define	DYNAMIC_SIZE	256*1024 //johnfitz: was 48k
 
 #define	ZONEID	0x1d4a11
 #define MINFRAGMENT	64
@@ -35,55 +36,6 @@ typedef struct {
 
 void Cache_FreeLow(int new_low_hunk);
 void Cache_FreeHigh(int new_high_hunk);
-
-/*
-===================
-Q_malloc
-
-Use it instead of malloc so that if memory allocation fails,
-the program exits with a message saying there's not enough memory
-instead of crashing after trying to use a NULL pointer
-===================
-*/
-void *Q_malloc(size_t size)
-{
-	void *p;
-
-	if (!(p = malloc(size)))
-		Sys_Error("Not enough free memory");
-
-	return p;
-}
-
-void *Q_calloc(size_t n, size_t size)
-{
-	void *p;
-
-	if (!(p = calloc(n, size)))
-		Sys_Error("Not enough free memory");
-
-	return p;
-}
-
-void *Q_realloc(void *ptr, size_t size)
-{
-	void *p;
-
-	if (!(p = realloc(ptr, size)))
-		Sys_Error("Not enough free memory");
-
-	return p;
-}
-
-void *Q_strdup(const char *str)
-{
-	char *p;
-
-	if (!(p = strdup(str)))
-		Sys_Error("Not enough free memory");
-
-	return p;
-}
 
 /*
 ==============================================================================
@@ -261,6 +213,28 @@ void Z_Print(memzone_t *zone)
 
 /*
 ========================
+Z_CheckHeap
+========================
+*/
+void Z_CheckHeap (void)
+{
+	memblock_t	*block;
+
+	for (block = mainzone->blocklist.next ; ; block = block->next)
+	{
+		if (block->next == &mainzone->blocklist)
+			break;			// all blocks have been hit
+		if ( (byte *)block + block->size != (byte *)block->next)
+			Sys_Error ("Z_CheckHeap: block size does not touch the next block\n");
+		if ( block->next->prev != block)
+			Sys_Error ("Z_CheckHeap: next block doesn't have proper back link\n");
+		if (!block->tag && !block->next->tag)
+			Sys_Error ("Z_CheckHeap: two consecutive free blocks\n");
+	}
+}
+
+/*
+========================
 Z_Realloc
 ========================
 */
@@ -294,27 +268,6 @@ void *Z_Realloc(void *ptr, int size)
 		memset((byte *)ptr + old_size, 0, size - old_size);
 
 	return ptr;
-}
-
-/*
-========================
-Z_CheckHeap
-========================
-*/
-void Z_CheckHeap(void)
-{
-	memblock_t *block;
-
-	for (block = mainzone->blocklist.next;; block = block->next) {
-		if (block->next == &mainzone->blocklist)
-			break;			// all blocks have been hit
-		if ((byte *)block + block->size != (byte *)block->next)
-			Sys_Error("Z_CheckHeap: block size does not touch the next block\n");
-		if (block->next->prev != block)
-			Sys_Error("Z_CheckHeap: next block doesn't have proper back link\n");
-		if (!block->tag && !block->next->tag)
-			Sys_Error("Z_CheckHeap: two consecutive free blocks\n");
-	}
 }
 
 //============================================================================
@@ -791,7 +744,7 @@ Cache_Flush_f
 Throw everything out, so new data will be demand cached
 ============
 */
-void Cache_Flush_f(void)
+void Cache_Flush(void)
 {
 	while (cache_head.next != &cache_head)
 		Cache_Free(cache_head.next->user);	// reclaim the space
@@ -839,7 +792,7 @@ void Cache_Init(void)
 	cache_head.next = cache_head.prev = &cache_head;
 	cache_head.lru_next = cache_head.lru_prev = &cache_head;
 
-	Cmd_AddCommand("flush", Cache_Flush_f);
+	Cmd_AddCommand("flush", Cache_Flush);
 }
 
 /*

@@ -40,6 +40,8 @@ bool        com_modified;   // set true if using non-id files
 
 bool		proghack;
 
+int com_nummissionpacks; //johnfitz
+
 int             static_registered = 1;  // only for startup check, then set
 
 bool		msg_suppress_1 = 0;
@@ -1488,6 +1490,7 @@ pack_t *COM_LoadPackFile(char *packfile)
 
 	info = Sys_BigStackAlloc(MAX_FILES_IN_PACK * sizeof(dpackfile_t), "COM_LoadPackFile");
 
+	//johnfitz -- dynamic gamedir loading
 	newfiles = Z_Malloc(numpackfiles * sizeof(packfile_t));
 	//johnfitz
 
@@ -1510,7 +1513,6 @@ pack_t *COM_LoadPackFile(char *packfile)
 	}
 
 	//johnfitz -- dynamic gamedir loading
-	//pack = Hunk_Alloc (sizeof (pack_t));
 	pack = Z_Malloc(sizeof(pack_t));
 	//johnfitz
 
@@ -1614,12 +1616,19 @@ void COM_InitFilesystem (void)
 // start up with GAMENAME by default (referenced by GAMENAME_DIR)
 //
 	COM_AddGameDirectory (va("%s/"GAMENAME_DIR, basedir) );
-
-	if (COM_CheckParm ("-rogue"))
+	strcpy (com_gamedir, va("%s/"GAMENAME_DIR, basedir));
+	
+	//johnfitz -- track number of mission packs added
+	//since we don't want to allow the "game" command to strip them away
+	com_nummissionpacks = 0;
+	if (COM_CheckParm ("-rogue")){
 		COM_AddGameDirectory (va("%s/rogue", basedir) );
-	if (COM_CheckParm ("-hipnotic"))
+		com_nummissionpacks++;
+	}
+	if (COM_CheckParm ("-hipnotic")){
 		COM_AddGameDirectory (va("%s/hipnotic", basedir) );
-
+		com_nummissionpacks++;
+	}
 //
 // -game <gamedir>
 // Adds basedir/gamedir as an override game
