@@ -622,7 +622,97 @@ void GL_DrawAliasShadow (aliashdr_t *paliashdr, int posenum)
 	}	
 }
 
+/*
+=============
+GL_DrawAliasBlendedShadow
 
+fenix@io.com: model animation interpolation
+=============
+*/
+void GL_DrawAliasBlendedShadow (aliashdr_t *paliashdr, int pose1, int pose2, entity_t* e)
+{
+	trivertx_t* verts1;
+	trivertx_t* verts2;
+	int*		  order;
+	vec3_t		point1;
+	vec3_t		point2;
+	vec3_t		d;
+	float		 height;
+	float		 lheight;
+	int count;
+	float		 blend;
+
+	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+	
+	blend = (realtime - e->frame_start_time) / e->frame_interval;
+
+	if (blend > 1) blend = 1;
+
+	lheight = e->origin[2] - lightspot[2];
+	height  = -lheight + 1.0;
+
+	verts1 = (trivertx_t *)((byte *)paliashdr + paliashdr->posedata);
+	verts2 = verts1;
+
+	verts1 += pose1 * paliashdr->poseverts;
+	verts2 += pose2 * paliashdr->poseverts;
+
+	order = (int *)((byte *)paliashdr + paliashdr->commands);
+
+	for (;;){
+		// get the vertex count and primitive type
+		count = *order++;
+
+		if (!count) break;
+
+		int primType;
+		int c;
+		float* pVertex;
+		
+		if (count < 0){
+			count = -count;
+			primType = GL_TRIANGLE_FAN;
+		}else{
+			primType = GL_TRIANGLE_STRIP;
+		}
+
+		pVertex = gVertexBuffer;
+		c = count;
+		do{
+			order += 2;
+
+			point1[0] = verts1->v[0] * paliashdr->scale[0] + paliashdr->scale_origin[0];
+			point1[1] = verts1->v[1] * paliashdr->scale[1] + paliashdr->scale_origin[1];
+			point1[2] = verts1->v[2] * paliashdr->scale[2] + paliashdr->scale_origin[2];
+		  
+			point1[0] -= shadevector[0]*(point1[2]+lheight);
+			point1[1] -= shadevector[1]*(point1[2]+lheight);
+
+			point2[0] = verts2->v[0] * paliashdr->scale[0] + paliashdr->scale_origin[0];
+			point2[1] = verts2->v[1] * paliashdr->scale[1] + paliashdr->scale_origin[1];
+			point2[2] = verts2->v[2] * paliashdr->scale[2] + paliashdr->scale_origin[2];
+
+			point2[0] -= shadevector[0]*(point2[2]+lheight);
+			point2[1] -= shadevector[1]*(point2[2]+lheight);
+
+			VectorSubtract(point2, point1, d);
+			
+			pVertex[0] = point1[0] + (blend * d[0]);
+			pVertex[1] = point1[1] + (blend * d[1]);
+			pVertex[2] = height;
+			pVertex += 3;
+			
+			verts1++;
+			verts2++;
+		} while (--count);
+
+		const float color[] = {0,0,0,0.5f};
+		glUniform4fv(monocolor, 1, color);
+		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, c, gVertexBuffer);
+		GL_DrawPolygon(primType, c);
+	}
+	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
+}
 
 /*
 =================
@@ -973,10 +1063,24 @@ void R_DrawAliasModel (entity_t *e)
 		return;
 	
 		glPushMatrix ();
-		R_RotateForEntity (e);
+		
+		// fenix@io.com: model transform interpolation
+		if (r_interpolate_model_transform.value){
+			R_BlendedRotateForEntity (e);
+		}else{
+			R_RotateForEntity (e);
+		}
+			
 		glDisable (GL_TEXTURE_2D);
 		glEnable (GL_BLEND);
-		GL_DrawAliasShadow (paliashdr, lastposenum);
+		
+		// fenix@io.com: model animation interpolation
+		if (r_interpolate_model_animation.value){
+			GL_DrawAliasBlendedShadow (paliashdr, lastposenum0, lastposenum, currententity);
+		}else{
+			GL_DrawAliasShadow (paliashdr, lastposenum);
+		}
+			
 		glEnable (GL_TEXTURE_2D);
 		glDisable (GL_BLEND);
 		GL_Color(1,1,1,1);
