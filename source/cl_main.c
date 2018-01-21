@@ -50,10 +50,10 @@ cvar_t res_val = {"render_res", "1.0", CVAR_ARCHIVE};
 
 client_static_t	cls;
 client_state_t	cl;
-// FIXME: put these on hunk?
-efrag_t			cl_efrags[MAX_EFRAGS];
-entity_t		cl_entities[MAX_EDICTS];
-entity_t		cl_static_entities[MAX_STATIC_ENTITIES];
+
+efrag_t*		cl_efrags;
+entity_t*		cl_entities;
+entity_t*		cl_static_entities;
 lightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
 dlight_t		cl_dlights[MAX_DLIGHTS];
 
@@ -480,6 +480,12 @@ void CL_RelinkEntities (void)
 		if (ent->msgtime != cl.mtime[0])
 		{
 			ent->model = NULL;
+			
+			// fenix@io.com: model transform interpolation
+			ent->frame_start_time = 0;
+			ent->translate_start_time = 0;
+			ent->rotate_start_time = 0;
+			
 			continue;
 		}
 
@@ -499,6 +505,14 @@ void CL_RelinkEntities (void)
 				delta[j] = ent->msg_origins[0][j] - ent->msg_origins[1][j];
 				if (delta[j] > 100 || delta[j] < -100)
 					f = 1;		// assume a teleportation, not a motion
+			}
+			
+			// fenix@io.com: model transform interpolation
+			// interpolation should be reset in the event of a large delta
+			if (f >= 1){
+				ent->frame_start_time     = 0;
+				ent->translate_start_time = 0;
+				ent->rotate_start_time    = 0;
 			}
 
 		// interpolate the origin and angles

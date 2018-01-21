@@ -173,10 +173,6 @@ void Sys_mkdir(char *path)
 	sceIoMkdir(path, 0777);
 }
 
-// <<< FIX
-
-// >>> FIX: For Nintendo Wii using devkitPPC / libogc
-// New functions for big stack handling:
 void Sys_BigStackRewind(void)
 {
 	sys_bigstack_cursize = 0;
@@ -401,6 +397,12 @@ extern	int		edit_line;
 
 int main(int argc, char **argv)
 {
+	
+	cl_entities = malloc(sizeof(entity_t) * MAX_EDICTS);
+	cl_static_entities = malloc(sizeof(entity_t) * MAX_STATIC_ENTITIES);
+	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
+	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
+	
 	// Initializing stuffs
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);

@@ -67,6 +67,22 @@ typedef struct entity_s
 	struct mnode_s			*topnode;		// for bmodels, first world node
 											//  that splits bmodel, or NULL if
 											//  not split
+											
+	// fenix@io.com: model animation interpolation
+	float                   frame_start_time;
+	float                   frame_interval;
+	int                     pose1; 
+	int                     pose2;
+	
+	// fenix@io.com: model transform interpolation
+	float                   translate_start_time;
+	vec3_t                  origin1;
+	vec3_t                  origin2;
+
+	float                   rotate_start_time;
+	vec3_t                  angles1;
+	vec3_t                  angles2;
+	
 } entity_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!

@@ -189,6 +189,10 @@ void R_Init (void)
 	Cvar_RegisterVariable (&r_novis);
 	Cvar_RegisterVariable (&r_speeds);
 	
+	// fenix@io.com: register new cvars for model interpolation
+    Cvar_RegisterVariable (&r_interpolate_model_animation);
+    Cvar_RegisterVariable (&r_interpolate_model_transform);
+	
 	Cvar_RegisterVariable (&gl_finish);
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&gl_texsort);
