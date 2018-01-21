@@ -431,7 +431,7 @@ int main(int argc, char **argv)
 	cl_static_entities = malloc(sizeof(entity_t) * MAX_STATIC_ENTITIES);
 	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
 	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
-	
+
 	// Initializing stuffs
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);
@@ -490,7 +490,8 @@ int main(int argc, char **argv)
 	vglInit(0x1400000);
 	
 	// Mods support
-	COM_InitArgv(int_argc, int_argv);
+	if (int_argc > 1) COM_InitArgv(int_argc, int_argv);
+	else COM_InitArgv(argc, argv);
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
