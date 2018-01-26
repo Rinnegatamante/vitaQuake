@@ -30,7 +30,6 @@ extern cvar_t vid_vsync;
 extern bool benchmark;
 unsigned short	d_8to16table[256];
 unsigned	d_8to24table[256];
-float	d_8to32ftable[256];
 unsigned char d_15to8table[65536];
 CVAR (show_fps, 0, CVAR_ARCHIVE)
 CVAR (gl_fog, 0, CVAR_ARCHIVE)
@@ -133,6 +132,7 @@ void	VID_SetPalette (unsigned char *palette)
 		
 		v = (255<<24) + (r<<0) + (g<<8) + (b<<16);
 		*table++ = v;
+		
 	}
 	d_8to24table[255] &= 0xffffff;	// 255 is transparent
 	
@@ -159,11 +159,6 @@ void	VID_SetPalette (unsigned char *palette)
 			}
 		}
 		d_15to8table[i]=k;
-	}
-	
-	// Storing a [0,1] float table for particles rendering
-	for (i=0; i < 256; i++){
-		d_8to32ftable[i] = (1.0f * d_8to24table[i]) / 255.0f;
 	}
 	
 }

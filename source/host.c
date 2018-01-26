@@ -728,6 +728,8 @@ void _Host_Frame (float time)
 
 	SCR_UpdateScreen ();
 
+	CL_RunParticles (); //johnfitz -- seperated from rendering
+	
 	if (host_speeds.value)
 		time2 = Sys_FloatTime ();
 

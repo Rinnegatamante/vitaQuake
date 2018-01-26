@@ -22,13 +22,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "r_local.h"
 
-#define DEFAULT_NUM_PARTICLES	1024	// default max # of particles at one time
+#define DEFAULT_NUM_PARTICLES	2048	// default max # of particles at one time
 #define ABSOLUTE_MIN_PARTICLES	512		// no fewer than this no matter what's on the command line
 #define ABSOLUTE_MAX_PARTICLES	8192
 
 static int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
 static int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
-static int ramp3[8] = {0x6d, 0x6b, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01};
+static int ramp3[8] = {0x6d, 0x6b, 0x06, 0x05, 0x04, 0x03};
 
 particle_t	*active_particles, *free_particles;
 
@@ -80,7 +80,6 @@ float	timescale = 0.01;
 
 void R_EntityParticles (entity_t *ent)
 {
-	int			count;
 	int			i;
 	particle_t	*p;
 	float		angle;
@@ -89,7 +88,6 @@ void R_EntityParticles (entity_t *ent)
 	float		dist;
 	
 	dist = 64;
-	count = 25;
 
 if (!avelocities[0][0])
 {
@@ -149,7 +147,11 @@ void R_ClearParticles (void)
 	particles[r_numparticles-1].next = NULL;
 }
 
-
+/*
+===============
+R_ReadPointFile_f
+===============
+*/
 void R_ReadPointFile_f (void)
 {
 	FILE	*f;
@@ -509,6 +511,13 @@ void R_TeleportSplash (vec3_t org)
 			}
 }
 
+/*
+===============
+R_RocketTrail
+
+FIXME -- rename function and use #defined types instead of numbers
+===============
+*/
 void R_RocketTrail (vec3_t start, vec3_t end, int type)
 {
 	vec3_t		vec;
@@ -613,57 +622,26 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 	}
 }
 
-
 /*
 ===============
-R_DrawParticles
+CL_RunParticles -- johnfitz -- all the particle behavior, separated from R_DrawParticles
 ===============
 */
-extern	cvar_t	sv_gravity;
-
-void R_DrawParticles (void)
+void CL_RunParticles (void)
 {
 	particle_t		*p, *kill;
-	float			grav;
 	int				i;
-	float			time2, time3;
-	float			time1;
-	float			dvel;
-	float			frametime;
-	float*			pPos = gVertexBuffer;
-	float*	pColor = (float*) gColorBuffer;
-	float*  pUV = (float*) gTexCoordBuffer;
+	float			time1, time2, time3, dvel, frametime, scale, grav;
+	extern	cvar_t	sv_gravity;
 
-#ifdef GLQUAKE
-	vec3_t			up, right;
-	float			scale;
-	
-    GL_Bind(particletexture);
-	
-	glEnable (GL_BLEND);
-	GL_EnableState(GL_MODULATE);
-	GL_EnableState(GL_COLOR_ARRAY);
-	
-	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-
-	VectorScale (vup, 1.50, up);
-	VectorScale (vright, 1.50, right);
-#else
-	D_StartParticles ();
-
-	VectorScale (vright, xscaleshrink, r_pright);
-	VectorScale (vup, yscaleshrink, r_pup);
-	VectorCopy (vpn, r_ppn);
-#endif
 	frametime = cl.time - cl.oldtime;
 	time3 = frametime * 15;
-	time2 = frametime * 10; // 15;
+	time2 = frametime * 10;
 	time1 = frametime * 5;
 	grav = frametime * sv_gravity.value * 0.05;
 	dvel = 4*frametime;
-	
-	int num_vertices = 0;
-	for ( ;; ) 
+
+	for ( ;; )
 	{
 		kill = active_particles;
 		if (kill && kill->die < cl.time)
@@ -691,52 +669,10 @@ void R_DrawParticles (void)
 			break;
 		}
 
-#ifdef GLQUAKE
-		num_vertices += 3;
-
-		// hack a scale up to keep particles from disapearing
-		scale = (p->org[0] - r_origin[0])*vpn[0] + (p->org[1] - r_origin[1])*vpn[1]
-			+ (p->org[2] - r_origin[2])*vpn[2];
-		if (scale < 20)
-			scale = 1.08f; //johnfitz -- added .08 to be consistent
-		else
-			scale = 1 + scale * 0.004;
-				
-		
-		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
-		pColor[3] = 1.0f;
-		pColor += 4;
-		*pUV++ = 0.0f;
-		*pUV++ = 0.0f;
-		*pPos++ = p->org[0];
-		*pPos++ = p->org[1];
-		*pPos++ = p->org[2];
-
-		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
-		pColor[3] = 1.0f;
-		pColor += 4;
-		*pUV++ = 1.0f;
-		*pUV++ = 0.0f;
-		*pPos++ = (p->org[0] + up[0]*scale);
-		*pPos++ = (p->org[1] + up[1]*scale);
-		*pPos++ = (p->org[2] + up[2]*scale);
-
-		memcpy(pColor, (float*)&d_8to32ftable[(int)p->color], sizeof(vec3_t));
-		pColor[3] = 1.0f;
-		pColor += 4;
-		*pUV++ = 0.0;
-		*pUV++ = 1.0;
-		*pPos++ = (p->org[0] + right[0]*scale);
-		*pPos++ = (p->org[1] + right[1]*scale);
-		*pPos++ = (p->org[2] + right[2]*scale);
-
-#else
-		D_DrawParticle (p);
-#endif
 		p->org[0] += p->vel[0]*frametime;
 		p->org[1] += p->vel[1]*frametime;
 		p->org[2] += p->vel[2]*frametime;
-		
+
 		switch (p->type)
 		{
 		case pt_static:
@@ -788,9 +724,108 @@ void R_DrawParticles (void)
 		case pt_slowgrav:
 			p->vel[2] -= grav;
 			break;
-		default:		
-			break;
 		}
+	}
+}
+
+/*
+===============
+R_DrawParticles
+===============
+*/
+extern	cvar_t	sv_gravity;
+
+void R_DrawParticles (void)
+{
+	particle_t		*p, *kill;
+	vec3_t			up, right, p_up, p_right, p_upright; //johnfitz -- p_ vectors
+	GLubyte		color[4], *c; //johnfitz -- particle transparency
+	float			alpha; //johnfitz -- particle transparency
+	float			grav;
+	int				i;
+	float			time2, time3;
+	float			time1;
+	float			dvel;
+	float			frametime;
+	float*			pPos = gVertexBuffer;
+	float*			pColor = gColorBuffer;
+	float*			pUV = gTexCoordBuffer;
+
+#ifdef GLQUAKE
+	float			scale;
+	
+    GL_Bind(particletexture);
+	
+	glEnable (GL_BLEND);
+	GL_EnableState(GL_MODULATE);
+	glDepthMask (GL_FALSE); //johnfitz -- fix for particle z-buffer bug
+	GL_EnableState(GL_COLOR_ARRAY);
+	
+	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+
+	VectorScale (vup, 1.50, up);
+	VectorScale (vright, 1.50, right);
+#else
+	D_StartParticles ();
+
+	VectorScale (vright, xscaleshrink, r_pright);
+	VectorScale (vup, yscaleshrink, r_pup);
+	VectorCopy (vpn, r_ppn);
+#endif
+	
+	int num_vertices = 0;
+	for (p=active_particles ; p ; p=p->next)
+	{
+
+#ifdef GLQUAKE
+		num_vertices += 3;
+
+		// hack a scale up to keep particles from disapearing
+		scale = (p->org[0] - r_origin[0])*vpn[0] + (p->org[1] - r_origin[1])*vpn[1]
+			+ (p->org[2] - r_origin[2])*vpn[2];
+		if (scale < 20)
+			scale = 1.08f; //johnfitz -- added .08 to be consistent
+		else
+			scale = 1 + scale * 0.004;
+		
+		scale *= 1.27;
+		
+		c = (GLubyte *) &d_8to24table[(int)p->color];
+		*pColor++ = ((float)(c[0])) / 255.0f;
+		*pColor++ = ((float)(c[1])) / 255.0f;
+		*pColor++ = ((float)(c[2])) / 255.0f;
+		*pColor++ = 1.0f;
+		*pUV++ = 0.0f;
+		*pUV++ = 0.0f;
+		*pPos++ = p->org[0];
+		*pPos++ = p->org[1];
+		*pPos++ = p->org[2];
+
+		*pColor++ = ((float)(color[0])) / 255.0f;
+		*pColor++ = ((float)(color[1])) / 255.0f;
+		*pColor++ = ((float)(color[2])) / 255.0f;
+		*pColor++ = 1.0f;
+		*pUV++ = 1.0f;
+		*pUV++ = 0.0f;
+		VectorMA (p->org, scale, up, p_up);
+		*pPos++ = (p_up[0]);
+		*pPos++ = (p_up[1]);
+		*pPos++ = (p_up[2]);
+
+		*pColor++ = ((float)(color[0])) / 255.0f;
+		*pColor++ = ((float)(color[1])) / 255.0f;
+		*pColor++ = ((float)(color[2])) / 255.0f;
+		*pColor++ = 1.0f;
+		*pUV++ = 0.0;
+		*pUV++ = 1.0;
+		VectorMA (p->org, scale, right, p_right);
+		*pPos++ = (p_right[0]);
+		*pPos++ = (p_right[1]);
+		*pPos++ = (p_right[2]);
+
+#else
+		D_DrawParticle (p);
+#endif
 	}
 
 #ifdef GLQUAKE
@@ -800,8 +835,10 @@ void R_DrawParticles (void)
 	GL_DrawPolygon(GL_TRIANGLES, num_vertices);
 	GL_DisableState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glDepthMask (GL_TRUE);
 	glDisable (GL_BLEND);
 	GL_EnableState(GL_REPLACE);
+	glColor4f(1,1,1,1);
 #else
 	D_EndParticles ();
 #endif
