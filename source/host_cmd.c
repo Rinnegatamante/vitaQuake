@@ -121,6 +121,8 @@ void ExtraMaps_NewGame (void);
 Host_Game_f
 ==================
 */
+extern char mp_path[32];
+extern char* mod_path;
 void Host_Game_f (void)
 {
 	int i;
@@ -142,14 +144,15 @@ void Host_Game_f (void)
 			Con_Printf ("Relative pathnames are not allowed.\n");
 			return;
 		}
-
+		
 		strcpy (pakfile, va("%s/%s", host_parms.basedir, Cmd_Argv(1)));
 		if (!strcasecmp(pakfile, com_gamedir)) //no change
 		{
 			Con_Printf("\"game\" is already \"%s\"\n", COM_SkipPath(com_gamedir));
 			return;
 		}
-
+		sprintf(mp_path, Cmd_Argv(1));
+		mod_path = mp_path;
 		com_modified = true;
 
 		//Kill the server

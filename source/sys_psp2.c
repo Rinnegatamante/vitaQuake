@@ -372,6 +372,7 @@ void Sys_SendKeyEvents(void)
 //=============================================================================
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 char* mod_path = NULL;
+char mp_path[32];
 
 static uint16_t title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t initial_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
@@ -482,9 +483,11 @@ int main(int argc, char **argv)
 		int_argv[0] = int_argv[2] = "";
 		char buffer[2048];
 		memset(buffer, 0, 2048);
-		sceAppUtilAppEventParseLiveArea(&eventParam, buffer );
+		sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
 		int_argv[1] = buffer;
 		COM_InitArgv(3, int_argv);
+		sprintf(mp_path, "%s", &buffer[1]);
+		mod_path = mp_path;
 	}else COM_InitArgv(argc, argv);
 
 	parms.argc = com_argc;
@@ -492,12 +495,6 @@ int main(int argc, char **argv)
 
 	Host_Init(&parms);
 	hostInitialized = 1;
-
-	SceAppUtilInitParam init_param;
-	SceAppUtilBootParam boot_param;
-	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
-	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
-	sceAppUtilInit(&init_param, &boot_param);
 	
 	// Setting PSN Account if it's his first time
 	if (!strcmp(cl_name.string, "player"))
@@ -573,7 +570,6 @@ int main(int argc, char **argv)
 						memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
 						memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
 						if (key_dest == key_console) {
-
 							sprintf(title_keyboard, "Insert Quake command");
 						}
 						else if (m_state == m_setup) {
