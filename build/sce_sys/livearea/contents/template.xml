@@ -8,4 +8,19 @@
 	<gate>
 		<startup-image>startup.png</startup-image>
 	</gate>
+	
+	<frame id='frame1' multi='o' autoflip='3' >
+		<liveitem>
+			<target>psla:-hipnotic</target>
+			<image>hipnotic.png</image>
+		</liveitem>
+	</frame>
+	
+	<frame id='frame2' multi='o' autoflip='3' >
+		<liveitem>
+			<target>psla:-rogue</target>
+			<image>rogue.png</image>
+		</liveitem>
+	</frame>
+
 </livearea>

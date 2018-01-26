@@ -5,8 +5,8 @@ GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
-	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm \
-	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub \
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm -lSceAppMgr_stub \
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub
 
 COMMON_OBJS =	source/chase.o \
 	source/cl_demo.o \

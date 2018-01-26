@@ -456,9 +456,6 @@ int main(int argc, char **argv)
 	int i = 0;
 	int max_idx = -1;
 	
-	int int_argc = 1;
-	char* int_argv[12];
-	
 	// Scanning main folder in search of mods
 	int dd = sceIoDopen(parms.basedir);
 	SceIoDirent entry;
@@ -468,19 +465,6 @@ int main(int argc, char **argv)
 			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))){
 				mods = addMod(entry.d_name, mods);
 				max_mod_idx++;
-				
-				// Dropping official mission packs directly
-				if (!strcmp(entry.d_name, "hipnotic")){
-					int_argv[int_argc] = "-hipnotic";
-					int_argv[int_argc+1] = "";
-					int_argc += 2;
-				}
-				if (!strcmp(entry.d_name, "rogue")){
-					int_argv[int_argc] = "-rogue";
-					int_argv[int_argc+1] = "";
-					int_argc += 2;
-				}
-				
 			}
 		}
 	}
@@ -489,9 +473,19 @@ int main(int argc, char **argv)
 	// Initializing vitaGL
 	vglInit(0x1400000);
 	
-	// Mods support
-	if (int_argc > 1) COM_InitArgv(int_argc, int_argv);
-	else COM_InitArgv(argc, argv);
+	// Official mission packs support
+	SceAppUtilAppEventParam eventParam;
+	memset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
+	sceAppUtilReceiveAppEvent(&eventParam);
+	if (eventParam.type == 0x05){
+		char* int_argv[3];
+		int_argv[0] = int_argv[2] = "";
+		char buffer[2048];
+		memset(buffer, 0, 2048);
+		sceAppUtilAppEventParseLiveArea(&eventParam, buffer );
+		int_argv[1] = buffer;
+		COM_InitArgv(3, int_argv);
+	}else COM_InitArgv(argc, argv);
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
