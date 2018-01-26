@@ -532,7 +532,11 @@ void CL_RelinkEntities (void)
 
 // rotate binary objects locally
 		if (ent->model->flags & EF_ROTATE)
+		{
 			ent->angles[1] = bobjrotate;
+			// MUFF - makes them bob as well as rotate ;)
+			ent->origin[2] += (( sin(bobjrotate/90*M_PI) * 5) + 5 );
+		}
 
 		if (ent->effects & EF_BRIGHTFIELD)
 			R_EntityParticles (ent);
