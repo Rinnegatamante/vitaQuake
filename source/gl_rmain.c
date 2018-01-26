@@ -80,7 +80,7 @@ cvar_t	r_speeds = {"r_speeds","0"};
 cvar_t	r_fullbright = {"r_fullbright","0"};
 cvar_t	r_lightmap = {"r_lightmap","0"};
 cvar_t	r_shadows = {"r_shadows","1", true}; 
-cvar_t	r_mirroralpha = {"r_mirroralpha","1"};
+cvar_t	r_mirroralpha = {"r_mirroralpha","0.5"};
 cvar_t	r_wateralpha = {"r_wateralpha","1"};
 cvar_t	r_dynamic = {"r_dynamic","1", true};
 cvar_t	r_novis = {"r_novis","0"};
@@ -1586,6 +1586,11 @@ void R_Mirror (void)
 
 	// blend on top
 	glEnable (GL_BLEND);
+	
+	//mirror fix - from QER
+	GL_EnableState(GL_MODULATE);
+	//mirror fix
+	
 	glMatrixMode(GL_PROJECTION);
 	if (mirror_plane->normal[2])
 		glScalef (1,-1,1);
@@ -1603,6 +1608,11 @@ void R_Mirror (void)
 	cl.worldmodel->textures[mirrortexturenum]->texturechain = NULL;
 	glDisable (GL_BLEND);
 	GL_Color(1,1,1,1);
+	
+	//mirror fix - from QER
+	GL_EnableState(GL_REPLACE);
+	//mirror fix
+	
 }
 
 /*
