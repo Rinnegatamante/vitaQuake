@@ -1076,7 +1076,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 18
+#define	OPTIONS_ITEMS 19
 
 #define	SLIDER_RANGE 10
 
@@ -1104,7 +1104,7 @@ void M_AdjustSliders (int dir)
 			viewsize.value = 120;
 		Cvar_SetValue ("viewsize", viewsize.value);
 		break;
-	case 4:	// gamma
+	case 18:	// gamma
 		v_gamma.value -= dir * 0.05;
 		if (v_gamma.value < 0.5)
 			v_gamma.value = 0.5;
@@ -1138,6 +1138,7 @@ void M_AdjustSliders (int dir)
 		break;
 	case 8:	// Fog
 		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
+		else Cvar_SetValue ("r_fullbright", 1);
 		Cvar_SetValue ("gl_fog", !gl_fog.value);
 		reset_shaders = true;
 		break;
@@ -1180,7 +1181,7 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("r_shadows", !r_shadows.value);
 		break;
 		
-	case 18:	// performance test
+	case 19:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1274,8 +1275,10 @@ void M_Options_Draw (void)
 	M_Print (16, 168, "       Dynamic Shadows");
 	M_DrawCheckbox (220, 168, r_shadows.value);
 	
-	M_Print (50, 182, res_string);
-	
+	M_Print (16, 176, "            Brightness");
+	r = (1.0 - v_gamma.value) / 0.5;
+	M_DrawSlider (220, 176, r);
+
 	M_Print (16, 190, "      Test Performance");
 	
 // cursor

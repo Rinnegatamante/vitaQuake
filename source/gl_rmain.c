@@ -59,6 +59,44 @@ vec3_t	r_origin;
 float	r_world_matrix[16];
 float	r_base_world_matrix[16];
 
+extern	cvar_t		v_gamma; // muff
+
+// idea originally nicked from LordHavoc
+// re-worked + extended - muff 5 Feb 2001
+// called inside polyblend
+void DoGamma()
+{
+
+	if (v_gamma.value < 0.2)
+		v_gamma.value = 0.2;
+
+	if (v_gamma.value >= 1)
+	{
+		v_gamma.value = 1;
+		return;
+	}
+
+	//believe it or not this actually does brighten the picture!!
+	glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+	float color[4] = {1, 1, 1, v_gamma.value};
+	
+	float vertices[3*4] = {
+		10, 100, 100,
+		10,-100, 100,
+		10,-100,-100,
+		10, 100,-100
+	};
+	
+	glUniform4fv(monocolor, 1, color);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertices);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
+	
+	//if we do this twice, we double the brightening effect for a wider range of gamma's
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
+	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
+}
+
 //
 // screen size info
 //
@@ -1225,9 +1263,8 @@ void R_PolyBlend (void)
 {
 	if (!gl_polyblend.value)
 		return;
-	if (!v_blend[3])
-		return;
 
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GL_DisableState(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 	glDisable (GL_DEPTH_TEST);
@@ -1240,19 +1277,28 @@ void R_PolyBlend (void)
 
 	GL_Color(v_blend[0],v_blend[1],v_blend[2],v_blend[3]);
 	
-	float vertex[3*4] = {
-		10, 100, 100,
-		10, -100, 100,
-		10, -100, -100,
-		10, 100, -100
-	};
+	if (v_blend[3]){
+	
+		float vertex[3*4] = {
+			10, 100, 100,
+			10, -100, 100,
+			10, -100, -100,
+			10, 100, -100
+		};
 
-	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-	glUniform4fv(monocolor, 1, v_blend);
-	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
-	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
-
+		GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+		glUniform4fv(monocolor, 1, v_blend);
+		GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
+		GL_EnableState(GL_TEXTURE_COORD_ARRAY);
+		
+	}
+	
+	//gamma trick based on LordHavoc - muff
+	if (v_gamma.value != 1)
+		DoGamma();
+	
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable (GL_BLEND);
 	glEnable (GL_TEXTURE_2D);
 	GL_EnableState(GL_ALPHA_TEST);
