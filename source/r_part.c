@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "r_local.h"
 
-#define DEFAULT_NUM_PARTICLES	2048	// default max # of particles at one time
+#define DEFAULT_NUM_PARTICLES	1024	// default max # of particles at one time
 #define ABSOLUTE_MIN_PARTICLES	512		// no fewer than this no matter what's on the command line
 #define ABSOLUTE_MAX_PARTICLES	8192
 
