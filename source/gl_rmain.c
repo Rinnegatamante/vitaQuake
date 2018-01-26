@@ -1107,6 +1107,7 @@ void R_DrawEntitiesOnList (void)
 	for (i=0 ; i<cl_numvisedicts ; i++)
 	{
 		currententity = cl_visedicts[i];
+		if (currententity == &cl_entities[cl.viewentity]) currententity->angles[0] *= 0.3;
 		switch (currententity->model->type)
 		{
 		case mod_alias:
