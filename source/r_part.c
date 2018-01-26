@@ -750,7 +750,8 @@ void R_DrawParticles (void)
 	float*			pPos = gVertexBuffer;
 	float*			pColor = gColorBuffer;
 	float*			pUV = gTexCoordBuffer;
-
+	float			colors[3];
+	
 #ifdef GLQUAKE
 	float			scale;
 	
@@ -791,9 +792,12 @@ void R_DrawParticles (void)
 		scale *= 1.27;
 		
 		c = (GLubyte *) &d_8to24table[(int)p->color];
-		*pColor++ = ((float)(c[0])) / 255.0f;
-		*pColor++ = ((float)(c[1])) / 255.0f;
-		*pColor++ = ((float)(c[2])) / 255.0f;
+		colors[0] = ((float)(c[0])) / 255.0f;
+		colors[1] = ((float)(c[1])) / 255.0f;
+		colors[2] = ((float)(c[2])) / 255.0f;
+		*pColor++ = colors[0];
+		*pColor++ = colors[1];
+		*pColor++ = colors[2];
 		*pColor++ = 1.0f;
 		*pUV++ = 0.0f;
 		*pUV++ = 0.0f;
@@ -801,9 +805,9 @@ void R_DrawParticles (void)
 		*pPos++ = p->org[1];
 		*pPos++ = p->org[2];
 
-		*pColor++ = ((float)(color[0])) / 255.0f;
-		*pColor++ = ((float)(color[1])) / 255.0f;
-		*pColor++ = ((float)(color[2])) / 255.0f;
+		*pColor++ = colors[0];
+		*pColor++ = colors[1];
+		*pColor++ = colors[2];
 		*pColor++ = 1.0f;
 		*pUV++ = 1.0f;
 		*pUV++ = 0.0f;
@@ -812,9 +816,9 @@ void R_DrawParticles (void)
 		*pPos++ = (p_up[1]);
 		*pPos++ = (p_up[2]);
 
-		*pColor++ = ((float)(color[0])) / 255.0f;
-		*pColor++ = ((float)(color[1])) / 255.0f;
-		*pColor++ = ((float)(color[2])) / 255.0f;
+		*pColor++ = colors[0];
+		*pColor++ = colors[1];
+		*pColor++ = colors[2];
 		*pColor++ = 1.0f;
 		*pUV++ = 0.0;
 		*pUV++ = 1.0;
