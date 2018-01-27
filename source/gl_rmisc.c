@@ -211,6 +211,7 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_doubleeyes);
 	
 	Cvar_RegisterVariable (&gl_torchflares); // Torch flares. KH
+	Cvar_RegisterVariable (&gl_xflip);
 
 	R_InitParticles ();
 	R_InitParticleTexture ();

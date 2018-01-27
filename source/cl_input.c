@@ -239,12 +239,17 @@ void CL_AdjustAngles (void)
 	else
 		speed = host_frametime;
 
+	if (gl_xflip.value) cl.viewangles[YAW] *= -1;
+	
 	if (!(in_strafe.state & 1))
 	{
 		cl.viewangles[YAW] -= speed*cl_yawspeed.value*CL_KeyState (&in_right);
 		cl.viewangles[YAW] += speed*cl_yawspeed.value*CL_KeyState (&in_left);
 		cl.viewangles[YAW] = anglemod(cl.viewangles[YAW]);
 	}
+	
+	if (gl_xflip.value) cl.viewangles[YAW] *= -1;
+	
 	if (in_klook.state & 1)
 	{
 		V_StopPitchDrift ();
@@ -295,6 +300,8 @@ void CL_BaseMove (usercmd_t *cmd)
 	cmd->sidemove += cl_sidespeed.value * CL_KeyState (&in_moveright);
 	cmd->sidemove -= cl_sidespeed.value * CL_KeyState (&in_moveleft);
 
+	if(gl_xflip.value) cmd->sidemove *= -1;
+	
 	cmd->upmove += cl_upspeed.value * CL_KeyState (&in_up);
 	cmd->upmove -= cl_upspeed.value * CL_KeyState (&in_down);
 

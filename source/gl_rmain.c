@@ -122,6 +122,7 @@ cvar_t	r_mirroralpha = {"r_mirroralpha","0.5"};
 cvar_t	r_wateralpha = {"r_wateralpha","1"};
 cvar_t	r_dynamic = {"r_dynamic","1", true};
 cvar_t	r_novis = {"r_novis","0"};
+cvar_t gl_xflip = {"gl_xflip", "0", true};
 
 // fenix@io.com: model interpolation
 cvar_t  r_interpolate_model_animation = { "r_interpolate_model_animation", "1", true };
@@ -1474,6 +1475,10 @@ void R_SetupGL (void)
 
     glRotatef (-90,  1, 0, 0);	    // put Z going up
     glRotatef (90,  0, 0, 1);	    // put Z going up
+	if (gl_xflip.value){
+		glScalef (1, -1, 1);
+		glCullFace(GL_BACK);
+	}
     glRotatef (-r_refdef.viewangles[2],  1, 0, 0);
     glRotatef (-r_refdef.viewangles[0],  0, 1, 0);
     glRotatef (-r_refdef.viewangles[1],  0, 0, 1);
