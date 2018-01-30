@@ -22,10 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 char res_string[256];
 extern cvar_t	fov;
 extern cvar_t	crosshair;
-STATIC_CVAR (d_subdiv16,	1, CVAR_ARCHIVE)
-STATIC_CVAR (d_mipcap,		0, CVAR_ARCHIVE)
-CVAR (d_mipscale,	1, CVAR_ARCHIVE)
-CVAR (d_dither,		0, CVAR_ARCHIVE)
 CVAR (vid_vsync, 1, CVAR_ARCHIVE)
 extern cvar_t	inverted;
 extern cvar_t	pstv_rumble;
@@ -1076,7 +1072,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 19
+#define	OPTIONS_ITEMS 22
 
 #define	SLIDER_RANGE 10
 
@@ -1096,7 +1092,7 @@ void M_AdjustSliders (int dir)
 
 	switch (options_cursor)
 	{
-	case 3:	// screen size
+	case 4:	// screen size
 		viewsize.value += dir * 10;
 		if (viewsize.value < 30)
 			viewsize.value = 30;
@@ -1104,7 +1100,7 @@ void M_AdjustSliders (int dir)
 			viewsize.value = 120;
 		Cvar_SetValue ("viewsize", viewsize.value);
 		break;
-	case 18:	// gamma
+	case 5:	// gamma
 		v_gamma.value -= dir * 0.05;
 		if (v_gamma.value < 0.5)
 			v_gamma.value = 0.5;
@@ -1112,7 +1108,7 @@ void M_AdjustSliders (int dir)
 			v_gamma.value = 1;
 		Cvar_SetValue ("v_gamma", v_gamma.value);
 		break;
-	case 5:	// mouse speed
+	case 6:	// camera sensitivity
 		sensitivity.value += dir * 0.5;
 		if (sensitivity.value < 1)
 			sensitivity.value = 1;
@@ -1120,7 +1116,10 @@ void M_AdjustSliders (int dir)
 			sensitivity.value = 11;
 		Cvar_SetValue ("sensitivity", sensitivity.value);
 		break;
-	case 6:	// music volume
+	case 7:	// invert camera
+		Cvar_SetValue ("invert_camera", !inverted.value);
+		break;
+	case 8:	// music volume
 		bgmvolume.value += dir * 0.1;
 		if (bgmvolume.value < 0)
 			bgmvolume.value = 0;
@@ -1128,7 +1127,7 @@ void M_AdjustSliders (int dir)
 			bgmvolume.value = 1;
 		Cvar_SetValue ("bgmvolume", bgmvolume.value);
 		break;
-	case 7:	// sfx volume
+	case 9:	// sfx volume
 		volume.value += dir * 0.1;
 		if (volume.value < 0)
 			volume.value = 0;
@@ -1136,58 +1135,60 @@ void M_AdjustSliders (int dir)
 			volume.value = 1;
 		Cvar_SetValue ("volume", volume.value);
 		break;
-	case 8:	// Fog
-		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
-		else Cvar_SetValue ("r_fullbright", 1);
-		Cvar_SetValue ("gl_fog", !gl_fog.value);
-		reset_shaders = true;
+	case 10:	// retrotouch
+		Cvar_SetValue ("retrotouch", !retrotouch.value);
 		break;
-	case 9:	// show weapon
+	case 11:	// rumble
+		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
+		break;
+	case 12:	// show fps
+		Cvar_SetValue ("show_fps", !show_fps.value);
+		break;
+	case 13:	// show weapon
 		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
-
-	case 10:	// invert mouse
-		Cvar_SetValue ("invert_camera", !inverted.value);
+	case 14:	// crosshair		
+		Cvar_SetValue ("crosshair", !crosshair.value);
 		break;
-
-	case 11:	// field of view
+	case 15:	// field of view
 		fov.value += dir * 5;
 		if (fov.value > 130) fov.value = 130;
 		if (fov.value < 75) fov.value = 75;
 		Cvar_SetValue ("fov",fov.value);
 		break;
-
-	case 12:	// crosshair		
-		Cvar_SetValue ("crosshair", !crosshair.value);
+	case 16:	// Fog
+		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
+		else Cvar_SetValue ("r_fullbright", 1);
+		Cvar_SetValue ("gl_fog", !gl_fog.value);
+		reset_shaders = true;
 		break;
-		
-	case 13:	// retrotouch
-		Cvar_SetValue ("retrotouch", !retrotouch.value);
-		break;
-		
-	case 14:	// rumble
-		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
-		break;
-		
-	case 15:	// show fps
-		Cvar_SetValue ("show_fps", !show_fps.value);
-		break;
-		
-	case 16:	// dynamic torchflares
+	case 17:	// dynamic torchflares
 		Cvar_SetValue ("gl_torchflares", !gl_torchflares.value);
-		break;
-		
-	case 17:	// dynamic shadows
+		break;	
+	case 18:	// dynamic shadows
 		Cvar_SetValue ("r_shadows", !r_shadows.value);
 		break;
-		
-	case 19:	// performance test
+	case 19:	// smooth animations
+		Cvar_SetValue ("r_interpolate_model_animation", !r_interpolate_model_animation.value);
+		Cvar_SetValue ("r_interpolate_model_transform", !r_interpolate_model_transform.value);
+		break;
+	case 20:	// mirrors opacity
+		r_mirroralpha.value += dir * 0.1;
+		if (r_mirroralpha.value < 0)
+			r_mirroralpha.value = 0;
+		if (r_mirroralpha.value > 1)
+			r_mirroralpha.value = 1;
+		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
+		break;
+	case 21:	// specular mode
+		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
+		break;
+	case 22:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
 		Cbuf_AddText("benchmark demo1\n");
 		break;
-
 	}
 }
 
@@ -1223,66 +1224,74 @@ void M_Options_Draw (void)
 
 	M_Print (16, 32, "    Customize controls");
 	M_Print (16, 40, "         Go to console");
-	M_Print (16, 48, "     Reset to defaults");
+    M_Print (16, 48, "       Go to Mods Menu");
+	M_Print (16, 56, "     Reset to defaults");
 
-	M_Print (16, 56, "           Screen size");
+	M_Print (16, 64, "           Screen size");
 	r = (viewsize.value - 30) / (120 - 30);
-	M_DrawSlider (220, 56, r);
-
-	M_Print (16, 64, "       Go to Mods Menu");
-
-	M_Print (16, 72, "    Camera Sensitivity");
-	r = (sensitivity.value - 1)/10;
+	M_DrawSlider (220, 64, r);
+    
+    M_Print (16, 72, "            Brightness");
+	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 72, r);
 
-	M_Print (16, 80, "          Music Volume");
-	r = bgmvolume.value;
+	M_Print (16, 80, "    Camera Sensitivity");
+	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 80, r);
+
+    M_Print (16, 88, "         Invert Camera");
+	M_DrawCheckbox (220, 88, inverted.value);
+    
+	M_Print (16, 96, "          Music Volume");
+	r = bgmvolume.value;
+	M_DrawSlider (220, 96, r);
 	
-	M_Print (16, 88, "          Sound Volume");
+	M_Print (16, 104, "          Sound Volume");
 	r = volume.value;
-	M_DrawSlider (220, 88, r);
+	M_DrawSlider (220, 104, r);
+    
+    M_Print (16, 112, "        Use Retrotouch");
+	M_DrawCheckbox (220, 112, retrotouch.value);
+    
+    M_Print (16, 120, "         Rumble Effect");
+	M_DrawCheckbox (220, 120, pstv_rumble.value);
 	
-	M_Print (16, 96, "         Fog Rendering");
-	M_DrawCheckbox (220, 96, gl_fog.value);
-	
-	M_Print (16, 104,  "          Show Weapon");
-	M_DrawCheckbox (220, 104, r_drawviewmodel.value);
-
-	M_Print (16, 112, "         Invert Camera");
-	M_DrawCheckbox (220, 112, inverted.value);
-
-	M_Print (16, 120, "         Field of View");
+    M_Print (16, 128, "        Show Framerate");
+	M_DrawCheckbox (220, 128, show_fps.value);
+    
+    M_Print (16, 136,  "          Show Weapon");
+	M_DrawCheckbox (220, 136, r_drawviewmodel.value);
+    
+    M_Print (16, 144, "        Show Crosshair");
+	M_DrawCheckbox (220, 144, crosshair.value);
+    
+    M_Print (16, 152, "         Field of View");
 	r = (fov.value - 75) / 55;
-	M_DrawSlider (220, 120, r);
+	M_DrawSlider (220, 152, r);
+    
+	M_Print (16, 160, "         Fog Rendering");
+	M_DrawCheckbox (220, 160, gl_fog.value);
+	
+	M_Print (16, 168, " Dynamic Torches Light");
+	M_DrawCheckbox (220, 168, gl_torchflares.value);
 
-	M_Print (16, 128, "        Show Crosshair");
-	M_DrawCheckbox (220, 128, crosshair.value);
+	M_Print (16, 176, "       Dynamic Shadows");
+	M_DrawCheckbox (220, 176, r_shadows.value);
+    
+    M_Print (16, 184, "     Smooth Animations");
+	M_DrawCheckbox (220, 184, r_interpolate_model_animation.value);
+    
+    M_Print (16, 192, "       Mirrors Opacity");
+    r = r_mirroralpha.value;
+	M_DrawSlider (220, 192, r);
+    
+    M_Print (16, 200, "         Specular Mode");
+    M_DrawCheckbox (220, 200, gl_xflip.value);
 
-	//if (vid_menudrawfn)
-	M_Print (16, 136, "        Use Retrotouch");
-	M_DrawCheckbox (220, 136, retrotouch.value);
-	
-	M_Print (16, 144, "         Rumble Effect");
-	M_DrawCheckbox (220, 144, pstv_rumble.value);
-	
-	M_Print (16, 152, "        Show Framerate");
-	M_DrawCheckbox (220, 152, show_fps.value);
-	
-	M_Print (16, 160, " Dynamic Torches Light");
-	M_DrawCheckbox (220, 160, gl_torchflares.value);
-	
-	M_Print (16, 168, "       Dynamic Shadows");
-	M_DrawCheckbox (220, 168, r_shadows.value);
-	
-	M_Print (16, 176, "            Brightness");
-	r = (1.0 - v_gamma.value) / 0.5;
-	M_DrawSlider (220, 176, r);
-
-	M_Print (16, 190, "      Test Performance");
+	M_Print (16, 220, "      Test Performance");
 	
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 190, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 220, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1302,24 +1311,59 @@ void M_Options_Key (int k)
 		m_entersound = true;
 		switch (options_cursor)
 		{
-		case 0:
+		case 0: // Customize controls
 			M_Menu_Keys_f ();
 			break;
-		case 1:
+		case 1: // Go to console
 			m_state = m_none;
 			Con_ToggleConsole_f ();
 			break;
-		case 2:
-			Cbuf_AddText ("exec default.cfg\n");
-			
-			IN_ResetInputs();
-			fov.value = 90;
-			Cvar_SetValue ("fov", fov.value);
-			break;
-		case 4:
+		case 2: // Go to mods menu
 			M_Menu_Mods_f ();
 			break;
-		default:
+		case 3: // Reset to defaults
+			Cbuf_AddText ("exec default.cfg\n");
+			IN_ResetInputs();
+			viewsize.value = 120;
+			v_gamma.value = 1;
+			sensitivity.value = 3;
+			inverted.value = 0;
+			bgmvolume.value = 1.0;
+			volume.value = 0.7;
+			retrotouch.value = 0;
+			pstv_rumble.value = 1.0;
+			show_fps.value = 0;
+			r_drawviewmodel.value = 1;
+			crosshair.value = 1;
+			fov.value = 90;
+			gl_fog.value = 0;
+			gl_torchflares.value = 1;
+			r_shadows.value = 1;
+			r_interpolate_model_animation.value = 0;
+			r_interpolate_model_transform.value = 0;
+			r_mirroralpha.value = 1.0;
+			gl_xflip.value = 0;
+			Cvar_SetValue ("viewsize", viewsize.value);
+			Cvar_SetValue ("v_gamma", v_gamma.value);
+			Cvar_SetValue ("sensitivity", sensitivity.value);
+			Cvar_SetValue ("inverted", inverted.value);
+			Cvar_SetValue ("bgmvolume", bgmvolume.value);
+			Cvar_SetValue ("volume", volume.value);
+			Cvar_SetValue ("retrotouch", retrotouch.value);
+			Cvar_SetValue ("pstv_rumble", pstv_rumble.value);
+			Cvar_SetValue ("show_fps", show_fps.value);
+			Cvar_SetValue ("r_drawviewmodel", r_drawviewmodel.value);
+			Cvar_SetValue ("crosshair", crosshair.value);
+			Cvar_SetValue ("fov", fov.value);
+			Cvar_SetValue ("gl_fog", gl_fog.value);
+			Cvar_SetValue ("gl_torchflares", gl_torchflares.value);
+			Cvar_SetValue ("r_shadows", r_shadows.value);
+			Cvar_SetValue ("r_interpolate_model_animation", r_interpolate_model_animation.value);
+			Cvar_SetValue ("r_interpolate_model_transform", r_interpolate_model_transform.value);
+			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
+			Cvar_SetValue ("gl_xflip", gl_xflip.value);
+			break;
+		default: // All other settings
 			M_AdjustSliders (1);
 			break;
 		}
