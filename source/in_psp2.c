@@ -121,15 +121,17 @@ void IN_Move (usercmd_t *cmd)
 	int right_y = analogs.ry - 127;
 	
 	// Left analog support for player movement
-	int x_mov = abs(left_x) < 30 ? 0 : (left_x * cl_sidespeed.value) * 0.01;
-	int y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
+	IN_RescaleAnalog(&left_x, &left_y, 30);
+	float x_mov = (left_x * cl_sidespeed.value) * 0.01;
+	float y_mov = (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
 	cmd->forwardmove -= y_mov;
 	if (gl_xflip.value) cmd->sidemove -= x_mov;
 	else cmd->sidemove += x_mov;
 	
 	// Right analog support for camera movement
-	int x_cam = abs(right_x) < 50 ? 0 : right_x * sensitivity.value * 0.008;
-	int y_cam = abs(right_y) < 50 ? 0 : right_y * sensitivity.value * 0.008;
+	IN_RescaleAnalog(&right_x, &right_y, 30);
+	float x_cam = (right_x * sensitivity.value) * 0.008;
+	float y_cam = (right_y * sensitivity.value) * 0.008;
 	if (gl_xflip.value) cl.viewangles[YAW] += x_cam;
 	else cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
@@ -177,4 +179,24 @@ void IN_Move (usercmd_t *cmd)
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);
 	else
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -70, 80);
+}
+
+void IN_RescaleAnalog(int *x, int *y, int dead) {
+	//radial and scaled deadzone
+	//http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
+
+	float analogX = (float) *x;
+	float analogY = (float) *y;
+	float deadZone = (float) dead;
+	float maximum = 128.0f;
+	float magnitude = sqrt(analogX * analogX + analogY * analogY);
+	if (magnitude >= deadZone)
+	{
+		float scalingFactor = maximum / magnitude * (magnitude - deadZone) / (maximum - deadZone);		
+		*x = (int) (analogX * scalingFactor);
+		*y = (int) (analogY * scalingFactor);
+	} else {
+		*x = 0;
+		*y = 0;
+	}
 }

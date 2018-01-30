@@ -439,7 +439,7 @@ int main(int argc, char **argv)
 	scePowerSetGpuClockFrequency(222);
 	scePowerSetGpuXbarClockFrequency(166);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
-	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
 	sceAppUtilInit(&(SceAppUtilInitParam){}, &(SceAppUtilBootParam){});
