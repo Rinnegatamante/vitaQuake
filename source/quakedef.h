@@ -47,7 +47,7 @@ extern int m_state;
 #define	QUAKE_GAME			// as opposed to utilities
 
 #define ENGINE_NAME			"vitaQuake"
-#define	VERSION				2.60
+#define	VERSION				2.70
 #define VERSION_PROQUAKE	3.50
 #define	GLQUAKE_VERSION	    1.00
 
