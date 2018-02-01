@@ -121,9 +121,8 @@ void IN_Move (usercmd_t *cmd)
 	int right_y = analogs.ry - 127;
 	
 	// Left analog support for player movement
-	IN_RescaleAnalog(&left_x, &left_y, 30);
-	float x_mov = (left_x * cl_sidespeed.value) * 0.01;
-	float y_mov = (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
+	float x_mov = abs(left_x) < 30 ? 0 : (left_x * cl_sidespeed.value) * 0.01;
+	float y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
 	cmd->forwardmove -= y_mov;
 	if (gl_xflip.value) cmd->sidemove -= x_mov;
 	else cmd->sidemove += x_mov;
