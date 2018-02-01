@@ -14,7 +14,7 @@ vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on w
 
 # CDAudio Support
 
-vitaQuake supports all official soundtrack packs for Quake and its two official mission packs, "Scourge of Armagon" and "Dissolution of Eternity." In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign folder (see chart below for directories). The normal campaign and the two official mission packs will have their own /cdtracks/ folder. 
+vitaQuake supports all soundtrack packs for Quake and its two official mission packs, "Scourge of Armagon" and "Dissolution of Eternity." In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign folder (see chart below for directories). The normal campaign and the two official mission packs will have their own /cdtracks/ folder. 
 
 By default, the music folder has tracks named as track02, track03, etc. For vitaQuake, add an extra "0" after "track" in order for them to be loaded properly and in order. **Ex.: track02 -> track002**
 
