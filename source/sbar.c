@@ -1215,27 +1215,30 @@ void Sbar_IntermissionOverlay (void)
 		return;
 	}
 
+	//muff@yakko.globalnet.co.uk
+	//dead easy stuff really
 	pic = Draw_CachePic ("gfx/complete.lmp");
-	Draw_Pic (64, 24, pic);
+	Draw_Pic ((vid.width/2)-94, (vid.height/2) - 96, pic);
 
 	pic = Draw_CachePic ("gfx/inter.lmp");
-	Draw_TransPic (0, 56, pic);
+	Draw_TransPic ((vid.width/2)-160, (vid.height/2) - 64, pic);
 
-// time
 	dig = cl.completed_time/60;
-	Sbar_IntermissionNumber (160, 64, dig, 3, 0);
+	Sbar_IntermissionNumber (vid.width/2, (vid.height/2) - 56, dig, 3, 0);
 	num = cl.completed_time - dig*60;
-	Draw_TransPic (234,64,sb_colon);
-	Draw_TransPic (246,64,sb_nums[0][num/10]);
-	Draw_TransPic (266,64,sb_nums[0][num%10]);
 
-	Sbar_IntermissionNumber (160, 104, cl.stats[STAT_SECRETS], 3, 0);
-	Draw_TransPic (232,104,sb_slash);
-	Sbar_IntermissionNumber (240, 104, cl.stats[STAT_TOTALSECRETS], 3, 0);
+	Draw_TransPic ((vid.width/2)+74 ,(vid.height/2)- 56,sb_colon);
+	Draw_TransPic ((vid.width/2)+86 ,(vid.height/2)- 56,sb_nums[0][num/10]);
+	Draw_TransPic ((vid.width/2)+106,(vid.height/2)- 56,sb_nums[0][num%10]);
 
-	Sbar_IntermissionNumber (160, 144, cl.stats[STAT_MONSTERS], 3, 0);
-	Draw_TransPic (232,144,sb_slash);
-	Sbar_IntermissionNumber (240, 144, cl.stats[STAT_TOTALMONSTERS], 3, 0);
+	Sbar_IntermissionNumber ((vid.width/2), (vid.height/2)- 16, cl.stats[STAT_SECRETS], 3, 0);
+	Draw_TransPic ((vid.width/2)+72,(vid.height/2)- 16,sb_slash);
+	Sbar_IntermissionNumber ((vid.width/2)+80, (vid.height/2)- 16, cl.stats[STAT_TOTALSECRETS], 3, 0);
+
+	Sbar_IntermissionNumber ((vid.width/2), (vid.height/2)+ 24, cl.stats[STAT_MONSTERS], 3, 0);
+	Draw_TransPic ((vid.width/2)+72,(vid.height/2)+ 24,sb_slash);
+	Sbar_IntermissionNumber ((vid.width/2)+80, (vid.height/2)+ 24, cl.stats[STAT_TOTALMONSTERS], 3, 0);
+	//end of muff
 
 }
 
