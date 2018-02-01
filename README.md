@@ -14,20 +14,21 @@ vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on w
 
 # CDAudio Support
 
-vitaQuake supports all official soundtrack packs for Quake and it's two official mission packs, Hipnotic and Rogue. In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign foler (see chart below for directories). The normal campaign, Hipnotic and Rogue will each have their own /cdtracks/ folder. You can find the official soundtrack for the main campaign in .ogg format [here](https://www.quaddicted.com/files/music/quake_music.zip).
+vitaQuake supports all official soundtrack packs for Quake and its two official mission packs, "Scourge of Armagon" and "Dissolution of Eternity." In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign folder (see chart below for directories). The normal campaign and the two official mission packs will have their own /cdtracks/ folder. 
 
-Each sound file will need to be renamed and **must** be in .ogg format. By default, the music folder has tracks named as track02, track03, etc. For vitaQuake, add an extra "0" after "track" in order for them to be loaded properly and in order. **Ex.: track02 -> track002
+By default, the music folder has tracks named as track02, track03, etc. For vitaQuake, add an extra "0" after "track" in order for them to be loaded properly and in order. **Ex.: track02 -> track002**
 
+You can find the official soundtrack for the main campaign in .ogg format [here](https://www.quaddicted.com/files/music/quake_music.zip).
 
-# Loading Mods
+# Loading Expansions and Mods
 
-vitaQuake has support for the official mission packs "hipnotic" and "rogue". These were offical, paid modpacks, so they can be found usually wherever the full base game is sold (GOG, Steam). In order to get them to load properly, place them in the "ux0:/data/quake/" folder alongside "id1". 
+vitaQuake supports the official Quake expansions, "Scourge of Armagon" and "Dissolution of Eternity." These were offical expansions, so they can be found usually wherever the full base game is sold (GOG, Steam). In order to get them to load properly, place them in the "ux0:/data/quake/" folder alongside "id1". 
 
-Both official mission packs support their own OSTs so long as they are placed properly in their "/cdtracks/" folder.
+Both official mission packs support their own soundtracks as long as they are placed properly in their respective "/cdtracks/" folder.
 
-Mod compatibility is varied, but as a general rule of thumb, mods compatable with winQuake will be compatible with vitaQuake. Some confirmed working mod packs include:
+Mod compatibility is varied, but as a general rule of thumb, mods compatible with winQuake will be compatible with vitaQuake. Some confirmed working mod packs include:
 
-Mod | Status/Link | Developer | CD Audio Folder
+Expansion/Mod | Status/Link | Developer | CD Audio Folder
 ---|---|---|---|
 dopa | [Free](https://twitter.com/machinegames/status/746363189768650752?lang=en) | machinegames | N/A
 Scourge of Armagon | Official Expansion | Hipnotic Software | `ux0:/data/Quake/hipnotic/cdtracks`
