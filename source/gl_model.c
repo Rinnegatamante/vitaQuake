@@ -482,22 +482,55 @@ void Mod_LoadTextures (lump_t *l)
 	}
 }
 
-/*
-=================
-Mod_LoadLighting
-=================
-*/
 void Mod_LoadLighting (lump_t *l)
 {
-	if (!l->filelen)
-	{
-		loadmodel->lightdata = NULL;
-		return;
-	}
-	loadmodel->lightdata = (byte*)Hunk_AllocName ( l->filelen, loadname);	
-	memcpy (loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
-}
+	// LordHavoc: .lit support begin
+	int i;
+	byte *in, *out, *data;
+	byte d;
+	char litfilename[1024];
+	loadmodel->lightdata = NULL;
 
+	// LordHavoc: check for a .lit file
+	strcpy(litfilename, loadmodel->name);
+	COM_StripExtension(litfilename, litfilename);
+	strcat(litfilename, ".lit");
+	data = (byte*) COM_LoadHunkFile (litfilename);
+	if (data)
+	{
+		if (data[0] == 'Q' && data[1] == 'L' && data[2] == 'I' && data[3] == 'T')
+		{
+			i = LittleLong(((int *)data)[1]);
+			if (i == 1)
+			{
+				Con_DPrintf("%s loaded", litfilename);
+				loadmodel->lightdata = data + 8;
+				return;
+			}
+			else
+				Con_Printf("Unknown .lit file version (%d)\n", i);
+		}
+		else
+			Con_Printf("Corrupt .lit file (old version?), ignoring\n");
+	}
+
+	// LordHavoc: no .lit found, expand the white lighting data to color
+	if (!l->filelen)
+		return;
+	loadmodel->lightdata = Hunk_AllocName ( l->filelen*3, litfilename);
+	in = loadmodel->lightdata + l->filelen*2; // place the file at the end, so it will not be overwritten until the very last write
+	out = loadmodel->lightdata;
+	memcpy (in, mod_base + l->fileofs, l->filelen);
+	for (i = 0;i < l->filelen;i++)
+	{
+		d = *in++;
+		*out++ = d;
+		*out++ = d;
+		*out++ = d;
+	}
+	// LordHavoc: .lit support end
+
+}
 
 /*
 =================
@@ -784,7 +817,7 @@ void Mod_LoadFaces (lump_t *l)
 		if (i == -1)
 			out->samples = NULL;
 		else
-			out->samples = loadmodel->lightdata + i;
+			out->samples = loadmodel->lightdata + (i * 3); // LordHavoc
 		
 	// set the drawing flags flag
 		

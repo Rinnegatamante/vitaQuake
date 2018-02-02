@@ -135,7 +135,7 @@ cvar_t	gl_texsort = {"gl_texsort","1"};
 cvar_t	gl_smoothmodels = {"gl_smoothmodels","1"};
 cvar_t	gl_affinemodels = {"gl_affinemodels","1"};
 cvar_t	gl_polyblend = {"gl_polyblend","1"};
-cvar_t	gl_flashblend = {"gl_flashblend","1"};
+cvar_t	gl_flashblend = {"gl_flashblend","0"};
 cvar_t	gl_playermip = {"gl_playermip","0"};
 cvar_t	gl_nocolors = {"gl_nocolors","0"};
 cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","1"};
@@ -403,7 +403,7 @@ const float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
 };
 
 vec3_t	shadevector;
-float	shadelight, ambientlight;
+extern vec3_t lightcolor; // LordHavoc: .lit support to the definitions at the top
 
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
@@ -471,11 +471,11 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			if (r_fullbright.value || !cl.worldmodel->lightdata)
 				l = 1;
 			else
-				l = shadedots[verts->lightnormalindex] * shadelight;
+				l = shadedots[verts->lightnormalindex];
 			
-			*pColor++ = l;
-			*pColor++ = l;
-			*pColor++ = l;
+			*pColor++ = l * lightcolor[0];
+			*pColor++ = l * lightcolor[1];
+			*pColor++ = l * lightcolor[2];
 			*pColor++ = 1.0f;
 			*pPos++ = verts->v[0];
 			*pPos++ = verts->v[1];
@@ -509,7 +509,8 @@ void GL_DrawAliasBlendedFrame (aliashdr_t *paliashdr, int pose1, int pose2, floa
 	int*		order;
 	int		 count;
 	vec3_t	  d;
-		
+	extern vec3_t lightcolor; // LordHavoc: .lit support to the definitions at the top
+	
 	GL_EnableState(GL_COLOR_ARRAY);	
 		
 	lastposenum0 = pose1;
@@ -559,10 +560,10 @@ void GL_DrawAliasBlendedFrame (aliashdr_t *paliashdr, int pose1, int pose2, floa
 			d[0] = shadedots[verts2->lightnormalindex] -
 				shadedots[verts1->lightnormalindex];
 
-			l = shadelight * (shadedots[verts1->lightnormalindex] + (blend * d[0]));
-			*pColor++ = l;
-			*pColor++ = l;
-			*pColor++ = l;
+			l = (shadedots[verts1->lightnormalindex] + (blend * d[0]));
+			*pColor++ = l * lightcolor[0];
+			*pColor++ = l * lightcolor[1];
+			*pColor++ = l * lightcolor[2];
 			*pColor++ = 1.0f;
 
 			VectorSubtract(verts2->v, verts1->v, d);
@@ -867,16 +868,25 @@ void R_DrawAliasModel (entity_t *e)
 
 	VectorCopy (currententity->origin, r_entorigin);
 	VectorSubtract (r_origin, r_entorigin, modelorg);
-
+	
 	//
 	// get lighting information
 	//
+	// LordHavoc: .lit support begin
+	R_LightPoint(currententity->origin); // LordHavoc: lightcolor is all that matters from this
+	// LordHavoc: .lit support end
 
-	ambientlight = shadelight = R_LightPoint (currententity->origin);
-
-	// allways give the gun some light
-	if (e == &cl.viewent && ambientlight < 24)
-		ambientlight = shadelight = 24;
+	// LordHavoc: .lit support begin
+	if (e == &cl.viewent)
+	{
+		if (lightcolor[0] < 24)
+			lightcolor[0] = 24;
+		if (lightcolor[1] < 24)
+			lightcolor[1] = 24;
+		if (lightcolor[2] < 24)
+			lightcolor[2] = 24;
+	}
+	// LordHavoc: .lit support end
 
 	for (lnum=0 ; lnum<MAX_DLIGHTS ; lnum++)
 	{
@@ -886,37 +896,45 @@ void R_DrawAliasModel (entity_t *e)
 							cl_dlights[lnum].origin,
 							dist);
 			add = cl_dlights[lnum].radius - Length(dist);
-
-			if (add > 0) {
-				ambientlight += add;
-				//ZOID models should be affected by dlights as well
-				shadelight += add;
+			// LordHavoc: .lit support begin
+			if (add > 0)
+			{
+				lightcolor[0] += add * cl_dlights[lnum].color[0];
+				lightcolor[1] += add * cl_dlights[lnum].color[1];
+				lightcolor[2] += add * cl_dlights[lnum].color[2];
 			}
+			// LordHavoc: .lit support end
 		}
 	}
-
-	// clamp lighting so it doesn't overbright as much
-	if (ambientlight > 128)
-		ambientlight = 128;
-	if (ambientlight + shadelight > 192)
-		shadelight = 192 - ambientlight;
 
 	// ZOID: never allow players to go totally black
 	i = currententity - cl_entities;
 	if (i >= 1 && i<=cl.maxclients /* && !strcmp (currententity->model->name, "progs/player.mdl") */)
-		if (ambientlight < 8)
-			ambientlight = shadelight = 8;
+	{
+		// LordHavoc: .lit support begin
+		if (lightcolor[0] < 8)
+			lightcolor[0] = 8;
+		if (lightcolor[1] < 8)
+			lightcolor[1] = 8;
+		if (lightcolor[2] < 8)
+			lightcolor[2] = 8;
+		// LordHavoc: .lit support end
+	}
 
 	// HACK HACK HACK -- no fullbright colors, so make torches full light
 	if (!strcmp (clmodel->name, "progs/flame2.mdl")
 		|| !strcmp (clmodel->name, "progs/flame.mdl") )
 	{
 		torch = true; // This model is a torch. KH
-		ambientlight = shadelight = 256;
+		// LordHavoc: .lit support begin
+		lightcolor[0] = lightcolor[1] = lightcolor[2] = 256;
+		// LordHavoc: .lit support end
 	}
 	
 	shadedots = r_avertexnormal_dots[((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
-	shadelight = shadelight / 200.0;
+	// LordHavoc: .lit support begin
+	VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
+	// LordHavoc: .lit support end
 	
 	an = e->angles[1]/180*M_PI;
 	shadevector[0] = cosf(-an);
@@ -1182,14 +1200,6 @@ R_DrawViewModel
 */
 void R_DrawViewModel (void)
 {
-	float		ambient[4], diffuse[4];
-	int			j;
-	int			lnum;
-	vec3_t		dist;
-	float		add;
-	dlight_t	*dl;
-	int			ambientlight, shadelight;
-
 	// fenix@io.com: model transform interpolation
 	float old_interpolate_model_transform;
 	
@@ -1214,33 +1224,6 @@ void R_DrawViewModel (void)
 	currententity = &cl.viewent;
 	if (!currententity->model)
 		return;
-
-	j = R_LightPoint (currententity->origin);
-
-	if (j < 24)
-		j = 24;		// allways give some light on gun
-	ambientlight = j;
-	shadelight = j;
-
-// add dynamic lights		
-	for (lnum=0 ; lnum<MAX_DLIGHTS ; lnum++)
-	{
-		dl = &cl_dlights[lnum];
-		if (!dl->radius)
-			continue;
-		if (!dl->radius)
-			continue;
-		if (dl->die < cl.time)
-			continue;
-
-		VectorSubtract (currententity->origin, dl->origin, dist);
-		add = dl->radius - Length(dist);
-		if (add > 0)
-			ambientlight += add;
-	}
-
-	ambient[0] = ambient[1] = ambient[2] = ambient[3] = (float)ambientlight / 128.0f;
-	diffuse[0] = diffuse[1] = diffuse[2] = diffuse[3] = (float)shadelight / 128.0f;
 
 	// hack the depth range to prevent view model from poking into walls
 	glDepthRangef (gldepthmin, gldepthmin + 0.3f*(gldepthmax-gldepthmin));
