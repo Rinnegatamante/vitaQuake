@@ -1259,7 +1259,7 @@ void M_Options_Draw (void)
     M_Print (16, 128, "        Show Framerate");
 	M_DrawCheckbox (220, 128, show_fps.value);
     
-    M_Print (16, 136,  "          Show Weapon");
+    M_Print (16, 136, "           Show Weapon");
 	M_DrawCheckbox (220, 136, r_drawviewmodel.value);
     
     M_Print (16, 144, "        Show Crosshair");
