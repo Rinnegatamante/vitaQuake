@@ -751,17 +751,9 @@ void Draw_Character (int x, int y, int num)
 	fcol = col*0.0625;
 	size = 0.0625;
 	
-	GL_DisableState(GL_ALPHA_TEST); // 30/01/2000 added: M.Tretene
-	glEnable (GL_BLEND);
-	GL_Color(1,1,1,(float) 1);
-	
 	GL_Bind (char_texture);
 
 	DrawQuad(x, y, 8, 8, fcol, frow, size, size);
-	
-	GL_Color(1,1,1,1);
-	GL_EnableState(GL_ALPHA_TEST);
-	glDisable (GL_BLEND);
 	
 }
 
@@ -836,7 +828,7 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 	glpic_t temp;
 	memcpy(&temp, pic->data, sizeof(temp));
 	gl = &temp;
-	//glColor4f (1,1,1,1); // 30/01/2000 removed: M.Tretene
+	GL_Color(1, 1, 1, 1);
 	GL_Bind (gl->texnum);
 
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
@@ -860,15 +852,7 @@ void Draw_TransPic (int x, int y, qpic_t *pic)
 		Sys_Error ("Draw_TransPic: bad coordinates");
 	}
 	
-	GL_DisableState(GL_ALPHA_TEST);     // 30/01/2000 added: M.Tretene
-	glEnable (GL_BLEND);
-	GL_Color(1,1,1,1);
-	
 	Draw_Pic (x, y, pic);
-	
-	GL_Color(1,1,1,1);          // 30/01/2000 added: M.Tretene
-	GL_EnableState(GL_ALPHA_TEST);
-	glDisable (GL_BLEND);
 }
 
 
@@ -906,8 +890,8 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 	
 	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	GL_Color(1,1,1,1);
 	DrawQuad(x, y, pic->width, pic->height, 0, 0, 1, 1);
@@ -1041,7 +1025,7 @@ void GL_Set2D (void)
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
 	glDisable (GL_BLEND);
-	GL_DisableState(GL_ALPHA_TEST);
+	GL_EnableState(GL_ALPHA_TEST);
 
 	GL_Color(1,1,1,1);
 }
