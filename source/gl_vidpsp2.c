@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
-#define stringify(m) { #m, m }
-
 extern cvar_t vid_vsync;
 extern bool benchmark;
 unsigned short	d_8to16table[256];
@@ -183,11 +181,11 @@ void* GL_LoadShader(const char* filename, GLuint idx, GLboolean fragment){
 	free(res);
 }
 
-int state_mask = 0;
-int texenv_mask = 0;
-int texcoord_state = 0;
-int alpha_state = 0;
-int color_state = 0;
+static int state_mask = 0;
+static int texenv_mask = 0;
+static int texcoord_state = 0;
+static int alpha_state = 0;
+static int color_state = 0;
 GLint monocolor;
 GLint modulcolor[2];
 
@@ -200,7 +198,7 @@ void GL_SetProgram(){
 			glUseProgram(programs[NO_COLOR]);
 			break;
 		case 0x01: // Texcoord
-		case 0x03: // Replace + Texcoord + Color
+		case 0x03: // Texcoord + Color
 			glUseProgram(programs[TEX2D_REPL]);
 			break;
 		case 0x02: // Color
@@ -288,7 +286,7 @@ void GL_DisableState(GLenum state){
 	GL_SetProgram();
 }
 
-float cur_clr[4];
+static float cur_clr[4];
 
 void GL_DrawPolygon(GLenum prim, int num){
 	if ((state_mask + texenv_mask) == 0x05) glUniform4fv(modulcolor[0], 1, cur_clr);
@@ -442,20 +440,18 @@ void GL_Init (void)
 
 	glClearColor (1,0,0,0);
 	glCullFace(GL_FRONT);
-	glEnable(GL_TEXTURE_2D);
 
 	//->glShadeModel (GL_FLAT);
 	Cvar_RegisterVariable (&gl_fog);
 	GL_ResetShaders();
 	
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	glEnableClientState(GL_VERTEX_ARRAY);
 	GL_EnableState(GL_ALPHA_TEST);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 	

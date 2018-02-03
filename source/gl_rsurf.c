@@ -318,8 +318,9 @@ void DrawGLWaterPoly (glpoly_t *p)
 		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[2] = v[2];
-		pnv += 3;
-		memcpy(pnt, &v[3], sizeof(float)*2);
+		pnt[0] = v[3];
+		pnt[1] = v[4];
+		pnv +=3;
 		pnt +=2;
 	}
 	
@@ -344,8 +345,9 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[2] = v[2];
-		pnv += 3;
-		memcpy(pnt, &v[5], sizeof(float)*2);
+		pnt[0] = v[5];
+		pnt[1] = v[6];
+		pnv +=3;
 		pnt +=2;
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
@@ -366,7 +368,7 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 	float* pnv = gVertexBuffer;
 	float* pnt = gTexCoordBuffer;
 	float* pnt2 = gTexCoordBuffer;
-	pnt2 += (p->numverts * 2);
+	pnt2 += ((p->numverts+1) * 2);
 	float* gTexCoordBuffer2 = pnt2;
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -374,11 +376,13 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
 		pnv[2] = v[2];
-		pnv += 3;
-		memcpy(pnt, &v[3], sizeof(float)*2);
+		pnt[0] = v[3];
+		pnt[1] = v[4];
+		pnt2[0] = v[5];
+		pnt2[1] = v[6];
+		pnv +=3;
 		pnt +=2;
-		memcpy(pnt2, &v[5], sizeof(float)*2);
-		pnt2 +=2;
+		pnt2+=2;
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
 	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
@@ -405,9 +409,12 @@ void DrawGLPoly (glpoly_t *p)
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		memcpy(pnv, &v[0], sizeof(vec3_t));
+		pnv[0] = v[0];
+		pnv[1] = v[1];
+		pnv[2] = v[2];
+		pnt[0] = v[3];
+		pnt[1] = v[4];
 		pnv += 3;
-		memcpy(pnt, &v[3], sizeof(float)*2);
 		pnt +=2;
 	}
 	
@@ -425,9 +432,12 @@ void DrawGLPolyLightmap (glpoly_t *p)
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		memcpy(pnv, &v[0], sizeof(vec3_t));
+		pnv[0] = v[0];
+		pnv[1] = v[1];
+		pnv[2] = v[2];
+		pnt[0] = v[5];
+		pnt[1] = v[6];
 		pnv += 3;
-		memcpy(pnt, &v[5], sizeof(float)*2);
 		pnt +=2;
 	}
 	
@@ -442,6 +452,7 @@ void DrawGLPolyLightmap (glpoly_t *p)
 R_BlendLightmaps
 ================
 */
+
 void R_BlendLightmaps (void)
 {
 	int			i, j;
@@ -455,10 +466,9 @@ void R_BlendLightmaps (void)
 	GL_EnableState(GL_MODULATE);
 	GL_Color(1,1,1,1);
 	glDepthMask(GL_FALSE);		// don't bother writing Z
-	glEnable (GL_BLEND);
 	glBlendFunc (GL_ZERO, GL_SRC_COLOR);
+	glEnable (GL_BLEND);
 	
-
 	for (i=0 ; i<MAX_LIGHTMAPS ; i++)
 	{
 		p = lightmap_polys[i];

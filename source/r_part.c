@@ -842,7 +842,7 @@ void R_DrawParticles (void)
 	glDepthMask (GL_TRUE);
 	glDisable (GL_BLEND);
 	GL_EnableState(GL_REPLACE);
-	glColor4f(1,1,1,1);
+	GL_Color(1,1,1,1);
 #else
 	D_EndParticles ();
 #endif

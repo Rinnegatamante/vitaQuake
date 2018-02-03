@@ -101,6 +101,26 @@ void IN_StopRumble (void)
 	rumble_tick = 0;
 }
 
+void IN_RescaleAnalog(int *x, int *y, int dead) {
+	//radial and scaled deadzone
+	//http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
+
+	float analogX = (float) *x;
+	float analogY = (float) *y;
+	float deadZone = (float) dead;
+	float maximum = 128.0f;
+	float magnitude = sqrt(analogX * analogX + analogY * analogY);
+	if (magnitude >= deadZone)
+	{
+		float scalingFactor = maximum / magnitude * (magnitude - deadZone) / (maximum - deadZone);		
+		*x = (int) (analogX * scalingFactor);
+		*y = (int) (analogY * scalingFactor);
+	} else {
+		*x = 0;
+		*y = 0;
+	}
+}
+
 void IN_Move (usercmd_t *cmd)
 {
 	// ANALOGS
@@ -178,24 +198,4 @@ void IN_Move (usercmd_t *cmd)
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);
 	else
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -70, 80);
-}
-
-void IN_RescaleAnalog(int *x, int *y, int dead) {
-	//radial and scaled deadzone
-	//http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
-
-	float analogX = (float) *x;
-	float analogY = (float) *y;
-	float deadZone = (float) dead;
-	float maximum = 128.0f;
-	float magnitude = sqrt(analogX * analogX + analogY * analogY);
-	if (magnitude >= deadZone)
-	{
-		float scalingFactor = maximum / magnitude * (magnitude - deadZone) / (maximum - deadZone);		
-		*x = (int) (analogX * scalingFactor);
-		*y = (int) (analogY * scalingFactor);
-	} else {
-		*x = 0;
-		*y = 0;
-	}
 }

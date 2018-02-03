@@ -77,8 +77,8 @@ void DoGamma()
 	}
 
 	//believe it or not this actually does brighten the picture!!
-	glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+	glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
 	float color[4] = {1, 1, 1, v_gamma.value};
 	
 	float vertices[3*4] = {
@@ -411,7 +411,7 @@ const float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
 #include "anorm_dots.h"
 ;
 
-float	*shadedots = r_avertexnormal_dots[0];
+float	*shadedots = (float*)r_avertexnormal_dots[0];
 
 int	lastposenum;
 
@@ -746,7 +746,7 @@ void GL_DrawAliasBlendedShadow (aliashdr_t *paliashdr, int pose1, int pose2, ent
 			verts2++;
 		} while (--count);
 
-		const float color[] = {0,0,0,0.5f};
+		const float color[4] = {0,0,0,0.5f};
 		glUniform4fv(monocolor, 1, color);
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, c, gVertexBuffer);
 		GL_DrawPolygon(primType, c);
@@ -931,7 +931,7 @@ void R_DrawAliasModel (entity_t *e)
 		// LordHavoc: .lit support end
 	}
 	
-	shadedots = r_avertexnormal_dots[((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
+	shadedots = (float*)r_avertexnormal_dots[((int)(e->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 	// LordHavoc: .lit support begin
 	VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
 	// LordHavoc: .lit support end
@@ -1030,7 +1030,6 @@ void R_DrawAliasModel (entity_t *e)
 		distance = Length(v);
 		if (distance > radius) {
 		    glDepthMask (0);
-		    glDisable (GL_TEXTURE_2D);
 		    //->glShadeModel (GL_SMOOTH);
 		    glEnable (GL_BLEND);
 		    glBlendFunc (GL_ONE, GL_ONE);
@@ -1097,7 +1096,6 @@ void R_DrawAliasModel (entity_t *e)
 
 		    GL_Color(1,1,1,1);
 		    glDisable (GL_BLEND);
-		    glEnable (GL_TEXTURE_2D);
 		    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		    glDepthMask (1);
 		}
@@ -1128,7 +1126,7 @@ void R_DrawAliasModel (entity_t *e)
 			R_RotateForEntity (e);
 		}
 			
-		glDisable (GL_TEXTURE_2D);
+		GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 		glEnable (GL_BLEND);
 		
 		// fenix@io.com: model animation interpolation
@@ -1138,7 +1136,7 @@ void R_DrawAliasModel (entity_t *e)
 			GL_DrawAliasShadow (paliashdr, lastposenum);
 		}
 			
-		glEnable (GL_TEXTURE_2D);
+		GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 		glDisable (GL_BLEND);
 		GL_Color(1,1,1,1);
 		glPopMatrix ();
@@ -1252,7 +1250,7 @@ void R_PolyBlend (void)
 	GL_DisableState(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
 	glDisable (GL_DEPTH_TEST);
-	glDisable (GL_TEXTURE_2D);
+	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 
     glLoadIdentity ();
 
@@ -1270,11 +1268,9 @@ void R_PolyBlend (void)
 			10, 100, -100
 		};
 
-		GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
 		glUniform4fv(monocolor, 1, v_blend);
 		GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
-		GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 		
 	}
 	
@@ -1284,7 +1280,7 @@ void R_PolyBlend (void)
 	
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable (GL_BLEND);
-	glEnable (GL_TEXTURE_2D);
+	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 	GL_EnableState(GL_ALPHA_TEST);
 }
 
@@ -1659,7 +1655,6 @@ r_refdef must be set before the first call
 void R_RenderView (void)
 {
 	double	time1, time2;
-	GLfloat colors[4] = {(GLfloat) 0.0, (GLfloat) 0.0, (GLfloat) 1, (GLfloat) 0.20};
 
 	if (r_norefresh.value)
 		return;
@@ -1680,21 +1675,9 @@ void R_RenderView (void)
 
 	// render normal view
 
-/***** Experimental silly looking fog ******
-****** Use r_fullbright if you enable ******
-	glFogi(GL_FOG_MODE, GL_LINEAR);
-	glFogfv(GL_FOG_COLOR, colors);
-	glFogf(GL_FOG_END, 512.0);
-	glEnable(GL_FOG);
-********************************************/
-
 	R_RenderScene ();
 	R_DrawViewModel ();
 	R_DrawWaterSurfaces ();
-
-//  More fog right here :)
-//	glDisable(GL_FOG);
-//  End of all fog code...
 
 	// render mirror view
 	R_Mirror ();
@@ -1703,7 +1686,6 @@ void R_RenderView (void)
 
 	if (r_speeds.value)
 	{
-//		glFinish ();
 		time2 = Sys_FloatTime ();
 		Con_Printf ("%3i ms  %4i wpoly %4i epoly\n", (int)((time2-time1)*1000), c_brush_polys, c_alias_polys); 
 	}

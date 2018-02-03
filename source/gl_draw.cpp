@@ -802,6 +802,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	gl = (glpic_t *)pic->data;
 	GL_DisableState(GL_ALPHA_TEST);
 	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GL_Color(1,1,1,alpha);
 	GL_Bind (gl->texnum);
 	DrawQuad(x, y, pic->width, pic->height, gl->sl, gl->tl, gl->sh - gl->sl, gl->th - gl->tl);
@@ -947,10 +948,8 @@ Fills a box of pixels with a single color
 */
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
-	glDisable (GL_TEXTURE_2D);
 	DrawQuad_NoTex(x, y, w, h, host_basepal[c*3]/255.0, host_basepal[c*3+1]/255.0, host_basepal[c*3+2]/255.0, 1);
 	GL_Color(1,1,1,1);
-	glEnable (GL_TEXTURE_2D);
 }
 //=============================================================================
 
@@ -963,10 +962,8 @@ Draw_FadeScreen
 void Draw_FadeScreen (void)
 {
 	glEnable (GL_BLEND);
-	glDisable (GL_TEXTURE_2D);
 	DrawQuad_NoTex(0, 0, vid.width, vid.height, 0, 0, 0, 0.8f);
 	GL_Color(1,1,1,1);
-	glEnable (GL_TEXTURE_2D);
 	glDisable (GL_BLEND);
 
 	Sbar_Changed();
