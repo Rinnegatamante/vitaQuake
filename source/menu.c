@@ -1173,10 +1173,10 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("r_interpolate_model_animation", !r_interpolate_model_animation.value);
 		Cvar_SetValue ("r_interpolate_model_transform", !r_interpolate_model_transform.value);
 		break;
-    case 20:  // bilinear filtering
-        if (bilinear) Cbuf_AddText("gl_texturemode GL_NEAREST\n");
-        else Cbuf_AddText("gl_texturemode GL_LINEAR\n");
-        break;
+	case 20:  // bilinear filtering
+		if (bilinear) Cbuf_AddText("gl_texturemode GL_NEAREST\n");
+		else Cbuf_AddText("gl_texturemode GL_LINEAR\n");
+		break;
 	case 21:	// mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
 		if (r_mirroralpha.value < 0)
@@ -1229,14 +1229,14 @@ void M_Options_Draw (void)
 
 	M_Print (16, 32, "    Customize controls");
 	M_Print (16, 40, "         Go to console");
-    M_Print (16, 48, "       Go to Mods Menu");
+	M_Print (16, 48, "       Go to Mods Menu");
 	M_Print (16, 56, "     Reset to defaults");
 
 	M_Print (16, 64, "           Screen size");
 	r = (viewsize.value - 30) / (120 - 30);
 	M_DrawSlider (220, 64, r);
     
-    M_Print (16, 72, "            Brightness");
+	M_Print (16, 72, "            Brightness");
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 72, r);
 
@@ -1244,7 +1244,7 @@ void M_Options_Draw (void)
 	r = (sensitivity.value - 1)/10;
 	M_DrawSlider (220, 80, r);
 
-    M_Print (16, 88, "         Invert Camera");
+	M_Print (16, 88, "         Invert Camera");
 	M_DrawCheckbox (220, 88, inverted.value);
     
 	M_Print (16, 96, "          Music Volume");
@@ -1255,22 +1255,22 @@ void M_Options_Draw (void)
 	r = volume.value;
 	M_DrawSlider (220, 104, r);
     
-    M_Print (16, 112, "        Use Retrotouch");
+	M_Print (16, 112, "        Use Retrotouch");
 	M_DrawCheckbox (220, 112, retrotouch.value);
     
-    M_Print (16, 120, "         Rumble Effect");
+	M_Print (16, 120, "         Rumble Effect");
 	M_DrawCheckbox (220, 120, pstv_rumble.value);
 	
-    M_Print (16, 128, "        Show Framerate");
+	M_Print (16, 128, "        Show Framerate");
 	M_DrawCheckbox (220, 128, show_fps.value);
     
-    M_Print (16, 136, "           Show Weapon");
+	M_Print (16, 136, "           Show Weapon");
 	M_DrawCheckbox (220, 136, r_drawviewmodel.value);
     
-    M_Print (16, 144, "        Show Crosshair");
+	M_Print (16, 144, "        Show Crosshair");
 	M_DrawCheckbox (220, 144, crosshair.value);
     
-    M_Print (16, 152, "         Field of View");
+	M_Print (16, 152, "         Field of View");
 	r = (fov.value - 75) / 55;
 	M_DrawSlider (220, 152, r);
     
@@ -1283,18 +1283,18 @@ void M_Options_Draw (void)
 	M_Print (16, 176, "       Dynamic Shadows");
 	M_DrawCheckbox (220, 176, r_shadows.value);
     
-    M_Print (16, 184, "     Smooth Animations");
+	M_Print (16, 184, "     Smooth Animations");
 	M_DrawCheckbox (220, 184, r_interpolate_model_animation.value);
     
-    M_Print (16, 192, "    Bilinear Filtering");
+	M_Print (16, 192, "    Bilinear Filtering");
 	M_DrawCheckbox (220, 192, bilinear);
     
     M_Print (16, 200, "       Mirrors Opacity");
-    r = r_mirroralpha.value;
+	r = r_mirroralpha.value;
 	M_DrawSlider (220, 200, r);
     
-    M_Print (16, 208, "         Specular Mode");
-    M_DrawCheckbox (220, 208, gl_xflip.value);
+	M_Print (16, 208, "         Specular Mode");
+	M_DrawCheckbox (220, 208, gl_xflip.value);
 
 	M_Print (16, 228, "      Test Performance");
 	

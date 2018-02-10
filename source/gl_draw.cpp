@@ -596,8 +596,8 @@ void Draw_TextureMode_f (void)
 
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
-    if (gl_filter_min == GL_LINEAR) bilinear = true;
-    else bilinear = false;
+	if (gl_filter_min == GL_LINEAR) bilinear = true;
+	else bilinear = false;
     
 	// change all the existing mipmap texture objects
 	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
