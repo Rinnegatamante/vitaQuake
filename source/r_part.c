@@ -757,7 +757,9 @@ void R_DrawParticles (void)
 	
     GL_Bind(particletexture);
 	
-	glEnable (GL_BLEND);
+	
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable (GL_BLEND);
 	GL_EnableState(GL_MODULATE);
 	glDepthMask (GL_FALSE); //johnfitz -- fix for particle z-buffer bug
 	GL_EnableState(GL_COLOR_ARRAY);
