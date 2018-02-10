@@ -565,6 +565,7 @@ glmode_t modes[] = {
 Draw_TextureMode_f
 ===============
 */
+bool bilinear = true;
 void Draw_TextureMode_f (void)
 {
 	int		i;
@@ -595,15 +596,17 @@ void Draw_TextureMode_f (void)
 
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
-
+    if (gl_filter_min == GL_LINEAR) bilinear = true;
+    else bilinear = false;
+    
 	// change all the existing mipmap texture objects
 	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
 	{
 		if (glt->mipmap)
 		{
 			GL_Bind (glt->texnum);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		}
 	}
 }

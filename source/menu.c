@@ -30,6 +30,7 @@ extern cvar_t	retrotouch;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
+extern bool bilinear;
 int m_state = m_none;
 
 extern ModsList* mods;
@@ -1072,7 +1073,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 22
+#define	OPTIONS_ITEMS 23
 
 #define	SLIDER_RANGE 10
 
@@ -1172,7 +1173,11 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("r_interpolate_model_animation", !r_interpolate_model_animation.value);
 		Cvar_SetValue ("r_interpolate_model_transform", !r_interpolate_model_transform.value);
 		break;
-	case 20:	// mirrors opacity
+    case 20:  // bilinear filtering
+        if (bilinear) Cbuf_AddText("gl_texturemode GL_NEAREST\n");
+        else Cbuf_AddText("gl_texturemode GL_LINEAR\n");
+        break;
+	case 21:	// mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
 		if (r_mirroralpha.value < 0)
 			r_mirroralpha.value = 0;
@@ -1180,10 +1185,10 @@ void M_AdjustSliders (int dir)
 			r_mirroralpha.value = 1;
 		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 		break;
-	case 21:	// specular mode
+	case 22:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 22:	// performance test
+	case 23:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1281,17 +1286,20 @@ void M_Options_Draw (void)
     M_Print (16, 184, "     Smooth Animations");
 	M_DrawCheckbox (220, 184, r_interpolate_model_animation.value);
     
-    M_Print (16, 192, "       Mirrors Opacity");
-    r = r_mirroralpha.value;
-	M_DrawSlider (220, 192, r);
+    M_Print (16, 192, "    Bilinear Filtering");
+	M_DrawCheckbox (220, 192, bilinear);
     
-    M_Print (16, 200, "         Specular Mode");
-    M_DrawCheckbox (220, 200, gl_xflip.value);
+    M_Print (16, 200, "       Mirrors Opacity");
+    r = r_mirroralpha.value;
+	M_DrawSlider (220, 200, r);
+    
+    M_Print (16, 208, "         Specular Mode");
+    M_DrawCheckbox (220, 208, gl_xflip.value);
 
-	M_Print (16, 220, "      Test Performance");
+	M_Print (16, 228, "      Test Performance");
 	
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 220, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 228, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1362,6 +1370,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("r_interpolate_model_transform", r_interpolate_model_transform.value);
 			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 			Cvar_SetValue ("gl_xflip", gl_xflip.value);
+            Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings
 			M_AdjustSliders (1);
