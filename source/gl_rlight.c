@@ -136,7 +136,7 @@ void R_RenderDlights (void)
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 	//->glShadeModel (GL_SMOOTH);
 	glEnable (GL_BLEND);
-	glBlendFunc (GL_ONE, GL_ONE);    // 30/01/2000 removed: M.Tretene
+	// glBlendFunc (GL_ONE, GL_ONE);    // 30/01/2000 removed: M.Tretene
 
 	l = cl_dlights;
 	for (i=0 ; i<MAX_DLIGHTS ; i++, l++)
@@ -149,7 +149,7 @@ void R_RenderDlights (void)
 	GL_Color(1,1,1,1);
 	glDisable (GL_BLEND);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // 30/01/2000 removed: M.Tretene
+	// glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // 30/01/2000 removed: M.Tretene
 	glDepthMask (1);
 }
 
@@ -279,6 +279,8 @@ LIGHT SAMPLING
 
 mplane_t		*lightplane;
 vec3_t			lightspot;
+vec3_t			lightcolor; //johnfitz -- lit support via lordhavoc
+
 // LordHavoc: .lit support begin
 // LordHavoc: original code replaced entirely
 int RecursiveLightPoint (vec3_t color, mnode_t *node, vec3_t start, vec3_t end)
@@ -380,7 +382,7 @@ vec3_t lightcolor; // LordHavoc: used by model rendering
 int R_LightPoint (vec3_t p)
 {
 	vec3_t		end;
-	if (r_fullbright.value || !cl.worldmodel->lightdata)
+	if (!cl.worldmodel->lightdata)
 	{
 		lightcolor[0] = lightcolor[1] = lightcolor[2] = 255;
 		return 255;
@@ -388,7 +390,7 @@ int R_LightPoint (vec3_t p)
 
 	end[0] = p[0];
 	end[1] = p[1];
-	end[2] = p[2] - 2048;
+	end[2] = p[2] - 8192; //johnfitz -- was 2048
 	lightcolor[0] = lightcolor[1] = lightcolor[2] = 0;
 	RecursiveLightPoint (lightcolor, cl.worldmodel->nodes, p, end);
 	return ((lightcolor[0] + lightcolor[1] + lightcolor[2]) * (1.0f / 3.0f));
