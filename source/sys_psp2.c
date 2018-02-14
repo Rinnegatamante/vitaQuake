@@ -473,7 +473,8 @@ int main(int argc, char **argv)
 	
 	// Initializing vitaGL
 	vglInit(0x1400000);
-	
+	vglUseVram(GL_TRUE);
+    
 	// Official mission packs support
 	SceAppUtilAppEventParam eventParam;
 	memset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
