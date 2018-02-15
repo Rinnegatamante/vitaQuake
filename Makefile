@@ -62,6 +62,7 @@ COMMON_OBJS =	source/chase.o \
 	source/net_udp_psp2.o \
 	source/in_psp2.o \
 	source/gl_vidpsp2.o
+	source/gl_fullbright.o
 	
 CPPSOURCES	:= source/audiodec
 
@@ -98,3 +99,4 @@ $(TARGET).elf: $(OBJS)
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf ../$(TARGET).vpk ../build/eboot.bin ../build/sce_sys/param.sfo ./param.sfo
+

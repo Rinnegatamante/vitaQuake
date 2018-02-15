@@ -84,6 +84,7 @@ typedef struct texture_s
 	struct texture_s *anim_next;		// in the animation sequence
 	struct texture_s *alternate_anims;	// bmodels in frmae 1 use these
 	unsigned	offsets[MIPLEVELS];		// four mip maps stored
+	int			fullbright;
 } texture_t;
 
 
@@ -150,6 +151,7 @@ typedef struct msurface_s
 	int			cached_light[MAXLIGHTMAPS];	// values currently used in lightmap
 	bool	cached_dlight;				// true if dynamic light in cache
 	byte		*samples;		// [numstyles*surfsize]
+	int			draw_this_frame;
 } msurface_t;
 
 typedef struct mnode_s
