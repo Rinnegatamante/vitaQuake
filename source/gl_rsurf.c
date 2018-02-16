@@ -538,6 +538,8 @@ void R_RenderBrushPoly (msurface_t *fa)
 	else
 		DrawGLPoly (fa->polys);
 
+	fa->draw_this_frame = 1;
+
 	// add the poly to the proper lightmap chain
 
 	fa->polys->chain = lightmap_polys[fa->lightmaptexturenum];
@@ -785,6 +787,8 @@ void R_DrawBrushModel (entity_t *e)
 
 	R_BlendLightmaps ();
 
+	DrawFullBrightTextures (clmodel->surfaces, clmodel->numsurfaces);
+
 	glPopMatrix ();
 }
 
@@ -938,6 +942,8 @@ void R_DrawWorld (void)
 	DrawTextureChains ();
 
 	R_BlendLightmaps ();
+
+	DrawFullBrightTextures (cl.worldmodel->surfaces, cl.worldmodel->numsurfaces);
 
 }
 
