@@ -110,9 +110,6 @@ char		m_return_reason [32];
 #define	IPXConfig		(m_net_cursor == 2)
 #define	TCPIPConfig		(m_net_cursor == 3)
 
-CVAR (viewsize, 100, CVAR_ARCHIVE)
-CVAR (fov,		90,	 CVAR_ARCHIVE) // LIMITS: 10 - 170
-
 void M_ConfigureNetSubsystem(void);
 
 /*
@@ -1332,7 +1329,7 @@ void M_Options_Key (int k)
 		case 3: // Reset to defaults
 			Cbuf_AddText ("exec default.cfg\n");
 			IN_ResetInputs();
-			viewsize.value = 120;
+			viewsize.value = 100;
 			v_gamma.value = 1;
 			sensitivity.value = 3;
 			inverted.value = 0;
