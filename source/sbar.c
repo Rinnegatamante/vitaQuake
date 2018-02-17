@@ -905,8 +905,8 @@ void Sbar_Draw (void)
 
 	sb_updates++;
 
-	/*if (sb_lines && vid.width > 320) 
-		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);*/
+	if (sb_lines && vid.width > 320 && r_refdef.vrect.height < vid.height - sb_lines)
+		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);
 
 	if (sb_lines > 24)
 	{
