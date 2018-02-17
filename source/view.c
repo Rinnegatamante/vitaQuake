@@ -855,6 +855,9 @@ void V_CalcRefdef (void)
 		view->origin[2] += 1;
 	else if (viewsize.value == 80)
 		view->origin[2] += 0.5;
+	else if (viewsize.value == 120)
+		// fixes "gun-drawn-too-low" with Hexen II-style status bar on Vita
+		view->origin[2] += 2;
 
 	view->model = cl.model_precache[cl.stats[STAT_WEAPON]];
 	view->frame = cl.stats[STAT_WEAPONFRAME];
