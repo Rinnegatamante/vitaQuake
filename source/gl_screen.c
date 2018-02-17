@@ -80,8 +80,8 @@ float		scr_con_current;
 float		scr_conlines;		// lines of console to display
 
 float		oldscreensize, oldfov, oldsbaralpha;
-cvar_t		scr_viewsize = {"viewsize","120", true};
-cvar_t		scr_fov = {"fov","90"};	// 10 - 170
+cvar_t		viewsize = {"viewsize","120", true};
+cvar_t		fov = {"fov","90"};	// 10 - 170
 cvar_t		scr_conspeed = {"scr_conspeed","300"};
 cvar_t		scr_centertime = {"scr_centertime","2"};
 cvar_t		scr_sbaralpha = {"scr_sbaralpha", "0.50", true};
@@ -270,30 +270,30 @@ static void SCR_CalcRefdef (void)
 //========================================
 	
 // bound viewsize
-	if (scr_viewsize.value < 30)
+	if (viewsize.value < 30)
 		Cvar_Set ("viewsize","30");
-	if (scr_viewsize.value > 120)
+	if (viewsize.value > 120)
 		Cvar_Set ("viewsize","120");
 
 // bound field of view
-	if (scr_fov.value < 10)
+	if (fov.value < 10)
 		Cvar_Set ("fov","10");
-	if (scr_fov.value > 170)
+	if (fov.value > 170)
 		Cvar_Set ("fov","170");
 
 // intermission is always full screen	
 	if (cl.intermission)
 		size = 120;
 	else
-		size = scr_viewsize.value;
+		size = viewsize.value;
 
 	sb_lines = 48;
 
-	if (scr_viewsize.value >= 100.0) {
+	if (viewsize.value >= 100.0) {
 		full = true;
 		size = 100.0;
 	} else
-		size = scr_viewsize.value;
+		size = viewsize.value;
 	if (cl.intermission)
 	{
 		full = true;
@@ -322,7 +322,7 @@ static void SCR_CalcRefdef (void)
 	else 
 		r_refdef.vrect.y = (h - r_refdef.vrect.height)/2;
 
-	r_refdef.fov_x = scr_fov.value;
+	r_refdef.fov_x = fov.value;
 	r_refdef.fov_y = CalcFov (r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
 	scr_vrect = r_refdef.vrect;
@@ -338,7 +338,7 @@ Keybinding command
 */
 void SCR_SizeUp_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize.value+10);
+	Cvar_SetValue ("viewsize",viewsize.value+10);
 	vid.recalc_refdef = 1;
 }
 
@@ -352,7 +352,7 @@ Keybinding command
 */
 void SCR_SizeDown_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize.value-10);
+	Cvar_SetValue ("viewsize",viewsize.value-10);
 	vid.recalc_refdef = 1;
 }
 
@@ -366,8 +366,8 @@ SCR_Init
 void SCR_Init (void)
 {
 
-	Cvar_RegisterVariable (&scr_fov);
-	Cvar_RegisterVariable (&scr_viewsize);
+	Cvar_RegisterVariable (&fov);
+	Cvar_RegisterVariable (&viewsize);
 	Cvar_RegisterVariable (&scr_sbaralpha);
 	Cvar_RegisterVariable (&scr_conspeed);
 	Cvar_RegisterVariable (&scr_showram);
@@ -817,7 +817,7 @@ needs almost the entire 256k of stack space!
 */
 void SCR_UpdateScreen (void)
 {
-	static float	oldscr_viewsize;
+	static float	oldviewsize;
 	vrect_t		vrect;
 
 	if (block_drawing)
@@ -848,15 +848,15 @@ void SCR_UpdateScreen (void)
 	//
 	// determine size of refresh window
 	//
-	if (oldfov != scr_fov.value)
+	if (oldfov != fov.value)
 	{
-		oldfov = scr_fov.value;
+		oldfov = fov.value;
 		vid.recalc_refdef = true;
 	}
 
-	if (oldscreensize != scr_viewsize.value)
+	if (oldscreensize != viewsize.value)
 	{
-		oldscreensize = scr_viewsize.value;
+		oldscreensize = viewsize.value;
 		vid.recalc_refdef = true;
 	}
 	
