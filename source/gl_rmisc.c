@@ -230,8 +230,8 @@ Translates a skin texture by the per-player color lookup
 void R_TranslatePlayerSkin (int playernum)
 {
 	int		top, bottom;
-	byte	translate[256];
-	unsigned	translate32[256];
+	byte	*translate = malloc(256*sizeof(byte));
+	unsigned	*translate32 = malloc(256*sizeof(unsigned));
 	int		i, j, s;
 	model_t	*model;
 	aliashdr_t *paliashdr;
@@ -267,11 +267,16 @@ void R_TranslatePlayerSkin (int playernum)
 	//
 	currententity = &cl_entities[1+playernum];
 	model = currententity->model;
-	if (!model)
+	if (!model){
+		free(translate);
+		free(translate32);
 		return;		// player doesn't have a model yet
-	if (model->type != mod_alias)
+	}
+	if (model->type != mod_alias){
+		free(translate);
+		free(translate32);
 		return; // only translate skins on alias models
-
+	}
 	paliashdr = (aliashdr_t *)Mod_Extradata (model);
 	s = paliashdr->skinwidth * paliashdr->skinheight;
 	if (currententity->skinnum < 0 || currententity->skinnum >= paliashdr->numskins) {
@@ -298,9 +303,11 @@ void R_TranslatePlayerSkin (int playernum)
 
 	#define PIXEL_COUNT (512*256)
 	#define PIXELS_SIZE (PIXEL_COUNT * sizeof(unsigned))
-	 pixels = (unsigned*) malloc(PIXELS_SIZE);
+	pixels = (unsigned*) malloc(PIXELS_SIZE);
 	if(!pixels)
 	{
+		free(translate);
+		free(translate32);
 		Sys_Error("Out of memory.");
 	}
 
@@ -331,6 +338,8 @@ void R_TranslatePlayerSkin (int playernum)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	free(pixels);
+	free(translate);
+	free(translate32);
 }
 
 
