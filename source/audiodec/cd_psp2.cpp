@@ -106,11 +106,12 @@ static int bgmThread(unsigned int args, void* arg){
 			
 				// Check if the music must be closed
 				if (mus->closeTrigger){
+					audio_decoder.reset();
 					free(mus->audiobuf);
 					free(mus->audiobuf2);
-					audio_decoder.reset();
 					free(mus);
 					BGM = NULL;
+					mus = NULL;
 					if (!mustExit){
 						sceKernelSignalSema(Talk_Mutex, 1);
 						break;
@@ -129,7 +130,7 @@ static int bgmThread(unsigned int args, void* arg){
 					// Recursively closing all the threads
 					sceAudioOutReleasePort(ch);
 					mustExit = false;
-					sceKernelExitThread(0);
+					sceKernelExitDeleteThread(0);
 					
 				}
 			
