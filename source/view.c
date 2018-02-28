@@ -659,9 +659,18 @@ void CalcGunAngle (void)
 	cl.viewent.angles[YAW] = r_refdef.viewangles[YAW] + yaw;
 	cl.viewent.angles[PITCH] = - (r_refdef.viewangles[PITCH] + pitch);
 
-	cl.viewent.angles[ROLL] -= v_idlescale.value * sin(cl.time*v_iroll_cycle.value) * v_iroll_level.value;
-	cl.viewent.angles[PITCH] -= v_idlescale.value * sin(cl.time*v_ipitch_cycle.value) * v_ipitch_level.value;
-	cl.viewent.angles[YAW] -= v_idlescale.value * sin(cl.time*v_iyaw_cycle.value) * v_iyaw_level.value;
+	v4sf src = {
+		cl.time*v_iroll_cycle.value,
+		cl.time*v_ipitch_cycle.value,
+		cl.time*v_iyaw_cycle.value,
+		0
+	};
+	
+	v4sf dst = sin_ps(src);
+	
+	cl.viewent.angles[ROLL] -= v_idlescale.value * dst[0] * v_iroll_level.value;
+	cl.viewent.angles[PITCH] -= v_idlescale.value * dst[1] * v_ipitch_level.value;
+	cl.viewent.angles[YAW] -= v_idlescale.value * dst[2] * v_iyaw_level.value;
 }
 
 /*
@@ -701,9 +710,19 @@ Idle swaying
 */
 void V_AddIdle (void)
 {
-	r_refdef.viewangles[ROLL] += v_idlescale.value * sin(cl.time*v_iroll_cycle.value) * v_iroll_level.value;
-	r_refdef.viewangles[PITCH] += v_idlescale.value * sin(cl.time*v_ipitch_cycle.value) * v_ipitch_level.value;
-	r_refdef.viewangles[YAW] += v_idlescale.value * sin(cl.time*v_iyaw_cycle.value) * v_iyaw_level.value;
+	
+	v4sf src = {
+		cl.time*v_iroll_cycle.value,
+		cl.time*v_ipitch_cycle.value,
+		cl.time*v_iyaw_cycle.value,
+		0
+	};
+	
+	v4sf dst = sin_ps(src);
+	
+	r_refdef.viewangles[ROLL] += v_idlescale.value * dst[0] * v_iroll_level.value;
+	r_refdef.viewangles[PITCH] += v_idlescale.value * dst[1] * v_ipitch_level.value;
+	r_refdef.viewangles[YAW] += v_idlescale.value * dst[2] * v_iyaw_level.value;
 }
 
 

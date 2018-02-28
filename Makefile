@@ -53,6 +53,7 @@ COMMON_OBJS =	source/chase.o \
 	source/gl_rsurf.o \
 	source/gl_screen.o \
 	source/gl_warp.o \
+	source/gl_fullbright.o \
 	source/r_part.o \
 	source/snd_dma.o \
 	source/snd_mix.o \
@@ -62,7 +63,7 @@ COMMON_OBJS =	source/chase.o \
 	source/net_udp_psp2.o \
 	source/in_psp2.o \
 	source/gl_vidpsp2.o \
-	source/gl_fullbright.o
+	source/neon_mathfun.o
 	
 CPPSOURCES	:= source/audiodec
 

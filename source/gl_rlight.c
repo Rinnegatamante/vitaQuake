@@ -75,10 +75,9 @@ void AddLightBlend (float r, float g, float b, float a2)
 void R_RenderDlight (dlight_t *light)
 {
 	int		i, j;
-	float	a;
 	vec3_t	v;
 	float	rad;
-
+	
 	rad = light->radius * 0.35;
 
 	VectorSubtract (light->origin, r_origin, v);
@@ -104,10 +103,9 @@ void R_RenderDlight (dlight_t *light)
 		*pColor++ = 0.4f;
 		*pColor++ = 0.0f;
 		*pColor++ = 0.0f;
-		a = i/16.0 * M_PI*2;
 		for (j=0 ; j<3 ; j++)
-			*pPos++ = light->origin[j] + vright[j]*cosf(a)*rad
-				+ vup[j]*sin(a)*rad;
+			*pPos++ = light->origin[j] + vright[j]*costablef[i]*rad
+				+ vup[j]*sintablef[i]*rad;
 	}
 	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);
 	vglVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 18, gColorBuffer);

@@ -156,11 +156,13 @@ void SetMinMaxSize(edict_t *e, float *min, float *max, bool rotate)
 		angles = e->v.angles;
 
 		a = angles[1] / 180 * M_PI;
-
-		xvector[0] = cosf(a);
-		xvector[1] = sinf(a);
-		yvector[0] = -sinf(a);
-		yvector[1] = cosf(a);
+		float ca = cosf(a);
+		float sa = sinf(a);
+		
+		xvector[0] = ca;
+		xvector[1] = sa;
+		yvector[0] = -sa;
+		yvector[1] = ca;
 
 		VectorCopy(min, bounds[0]);
 		VectorCopy(max, bounds[1]);

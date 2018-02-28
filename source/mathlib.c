@@ -22,8 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <math.h>
 #include "quakedef.h"
 
-#include "neon_mathfun.h"
-
 void Sys_Error(char *error, ...);
 
 vec3_t vec3_origin = { 0,0,0 };
@@ -126,10 +124,12 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 	memset(zrot, 0, sizeof(zrot));
 	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
 
-	zrot[0][0] = cosf(DEG2RAD(degrees));
-	zrot[0][1] = sinf(DEG2RAD(degrees));
-	zrot[1][0] = -sinf(DEG2RAD(degrees));
-	zrot[1][1] = cosf(DEG2RAD(degrees));
+	float sz = sinf(DEG2RAD(degrees));
+	float cz = cosf(DEG2RAD(degrees));
+	zrot[0][0] = cz;
+	zrot[0][1] = sz;
+	zrot[1][0] = -sz;
+	zrot[1][1] = cz;
 
 	R_ConcatRotations(m, zrot, tmpmat);
 	R_ConcatRotations(tmpmat, im, rot);

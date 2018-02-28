@@ -98,15 +98,23 @@ avelocities[0][i] = (rand()&255) * 0.01;
 
 	for (i=0 ; i<NUMVERTEXNORMALS ; i++)
 	{
-		angle = cl.time * avelocities[i][0];
-		sy = sinf(angle);
-		cy = cosf(angle);
-		angle = cl.time * avelocities[i][1];
-		sp = sinf(angle);
-		cp = cosf(angle);
-		angle = cl.time * avelocities[i][2];
-		sr = sinf(angle);
-		cr = cosf(angle);
+		
+		v4sf src = {
+			cl.time * avelocities[i][0],
+			cl.time * avelocities[i][1],
+			cl.time * avelocities[i][2],
+			0
+		};
+		
+		v4sf sins, coss;
+		sincos_ps(src, &sins, &coss);
+		
+		sy = sins[0];
+		cy = coss[0];
+		sp = sins[1];
+		cp = coss[2];
+		sr = sins[2];
+		cr = coss[2];
 	
 		forward[0] = cp*cy;
 		forward[1] = cp*sy;

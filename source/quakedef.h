@@ -61,6 +61,7 @@ extern int m_state;
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include "neon_mathfun.h"
 
 #if defined(_WIN32) && !defined(WINDED)
 
@@ -429,6 +430,9 @@ void GL_Color(float r, float g, float b, float a);
 void GL_ResetShaders();
 
 extern bool reset_shaders;
+
+extern float sintablef[17];
+extern float costablef[17];
 
 // Mods support
 typedef struct ModsList{

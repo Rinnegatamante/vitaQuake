@@ -1078,11 +1078,10 @@ void R_DrawAliasModel (entity_t *e)
 				*pColor++ = 0.0f;
 				*pColor++ = 0.0f;
 				*pColor++ = 0.0f;
-		        float a = i/16.0f * M_PI*2;
 		        for (j=0; j<3; j++)
 		            *pPos++ =  lightorigin[j] + 
-		            vright[j]*cosf(a)*radius +
-		            vup[j]*sinf(a)*radius;
+		            vright[j]*costablef[i]*radius +
+		            vup[j]*sintablef[i]*radius;
 		    }
 			
 			vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);
