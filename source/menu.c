@@ -115,6 +115,31 @@ char		m_return_reason [32];
 
 void M_ConfigureNetSubsystem(void);
 
+
+void M_DrawColorBar (int x, int y, int highlight)
+{
+    int i;
+    int intense = highlight * 16 + (highlight < 8 ? 11 : 4);
+
+    // position correctly
+    x = x + ((vid.width - 320) >> 1);
+
+    for (i = 0; i < 14; i++)
+    {
+        // take the approximate midpoint colour (handle backward ranges)
+        int c = i * 16 + (i < 8 ? 8 : 7);
+
+        // braw baseline colour (offset downwards a little so that it fits correctly
+        Draw_Fill (x + i * 8, y + 4, 8, 8, c);
+    }
+
+    // draw the highlight rectangle
+    Draw_Fill (x - 1 + highlight * 8, y + 3, 10, 10, 15);
+
+    // redraw the highlighted color at brighter intensity
+    Draw_Fill (x + highlight * 8, y + 4, 8, 8, intense);
+}
+
 /*
 ================
 M_DrawCharacter
@@ -793,16 +818,18 @@ void M_Setup_Draw (void)
 	M_Print (168, 56, setup_myname);
 
 	M_Print (64, 80, "Shirt color");
-	M_Print (64, 104, "Pants color");
+    M_DrawColorBar (64, 88, setup_top);
+    M_Print (64, 104, "Pants color");
+    M_DrawColorBar (64, 112, setup_bottom);
 
 	M_DrawTextBox (64, 140-8, 14, 1);
 	M_Print (72, 140, "Accept Changes");
 
 	p = Draw_CachePic ("gfx/bigbox.lmp");
-	M_DrawTransPic (160, 64, p);
+	M_DrawTransPic (176, 64, p);
 	p = Draw_CachePic ("gfx/menuplyr.lmp");
 	M_BuildTranslationTable(setup_top*16, setup_bottom*16);
-	M_DrawTransPicTranslate (172, 72, p);
+	M_DrawTransPicTranslate (188, 72, p);
 
 	M_DrawCharacter (56, setup_cursor_table [setup_cursor], 12+((int)(realtime*4)&1));
 
