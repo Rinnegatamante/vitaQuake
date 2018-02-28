@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <math.h>
 #include "quakedef.h"
 
+#include "neon_mathfun.h"
+
 void Sys_Error(char *error, ...);
 
 vec3_t vec3_origin = { 0,0,0 };
@@ -83,11 +85,6 @@ void PerpendicularVector(vec3_t dst, const vec3_t src)
 	VectorNormalize(dst);
 }
 
-#ifdef _WIN32
-#pragma optimize( "", off )
-#endif
-
-
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees)
 {
 	float	m[3][3];
@@ -142,10 +139,6 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 	}
 }
-
-#ifdef _WIN32
-#pragma optimize( "", on )
-#endif
 
 /*-----------------------------------------------------------------*/
 
@@ -240,21 +233,27 @@ int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, mplane_t *p)
 
 #endif
 
-
 void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
-	float		angle;
 	float		sr, sp, sy, cr, cp, cy;
-
-	angle = angles[YAW] * (M_PI * 2 / 360);
-	sy = sinf(angle);
-	cy = cosf(angle);
-	angle = angles[PITCH] * (M_PI * 2 / 360);
-	sp = sinf(angle);
-	cp = cosf(angle);
-	angle = angles[ROLL] * (M_PI * 2 / 360);
-	sr = sinf(angle);
-	cr = cosf(angle);
+	
+	v4sf src = {
+		angles[YAW] * (M_PI * 2 / 360),
+		angles[PITCH] * (M_PI * 2 / 360),
+		angles[ROLL] * (M_PI * 2 / 360),
+		0
+	};
+	
+	v4sf sins, coss;
+	
+	sincos_ps(src, &sins, &coss);
+	
+	sy = sins[0];
+	cy = coss[0];
+	sp = sins[1];
+	cp = coss[1];
+	sr = sins[2];
+	cr = coss[2];
 
 	forward[0] = cp*cy;
 	forward[1] = cp*sy;
