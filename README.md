@@ -40,7 +40,6 @@ Priority: HIGH:
 - Increase engine limits (FitzQuake's protocol)
 
 Priority: LOW
-- Add support to gyroscope.
 - Enable multiplayer menu only if the user has WiFi on.
 - Add "Performances" submenu.
 - Customize joystick's X/Y sensitivity
