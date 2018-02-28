@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int m_state;
 
 #define	QUAKE_GAME			// as opposed to utilities
+#define	DEBUG
 
 #define ENGINE_NAME			"vitaQuake"
 #define	VERSION				2.80

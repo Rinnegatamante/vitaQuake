@@ -27,6 +27,8 @@ extern cvar_t	inverted;
 extern cvar_t	pstv_rumble;
 extern cvar_t	res_val;
 extern cvar_t	retrotouch;
+extern cvar_t	motioncam;
+extern cvar_t motion_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
@@ -1073,7 +1075,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 23
+#define	OPTIONS_ITEMS 25
 
 #define	SLIDER_RANGE 10
 
@@ -1188,7 +1190,18 @@ void M_AdjustSliders (int dir)
 	case 22:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 23:	// performance test
+	case 23:	// motion camera
+		Cvar_SetValue ("motioncam", !motioncam.value);
+		break;
+	case 24:	// motion camera sensitivity
+		motion_sensitivity.value += dir * 0.5;
+		if (motion_sensitivity.value < 1)
+			motion_sensitivity.value = 1;
+		if (motion_sensitivity.value > 11)
+			motion_sensitivity.value = 11;
+		Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+		break;
+	case 25:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1289,14 +1302,21 @@ void M_Options_Draw (void)
 	M_Print (16, 192, "    Bilinear Filtering");
 	M_DrawCheckbox (220, 192, bilinear);
     
-    M_Print (16, 200, "       Mirrors Opacity");
+        M_Print (16, 200, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
 	M_DrawSlider (220, 200, r);
     
 	M_Print (16, 208, "         Specular Mode");
 	M_DrawCheckbox (220, 208, gl_xflip.value);
 
-	M_Print (16, 228, "      Test Performance");
+	M_Print (16, 216, "     Use Motion Camera");
+	M_DrawCheckbox (220, 216, motioncam.value);
+
+	M_Print (16, 224, "Motion Cam Sensitivity");
+	r = (motion_sensitivity.value - 1)/10;
+	M_DrawSlider (220, 224, r);
+
+	M_Print (16, 236, "      Test Performance");
 	
 // cursor
 	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 228, 12+((int)(realtime*4)&1));
@@ -1351,6 +1371,8 @@ void M_Options_Key (int k)
 			r_interpolate_model_transform.value = 0;
 			r_mirroralpha.value = 1.0;
 			gl_xflip.value = 0;
+			motioncam.value = 0;
+			motion_sensitivity.value = 3;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
@@ -1370,6 +1392,9 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("r_interpolate_model_transform", r_interpolate_model_transform.value);
 			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 			Cvar_SetValue ("gl_xflip", gl_xflip.value);
+			Cvar_SetValue ("motioncam", motioncam.value);
+			Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings

@@ -5,7 +5,7 @@ GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
-	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lm -lSceAppMgr_stub \
+	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
 	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub
 
 COMMON_OBJS =	source/chase.o \
@@ -81,12 +81,12 @@ ASFLAGS = $(CFLAGS)
 all: $(TARGET).vpk
 
 $(TARGET).vpk: $(TARGET).velf
-	vita-make-fself -s $< build\eboot.bin
+	vita-make-fself -s $< build/eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLE) "$(TARGET)" param.sfo
 	cp -f param.sfo build/sce_sys/param.sfo
 	
 	#------------ Comment this if you don't have 7zip ------------------
-	7z a -tzip ./$(TARGET).vpk -r .\build\sce_sys\* .\build\eboot.bin .\build\shaders\*
+	7z a -tzip ./$(TARGET).vpk -r ./build/sce_sys/* ./build/eboot.bin ./build/shaders/*
 	#-------------------------------------------------------------------
 	
 %.velf: %.elf
@@ -99,4 +99,3 @@ $(TARGET).elf: $(OBJS)
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf ../$(TARGET).vpk ../build/eboot.bin ../build/sce_sys/param.sfo ./param.sfo
-
