@@ -30,13 +30,17 @@ CVAR (psvita_front_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (psvita_front_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (psvita_back_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (psvita_back_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (motioncam,					 0, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (motion_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
 
 extern cvar_t always_run, inverted;
+extern void Log (const char *format, ...);
 
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
 uint64_t rumble_tick = 0;
 SceCtrlData oldanalogs, analogs;
+SceMotionState motionstate;
 
 void IN_Init (void)
 {
@@ -47,12 +51,17 @@ void IN_Init (void)
   Cvar_RegisterVariable (&pstv_rumble);
   Cvar_RegisterVariable(&psvita_touchmode);
 
+  Cvar_RegisterVariable (&motioncam);
+  Cvar_RegisterVariable (&motion_sensitivity);
+
   //Touchscreen sensitivity
   Cvar_RegisterVariable(&psvita_front_sensitivity_x);
   Cvar_RegisterVariable(&psvita_front_sensitivity_y);
   Cvar_RegisterVariable(&psvita_back_sensitivity_x);
   Cvar_RegisterVariable(&psvita_back_sensitivity_y);
 
+  sceMotionReset();
+  sceMotionStartSampling();
 }
 
 void IN_ResetInputs(void)
@@ -112,7 +121,7 @@ void IN_RescaleAnalog(int *x, int *y, int dead) {
 	float magnitude = sqrt(analogX * analogX + analogY * analogY);
 	if (magnitude >= deadZone)
 	{
-		float scalingFactor = maximum / magnitude * (magnitude - deadZone) / (maximum - deadZone);		
+		float scalingFactor = maximum / magnitude * (magnitude - deadZone) / (maximum - deadZone);
 		*x = (int) (analogX * scalingFactor);
 		*y = (int) (analogY * scalingFactor);
 	} else {
@@ -133,20 +142,20 @@ void IN_Move (usercmd_t *cmd)
 		cl_backspeed.value = 200;
 		cl_sidespeed.value = 300;
 	}
-	
+
 	sceCtrlPeekBufferPositive(0, &analogs, 1);
 	int left_x = analogs.lx - 127;
 	int left_y = analogs.ly - 127;
 	int right_x = analogs.rx - 127;
 	int right_y = analogs.ry - 127;
-	
+
 	// Left analog support for player movement
 	float x_mov = abs(left_x) < 30 ? 0 : (left_x * cl_sidespeed.value) * 0.01;
 	float y_mov = abs(left_y) < 30 ? 0 : (left_y * (left_y > 0 ? cl_backspeed.value : cl_forwardspeed.value)) * 0.01;
 	cmd->forwardmove -= y_mov;
 	if (gl_xflip.value) cmd->sidemove -= x_mov;
 	else cmd->sidemove += x_mov;
-	
+
 	// Right analog support for camera movement
 	IN_RescaleAnalog(&right_x, &right_y, 30);
 	float x_cam = (right_x * sensitivity.value) * 0.008;
@@ -156,9 +165,9 @@ void IN_Move (usercmd_t *cmd)
 	V_StopPitchDrift();
 	if (inverted.value) cl.viewangles[PITCH] -= y_cam;
 	else cl.viewangles[PITCH] += y_cam;
-	
+
 	// TOUCH SUPPORT
-	
+
 	// Retrotouch support for camera movement
 	SceTouchData touch;
 	if (retrotouch.value){
@@ -176,7 +185,7 @@ void IN_Move (usercmd_t *cmd)
 			else cl.viewangles[PITCH] += y_cam;
 		}
 	}
-	
+
 	if (psvita_touchmode.value == 1)
 	{
 		sceTouchPeek(SCE_TOUCH_PORT_FRONT, &touch, 1);
@@ -193,6 +202,29 @@ void IN_Move (usercmd_t *cmd)
 			else cl.viewangles[PITCH] += y_cam;
 		}
 	}
+
+  // gyro analog support for camera movement
+
+  if (motioncam.value){
+    sceMotionGetState(&motionstate);
+
+    // not sure why YAW or the horizontal x axis is the controlled by angularVelocity.y
+    // and the PITCH or the vertical y axis is controlled by angularVelocity.x but its what seems to work
+    float x_gyro_cam = motionstate.angularVelocity.y * motion_sensitivity.value;
+    float y_gyro_cam = motionstate.angularVelocity.x * motion_sensitivity.value;
+
+    if (gl_xflip.value)
+      cl.viewangles[YAW] -= x_gyro_cam;
+    else
+      cl.viewangles[YAW] += x_gyro_cam;
+
+    V_StopPitchDrift();
+
+    if (inverted.value)
+      cl.viewangles[PITCH] += y_gyro_cam;
+    else
+      cl.viewangles[PITCH] -= y_gyro_cam;
+  }
 
 	if (pq_fullpitch.value)
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);

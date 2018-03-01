@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -27,6 +27,8 @@ extern cvar_t	inverted;
 extern cvar_t	pstv_rumble;
 extern cvar_t	res_val;
 extern cvar_t	retrotouch;
+extern cvar_t	motioncam;
+extern cvar_t motion_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
@@ -339,7 +341,7 @@ void M_Main_Draw (void)
 	f = (int)(host_time * 10)%6;
 
 	M_DrawTransPic (54, 32 + m_main_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
-	
+
 	M_Print (-40, 300, "Huge thanks for their awesome support on Patreon to:");
 	M_Print (-40, 308, "- Arkanite");
 	M_Print (-40, 316, "- Styde Pregny");
@@ -456,7 +458,7 @@ void M_SinglePlayer_Key (int key)
 			m_singleplayer_cursor = SINGLEPLAYER_ITEMS - 1;
 		break;
 
-	case K_CROSS: // Cross		
+	case K_CROSS: // Cross
 	case K_CIRCLE: // Circle
 		m_entersound = true;
 
@@ -477,7 +479,7 @@ void M_SinglePlayer_Key (int key)
 			M_Menu_Save_f ();
 			break;
 		}
-		
+
 	}
 }
 
@@ -628,7 +630,7 @@ void M_Save_Key (int k)
 	case K_TRIANGLE:
 		M_Menu_SinglePlayer_f ();
 		break;
-		
+
 	case K_CIRCLE:
 	case K_CROSS:
 		m_state = m_none;
@@ -886,7 +888,7 @@ forward:
 		if (setup_cursor == 3)
 			setup_bottom = setup_bottom + 1;
 		break;
-	
+
 	case K_CIRCLE: // Circle
 	case K_CROSS: // Cross
 		if (setup_cursor == 0 || setup_cursor == 1)
@@ -1035,9 +1037,9 @@ void M_Mods_Draw (void)
 	qpic_t	*p;
 
 	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
-	
+
 	M_Print (60, 10, "Select the mod to load");
-	
+
 	ModsList* ptr = mods;
 	int j = 0;
 	while (ptr != NULL){
@@ -1046,7 +1048,7 @@ void M_Mods_Draw (void)
 		ptr = ptr->next;
 		j++;
 	}
-		
+
 	// cursor
 	M_DrawCharacter (50, 32 + mods_cursor*8, 12+((int)(realtime*4)&1));
 }
@@ -1061,7 +1063,7 @@ void M_Mods_Key (int k)
 	case K_TRIANGLE:
 		M_Menu_Options_f ();
 		break;
-	
+
 	case K_CIRCLE:
 	case K_CROSS:
 		m_entersound = true;
@@ -1100,7 +1102,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 23
+#define	OPTIONS_ITEMS 25
 
 #define	SLIDER_RANGE 10
 
@@ -1175,7 +1177,7 @@ void M_AdjustSliders (int dir)
 	case 13:	// show weapon
 		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
-	case 14:	// crosshair		
+	case 14:	// crosshair
 		Cvar_SetValue ("crosshair", !crosshair.value);
 		break;
 	case 15:	// field of view
@@ -1192,7 +1194,7 @@ void M_AdjustSliders (int dir)
 		break;
 	case 17:	// dynamic torchflares
 		Cvar_SetValue ("gl_torchflares", !gl_torchflares.value);
-		break;	
+		break;
 	case 18:	// dynamic shadows
 		Cvar_SetValue ("r_shadows", !r_shadows.value);
 		break;
@@ -1215,7 +1217,18 @@ void M_AdjustSliders (int dir)
 	case 22:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 23:	// performance test
+	case 23:	// motion camera
+		Cvar_SetValue ("motioncam", !motioncam.value);
+		break;
+	case 24:	// motion camera sensitivity
+		motion_sensitivity.value += dir * 0.5;
+		if (motion_sensitivity.value < 1)
+			motion_sensitivity.value = 1;
+		if (motion_sensitivity.value > 11)
+			motion_sensitivity.value = 11;
+		Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+		break;
+	case 25:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1262,7 +1275,7 @@ void M_Options_Draw (void)
 	M_Print (16, 64, "           Screen size");
 	r = (viewsize.value - 30) / (120 - 30);
 	M_DrawSlider (220, 64, r);
-    
+
 	M_Print (16, 72, "            Brightness");
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 72, r);
@@ -1273,58 +1286,65 @@ void M_Options_Draw (void)
 
 	M_Print (16, 88, "         Invert Camera");
 	M_DrawCheckbox (220, 88, inverted.value);
-    
+
 	M_Print (16, 96, "          Music Volume");
 	r = bgmvolume.value;
 	M_DrawSlider (220, 96, r);
-	
+
 	M_Print (16, 104, "          Sound Volume");
 	r = volume.value;
 	M_DrawSlider (220, 104, r);
-    
+
 	M_Print (16, 112, "        Use Retrotouch");
 	M_DrawCheckbox (220, 112, retrotouch.value);
-    
+
 	M_Print (16, 120, "         Rumble Effect");
 	M_DrawCheckbox (220, 120, pstv_rumble.value);
-	
+
 	M_Print (16, 128, "        Show Framerate");
 	M_DrawCheckbox (220, 128, show_fps.value);
-    
+
 	M_Print (16, 136, "           Show Weapon");
 	M_DrawCheckbox (220, 136, r_drawviewmodel.value);
-    
+
 	M_Print (16, 144, "        Show Crosshair");
 	M_DrawCheckbox (220, 144, crosshair.value);
-    
+
 	M_Print (16, 152, "         Field of View");
 	r = (fov.value - 75) / 55;
 	M_DrawSlider (220, 152, r);
-    
+
 	M_Print (16, 160, "         Fog Rendering");
 	M_DrawCheckbox (220, 160, gl_fog.value);
-	
+
 	M_Print (16, 168, " Dynamic Torches Light");
 	M_DrawCheckbox (220, 168, gl_torchflares.value);
 
 	M_Print (16, 176, "       Dynamic Shadows");
 	M_DrawCheckbox (220, 176, r_shadows.value);
-    
+
 	M_Print (16, 184, "     Smooth Animations");
 	M_DrawCheckbox (220, 184, r_interpolate_model_animation.value);
-    
+
 	M_Print (16, 192, "    Bilinear Filtering");
 	M_DrawCheckbox (220, 192, bilinear);
-    
-    M_Print (16, 200, "       Mirrors Opacity");
+
+  M_Print (16, 200, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
 	M_DrawSlider (220, 200, r);
-    
+
 	M_Print (16, 208, "         Specular Mode");
 	M_DrawCheckbox (220, 208, gl_xflip.value);
 
-	M_Print (16, 228, "      Test Performance");
-	
+	M_Print (16, 216, "     Use Motion Camera");
+	M_DrawCheckbox (220, 216, motioncam.value);
+
+	M_Print (16, 224, "Motion Cam Sensitivity");
+	r = (motion_sensitivity.value - 1)/10;
+	M_DrawSlider (220, 224, r);
+
+	M_Print (16, 236, "      Test Performance");
+
 // cursor
 	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 228, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
@@ -1340,7 +1360,7 @@ void M_Options_Key (int k)
 	case K_TRIANGLE:
 		M_Menu_Main_f ();
 		break;
-	
+
 	case K_CIRCLE:
 	case K_CROSS:
 		m_entersound = true;
@@ -1378,6 +1398,8 @@ void M_Options_Key (int k)
 			r_interpolate_model_transform.value = 0;
 			r_mirroralpha.value = 1.0;
 			gl_xflip.value = 0;
+			motioncam.value = 0;
+			motion_sensitivity.value = 3;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
@@ -1397,6 +1419,9 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("r_interpolate_model_transform", r_interpolate_model_transform.value);
 			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 			Cvar_SetValue ("gl_xflip", gl_xflip.value);
+			Cvar_SetValue ("motioncam", motioncam.value);
+			Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings
@@ -1619,7 +1644,7 @@ void M_Keys_Key (int k)
 		if (keys_cursor >= NUMCOMMANDS)
 			keys_cursor = 0;
 		break;
-	
+
 	case K_CIRCLE:		// go into bind mode
 	case K_CROSS:		// go into bind mode
 		M_FindKeysForCommand (bindnames[keys_cursor][0], keys);
@@ -1716,14 +1741,14 @@ int		m_quit_prevstate;
 bool	wasInMenus;
 
 #ifndef	_WIN32
-char *quitMessage [] = 
+char *quitMessage [] =
 {
 /* .........1.........2.... */
   "  Are you gonna quit    ",
   "  this game just like   ",
   "   everything else?     ",
   "                        ",
- 
+
   " Milord, methinks that  ",
   "   thou art a lowly     ",
   " quitter. Is this true? ",
@@ -1743,22 +1768,22 @@ char *quitMessage [] =
   "   playing VitaQuake?   ",
   "     Press X or O to    ",
   "   return to LiveArea.  ",
- 
+
   " Press X to quit like a ",
   "   big loser in life.   ",
   "  Return back to stay   ",
   "  proud and successful! ",
- 
+
   "   If you press X to    ",
   "  quit, I will summon   ",
   "  Satan all over your   ",
   "      memory card!      ",
- 
+
   "  Um, Asmodeus dislikes ",
   " his children trying to ",
   " quit. Press X to return",
   "   to your Tinkertoys.  ",
- 
+
   "  If you quit now, I'll ",
   "  throw a blanket-party ",
   "   for you next time!   ",
@@ -1935,7 +1960,7 @@ void M_LanConfig_Draw (void)
 
 	if (lanConfig_cursor == 2)
 		M_DrawCharacter (basex+16 + 8*strlen(lanConfig_joinname), lanConfig_cursor_table [2], 10+((int)(realtime*4)&1));
-		
+
 	if (*m_return_reason)
 		M_PrintWhite (basex, 148, m_return_reason);
 }
@@ -1999,7 +2024,7 @@ void M_LanConfig_Key (int key)
 			Cbuf_AddText ( va ("connect \"%s\"\n", lanConfig_joinname) );
 			break;
 		}
-		
+
 		if (lanConfig_cursor == 3)
 		{
 			M_Menu_OnlineServerList_f ();
@@ -2094,9 +2119,9 @@ void M_OnlineServerList_Draw (void)
 	M_Print (basex, 48, "NCTech Spaceball1 Server");
 	M_Print (basex, 56, "Shmack Practice Mode Server");
 	M_Print (basex, 64, "Clan HDZ DM Server");
-	
+
 	M_DrawCharacter (basex-8, 32+onlineServerList_cursor*8, 12+((int)(realtime*4)&1));
-		
+
 	if (*m_return_reason)
 		M_PrintWhite (basex, 148, m_return_reason);
 }
@@ -2135,8 +2160,8 @@ void M_OnlineServerList_Key (int key)
 		key_dest = key_game;
 		m_state = m_none;
 		Cbuf_AddText ("stopdemo\n");
-		
-		if (onlineServerList_cursor == 0) Cbuf_AddText ("connect 212.24.100.151\n");	
+
+		if (onlineServerList_cursor == 0) Cbuf_AddText ("connect 212.24.100.151\n");
 		if (onlineServerList_cursor == 1) Cbuf_AddText ("connect 212.24.100.151:27000\n");
 		if (onlineServerList_cursor == 2) Cbuf_AddText ("connect quake.nctech.ca\n");
 		if (onlineServerList_cursor == 3) Cbuf_AddText ("connect quake.shmack.net\n");
@@ -2856,11 +2881,11 @@ void M_Draw (void)
 	case m_options:
 		M_Options_Draw ();
 		break;
-	
+
 	case m_mods:
 		M_Mods_Draw();
 		break;
-	
+
 	case m_keys:
 		M_Keys_Draw ();
 		break;
@@ -2892,11 +2917,11 @@ void M_Draw (void)
 	case m_slist:
 		M_ServerList_Draw ();
 		break;
-	
+
 	case m_onlineserverlist:
 		M_OnlineServerList_Draw();
 		break;
-		
+
 	case m_benchmark:
 		M_Benchmark_Draw();
 		break;
@@ -2952,11 +2977,11 @@ void M_Keydown (int key)
 	case m_options:
 		M_Options_Key (key);
 		return;
-	
+
 	case m_mods:
 		M_Mods_Key (key);
 		return;
-	
+
 	case m_keys:
 		M_Keys_Key (key);
 		return;
@@ -2988,11 +3013,11 @@ void M_Keydown (int key)
 	case m_slist:
 		M_ServerList_Key (key);
 		return;
-		
+
 	case m_onlineserverlist:
 		M_OnlineServerList_Key (key);
 		break;
-	
+
 	case m_benchmark:
 		M_Benchmark_Key (key);
 		break;

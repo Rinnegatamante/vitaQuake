@@ -21,10 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //#define	GLTEST			// experimental stuff
 
-#define m_none 0 
+#define m_none 0
 #define m_main 1
 #define m_singleplayer 2
-#define m_load 3 
+#define m_load 3
 #define m_save 4
 #define m_multiplayer 5
 #define m_setup 6
@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int m_state;
 
 #define	QUAKE_GAME			// as opposed to utilities
+//#define	DEBUG
 
 #define ENGINE_NAME			"vitaQuake"
 #define	VERSION				2.90
