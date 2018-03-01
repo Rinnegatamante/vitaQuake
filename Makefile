@@ -81,12 +81,12 @@ ASFLAGS = $(CFLAGS)
 all: $(TARGET).vpk
 
 $(TARGET).vpk: $(TARGET).velf
-	vita-make-fself -s $< build/eboot.bin
+	vita-make-fself -s $< build\eboot.bin
 	vita-mksfoex -s TITLE_ID=$(TITLE) "$(TARGET)" param.sfo
 	cp -f param.sfo build/sce_sys/param.sfo
 	
 	#------------ Comment this if you don't have 7zip ------------------
-	7z a -tzip ./$(TARGET).vpk -r ./build/sce_sys/* ./build/eboot.bin ./build/shaders/*
+	7z a -tzip ./$(TARGET).vpk -r .\build\sce_sys\* .\build\eboot.bin .\build\shaders\*
 	#-------------------------------------------------------------------
 	
 %.velf: %.elf

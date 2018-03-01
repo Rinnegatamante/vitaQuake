@@ -40,7 +40,7 @@ extern void Log (const char *format, ...);
 
 uint64_t rumble_tick = 0;
 SceCtrlData oldanalogs, analogs;
-SceMotionState oldstate, state;
+SceMotionState motionstate;
 
 void IN_Init (void)
 {
@@ -62,7 +62,6 @@ void IN_Init (void)
 
   sceMotionReset();
   sceMotionStartSampling();
-  Log("============ in_psp2 - IN_Init ============");
 }
 
 void IN_ResetInputs(void)
@@ -204,13 +203,15 @@ void IN_Move (usercmd_t *cmd)
 		}
 	}
 
+  // gyro analog support for camera movement
+
   if (motioncam.value){
-    sceMotionGetState(&state);
+    sceMotionGetState(&motionstate);
 
     // not sure why YAW or the horizontal x axis is the controlled by angularVelocity.y
     // and the PITCH or the vertical y axis is controlled by angularVelocity.x but its what seems to work
-    float x_gyro_cam = state.angularVelocity.y * motion_sensitivity.value;
-    float y_gyro_cam = state.angularVelocity.x * motion_sensitivity.value;
+    float x_gyro_cam = motionstate.angularVelocity.y * motion_sensitivity.value;
+    float y_gyro_cam = motionstate.angularVelocity.x * motion_sensitivity.value;
 
     if (gl_xflip.value)
       cl.viewangles[YAW] -= x_gyro_cam;
@@ -224,14 +225,6 @@ void IN_Move (usercmd_t *cmd)
     else
       cl.viewangles[PITCH] -= y_gyro_cam;
   }
-
-  /* ******************************* */
-
-  // gyro analog support for camera movement
-
-
-
-  /* ******************************* */
 
 	if (pq_fullpitch.value)
 		cl.viewangles[PITCH] = COM_Clamp(cl.viewangles[PITCH], -90, 90);
