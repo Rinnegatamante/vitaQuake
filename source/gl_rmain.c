@@ -1168,7 +1168,9 @@ void R_DrawEntitiesOnList (void)
 			R_DrawAliasModel (currententity);
 			break;
 		case mod_brush:
+			glEnable(GL_POLYGON_OFFSET_FILL);
 			R_DrawBrushModel (currententity);
+			glDisable(GL_POLYGON_OFFSET_FILL);
 			break;
 		default:
 			break;

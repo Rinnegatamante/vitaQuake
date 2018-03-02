@@ -473,6 +473,8 @@ void GL_Init (void)
 	GL_EnableState(GL_ALPHA_TEST);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 	
+	glPolygonOffset(1, 14);
+	
 	Cvar_RegisterVariable (&show_fps); // muff
 	Cvar_RegisterVariable(&vid_vsync);
 	
