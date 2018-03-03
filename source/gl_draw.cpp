@@ -800,10 +800,12 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	int				v, u;
 	glpic_t			*gl;
 
+	if (alpha == 0.0f) return;
 	if (scrap_dirty)
 		Scrap_Upload ();
 	gl = (glpic_t *)pic->data;
 	GL_DisableState(GL_ALPHA_TEST);
+	GL_EnableState(GL_MODULATE);
 	glEnable (GL_BLEND);
 	GL_Color(1,1,1,alpha);
 	GL_Bind (gl->texnum);
@@ -811,6 +813,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	GL_Color(1,1,1,1);
 	GL_EnableState(GL_ALPHA_TEST);
 	glDisable (GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 
