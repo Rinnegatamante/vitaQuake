@@ -370,7 +370,7 @@ void Mod_LoadTextures (lump_t *l)
 		if ( (mt->width & 15) || (mt->height & 15) )
 			Sys_Error ("Texture %s is not 16 aligned", mt->name);
 		pixels = mt->width*mt->height/64*85;
-		tx = (texture_t*)Hunk_AllocName (sizeof(texture_t) +pixels, loadname );
+		tx = (texture_t*)Hunk_AllocName (sizeof(texture_t), loadname );
 		loadmodel->textures[i] = tx;
 
 		memcpy (tx->name, mt->name, sizeof(tx->name));
@@ -378,26 +378,23 @@ void Mod_LoadTextures (lump_t *l)
 		tx->height = mt->height;
 		for (j=0 ; j<MIPLEVELS ; j++)
 			tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
-		// the pixels immediately follow the structures
-		memcpy ( tx+1, mt+1, pixels);
-		
 
 		if (!Q_strncmp(mt->name,"sky",3))	
-			R_InitSky (tx);
+			R_InitSky (mt);
 		else
 		{
 			texture_mode = GL_LINEAR;
-			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(tx+1), true, false);
+			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(mt+1), true, false);
 
 			// check for fullbright pixels in the texture - only if it ain't liquid, etc also
-			if ((tx->name[0] != '*') && (FindFullbrightTexture ((byte *)(tx+1), pixels)))
+			if ((tx->name[0] != '*') && (FindFullbrightTexture ((byte *)(mt+1), pixels)))
 			{
 				// convert any non fullbright pixel to fully transparent
-				ConvertPixels ((byte *)(tx + 1), pixels);
+				ConvertPixels ((byte *)(mt + 1), pixels);
 				// get a new name for the fullbright mask to avoid cache mismatches
 				sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
 				// load the fullbright pixels version of the texture
-				tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(tx + 1), true, true);
+				tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(mt + 1), true, true);
 			}
 			else tx->fullbright = -1; // because 0 is a potentially valid texture number
 		}
