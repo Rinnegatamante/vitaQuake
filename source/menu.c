@@ -1183,20 +1183,20 @@ void M_AdjustSliders (int dir)
 		break;
 	case 13:	// motion camera sensitivity horizontal
 		motion_horizontal_sensitivity.value += dir * 0.5;
-		if (motion_horizontal_sensitivity.value < 1)
-			motion_horizontal_sensitivity.value = 1;
-		if (motion_horizontal_sensitivity.value > 11)
-			motion_horizontal_sensitivity.value = 11;
+		if (motion_horizontal_sensitivity.value < 0)
+			motion_horizontal_sensitivity.value = 0;
+		if (motion_horizontal_sensitivity.value > 10)
+			motion_horizontal_sensitivity.value = 10;
 		Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
 		break;
 	case 14:	// motion camera sensitivity vertical
 		motion_vertical_sensitivity.value += dir * 0.5;
-		if (motion_vertical_sensitivity.value < 1)
-			motion_vertical_sensitivity.value = 1;
-		if (motion_vertical_sensitivity.value > 11)
-			motion_vertical_sensitivity.value = 11;
+		if (motion_vertical_sensitivity.value < 0)
+			motion_vertical_sensitivity.value = 0;
+		if (motion_vertical_sensitivity.value > 10)
+			motion_vertical_sensitivity.value = 10;
 		Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
-		break;		
+		break;
 	case 15:	// rumble
 		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
 		break;
@@ -1297,7 +1297,7 @@ void M_Options_Draw (void)
 	M_Print (16, 72, "            Brightness");
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 72, r);
-	
+
 	M_Print (16, 80, "      HUD Transparency");
 	M_DrawSlider (220, 80, scr_sbaralpha.value);
 
@@ -1318,16 +1318,16 @@ void M_Options_Draw (void)
 
 	M_Print (16, 120, "        Use Retrotouch");
 	M_DrawCheckbox (220, 120, retrotouch.value);
-	
+
 	M_Print (16, 128, "         Use Gyroscope");
 	M_DrawCheckbox (220, 128, motioncam.value);
 
-	M_Print (16, 136, "  Gyro Hor Sensitivity");
-	r = (motion_horizontal_sensitivity.value - 1)/10;
+	M_Print (16, 136, "    Gyro X Sensitivity");
+	r = motion_horizontal_sensitivity.value/10;
 	M_DrawSlider (220, 136, r);
-	
-	M_Print (16, 144, " Gyro Vert Sensitivity");
-	r = (motion_vertical_sensitivity.value - 1)/10;
+
+	M_Print (16, 144, "    Gyro Y Sensitivity");
+	r = motion_vertical_sensitivity.value/10;
 	M_DrawSlider (220, 144, r);
 
 	M_Print (16, 152, "         Rumble Effect");
