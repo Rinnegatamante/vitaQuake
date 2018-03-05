@@ -29,7 +29,8 @@ extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t scr_sbaralpha;
 extern cvar_t	motioncam;
-extern cvar_t motion_sensitivity;
+extern cvar_t motion_horizontal_sensitivity;
+extern cvar_t motion_vertical_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
@@ -1180,53 +1181,61 @@ void M_AdjustSliders (int dir)
 	case 12:	// motion camera
 		Cvar_SetValue ("motioncam", !motioncam.value);
 		break;
-	case 13:	// motion camera sensitivity
-		motion_sensitivity.value += dir * 0.5;
-		if (motion_sensitivity.value < 1)
-			motion_sensitivity.value = 1;
-		if (motion_sensitivity.value > 11)
-			motion_sensitivity.value = 11;
-		Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+	case 13:	// motion camera sensitivity horizontal
+		motion_horizontal_sensitivity.value += dir * 0.5;
+		if (motion_horizontal_sensitivity.value < 1)
+			motion_horizontal_sensitivity.value = 1;
+		if (motion_horizontal_sensitivity.value > 11)
+			motion_horizontal_sensitivity.value = 11;
+		Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
 		break;
-	case 14:	// rumble
+	case 14:	// motion camera sensitivity vertical
+		motion_vertical_sensitivity.value += dir * 0.5;
+		if (motion_vertical_sensitivity.value < 1)
+			motion_vertical_sensitivity.value = 1;
+		if (motion_vertical_sensitivity.value > 11)
+			motion_vertical_sensitivity.value = 11;
+		Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
+		break;		
+	case 15:	// rumble
 		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
 		break;
-	case 15:	// show fps
+	case 16:	// show fps
 		Cvar_SetValue ("show_fps", !show_fps.value);
 		break;
-	case 16:	// show weapon
+	case 17:	// show weapon
 		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
-	case 17:	// crosshair
+	case 18:	// crosshair
 		Cvar_SetValue ("crosshair", !crosshair.value);
 		break;
-	case 18:	// field of view
+	case 19:	// field of view
 		fov.value += dir * 5;
 		if (fov.value > 130) fov.value = 130;
 		if (fov.value < 75) fov.value = 75;
 		Cvar_SetValue ("fov",fov.value);
 		break;
-	case 19:	// Fog
+	case 20:	// Fog
 		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
 		else Cvar_SetValue ("r_fullbright", 1);
 		Cvar_SetValue ("gl_fog", !gl_fog.value);
 		reset_shaders = true;
 		break;
-	case 20:	// dynamic torchflares
+	case 21:	// dynamic torchflares
 		Cvar_SetValue ("gl_torchflares", !gl_torchflares.value);
 		break;
-	case 21:	// dynamic shadows
+	case 22:	// dynamic shadows
 		Cvar_SetValue ("r_shadows", !r_shadows.value);
 		break;
-	case 22:	// smooth animations
+	case 23:	// smooth animations
 		Cvar_SetValue ("r_interpolate_model_animation", !r_interpolate_model_animation.value);
 		Cvar_SetValue ("r_interpolate_model_transform", !r_interpolate_model_transform.value);
 		break;
-	case 23:  // bilinear filtering
+	case 24:  // bilinear filtering
 		if (bilinear) Cbuf_AddText("gl_texturemode GL_NEAREST\n");
 		else Cbuf_AddText("gl_texturemode GL_LINEAR\n");
 		break;
-	case 24:	// mirrors opacity
+	case 25:	// mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
 		if (r_mirroralpha.value < 0)
 			r_mirroralpha.value = 0;
@@ -1234,10 +1243,10 @@ void M_AdjustSliders (int dir)
 			r_mirroralpha.value = 1;
 		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 		break;
-	case 25:	// specular mode
+	case 26:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 26:	// performance test
+	case 27:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1313,49 +1322,53 @@ void M_Options_Draw (void)
 	M_Print (16, 128, "         Use Gyroscope");
 	M_DrawCheckbox (220, 128, motioncam.value);
 
-	M_Print (16, 136, " Gyroscope Sensitivity");
-	r = (motion_sensitivity.value - 1)/10;
+	M_Print (16, 136, "  Gyro Hor Sensitivity");
+	r = (motion_horizontal_sensitivity.value - 1)/10;
 	M_DrawSlider (220, 136, r);
+	
+	M_Print (16, 144, " Gyro Vert Sensitivity");
+	r = (motion_vertical_sensitivity.value - 1)/10;
+	M_DrawSlider (220, 144, r);
 
-	M_Print (16, 144, "         Rumble Effect");
-	M_DrawCheckbox (220, 144, pstv_rumble.value);
+	M_Print (16, 152, "         Rumble Effect");
+	M_DrawCheckbox (220, 152, pstv_rumble.value);
 
-	M_Print (16, 152, "        Show Framerate");
-	M_DrawCheckbox (220, 152, show_fps.value);
+	M_Print (16, 160, "        Show Framerate");
+	M_DrawCheckbox (220, 160, show_fps.value);
 
-	M_Print (16, 160, "           Show Weapon");
-	M_DrawCheckbox (220, 160, r_drawviewmodel.value);
+	M_Print (16, 168, "           Show Weapon");
+	M_DrawCheckbox (220, 168, r_drawviewmodel.value);
 
-	M_Print (16, 168, "        Show Crosshair");
-	M_DrawCheckbox (220, 168, crosshair.value);
+	M_Print (16, 176, "        Show Crosshair");
+	M_DrawCheckbox (220, 176, crosshair.value);
 
-	M_Print (16, 176, "         Field of View");
+	M_Print (16, 184, "         Field of View");
 	r = (fov.value - 75) / 55;
-	M_DrawSlider (220, 176, r);
+	M_DrawSlider (220, 184, r);
 
-	M_Print (16, 184, "         Fog Rendering");
-	M_DrawCheckbox (220, 184, gl_fog.value);
+	M_Print (16, 192, "         Fog Rendering");
+	M_DrawCheckbox (220, 192, gl_fog.value);
 
-	M_Print (16, 192, " Dynamic Torches Light");
-	M_DrawCheckbox (220, 192, gl_torchflares.value);
+	M_Print (16, 200, " Dynamic Torches Light");
+	M_DrawCheckbox (220, 200, gl_torchflares.value);
 
-	M_Print (16, 200, "       Dynamic Shadows");
-	M_DrawCheckbox (220, 200, r_shadows.value);
+	M_Print (16, 208, "       Dynamic Shadows");
+	M_DrawCheckbox (220, 208, r_shadows.value);
 
-	M_Print (16, 208, "     Smooth Animations");
-	M_DrawCheckbox (220, 208, r_interpolate_model_animation.value);
+	M_Print (16, 216, "     Smooth Animations");
+	M_DrawCheckbox (220, 216, r_interpolate_model_animation.value);
 
-	M_Print (16, 216, "    Bilinear Filtering");
-	M_DrawCheckbox (220, 216, bilinear);
+	M_Print (16, 224, "    Bilinear Filtering");
+	M_DrawCheckbox (220, 224, bilinear);
 
-	M_Print (16, 224, "       Mirrors Opacity");
+	M_Print (16, 232, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
-	M_DrawSlider (220, 224, r);
+	M_DrawSlider (220, 232, r);
 
-	M_Print (16, 232, "         Specular Mode");
-	M_DrawCheckbox (220, 232, gl_xflip.value);
+	M_Print (16, 240, "         Specular Mode");
+	M_DrawCheckbox (220, 240, gl_xflip.value);
 
-	M_Print (16, 252, "      Test Performance");
+	M_Print (16, 260, "      Test Performance");
 
 // cursor
 	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 252, 12+((int)(realtime*4)&1));
@@ -1411,7 +1424,8 @@ void M_Options_Key (int k)
 			r_mirroralpha.value = 1.0;
 			gl_xflip.value = 0;
 			motioncam.value = 0;
-			motion_sensitivity.value = 3;
+			motion_horizontal_sensitivity.value = 3;
+			motion_vertical_sensitivity.value = 3;
 			scr_sbaralpha.value = 0.5;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
@@ -1433,7 +1447,8 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 			Cvar_SetValue ("gl_xflip", gl_xflip.value);
 			Cvar_SetValue ("motioncam", motioncam.value);
-			Cvar_SetValue ("motion_sensitivity", motion_sensitivity.value);
+			Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
+			Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
 			Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
 
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");

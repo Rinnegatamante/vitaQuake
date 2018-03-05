@@ -31,7 +31,8 @@ CVAR (psvita_front_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (psvita_back_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (psvita_back_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (motioncam,					 0, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (motion_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (motion_horizontal_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (motion_vertical_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
 
 extern cvar_t always_run, inverted;
 extern void Log (const char *format, ...);
@@ -52,7 +53,8 @@ void IN_Init (void)
   Cvar_RegisterVariable(&psvita_touchmode);
 
   Cvar_RegisterVariable (&motioncam);
-  Cvar_RegisterVariable (&motion_sensitivity);
+  Cvar_RegisterVariable (&motion_horizontal_sensitivity);
+  Cvar_RegisterVariable (&motion_vertical_sensitivity);
 
   //Touchscreen sensitivity
   Cvar_RegisterVariable(&psvita_front_sensitivity_x);
@@ -210,8 +212,8 @@ void IN_Move (usercmd_t *cmd)
 
     // not sure why YAW or the horizontal x axis is the controlled by angularVelocity.y
     // and the PITCH or the vertical y axis is controlled by angularVelocity.x but its what seems to work
-    float x_gyro_cam = motionstate.angularVelocity.y * motion_sensitivity.value;
-    float y_gyro_cam = motionstate.angularVelocity.x * motion_sensitivity.value;
+    float x_gyro_cam = motionstate.angularVelocity.y * motion_horizontal_sensitivity.value;
+    float y_gyro_cam = motionstate.angularVelocity.x * motion_vertical_sensitivity.value;
 
     if (gl_xflip.value)
       cl.viewangles[YAW] -= x_gyro_cam;
