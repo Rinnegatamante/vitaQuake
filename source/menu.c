@@ -1104,7 +1104,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 26
+#define	OPTIONS_ITEMS 27
 
 #define	SLIDER_RANGE 10
 
@@ -1371,7 +1371,7 @@ void M_Options_Draw (void)
 	M_Print (16, 260, "      Test Performance");
 
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 252, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 260, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
