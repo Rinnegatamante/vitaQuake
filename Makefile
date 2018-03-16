@@ -75,7 +75,7 @@ OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -fsigned-char -fno-lto -Wl,-q -O3 -g \
+CFLAGS  = -fsigned-char -Wl,-q -O3 -g \
 	-ffast-math -mtune=cortex-a9 -mfpu=neon \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
 	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
@@ -86,7 +86,7 @@ all: $(TARGET).vpk
 
 $(TARGET).vpk: $(TARGET).velf
 	vita-make-fself -s $< build/eboot.bin
-	vita-mksfoex -s TITLE_ID=$(TITLE) "$(TARGET)" param.sfo
+	vita-mksfoex -s TITLE_ID=$(TITLE) -d ATTRIBUTE2=12 "$(TARGET)" param.sfo
 	cp -f param.sfo build/sce_sys/param.sfo
 
 	#------------ Comment this if you don't have 7zip ------------------
