@@ -499,7 +499,7 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 	*height = scr_height;
 
 	vglStartRendering();
-	vglIndexPointer(GL_SHORT, 0, MAX_INDICES, indices);
+	vglIndexPointerMapped(indices);
 }
 
 void GL_EndRendering (void)
