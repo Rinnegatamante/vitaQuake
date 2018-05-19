@@ -568,9 +568,8 @@ void VID_Init(unsigned char *palette)
 	vid.width = width;
 	vid.height = height;
 
-	// Enforcing 960x544 mode on console so that (experimental) supersampling is not affected
-	vid.conwidth = 960;
-	vid.conheight = 544;
+	vid.conwidth = width;
+	vid.conheight = height;
 	
 	GL_Init();
 	

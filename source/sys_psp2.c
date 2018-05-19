@@ -55,6 +55,10 @@ extern uint64_t rumble_tick;
 extern cvar_t res_val;
 extern cvar_t psvita_touchmode;
 extern cvar_t vid_vsync;
+extern int scr_width;
+extern int scr_height;
+extern int cfg_width;
+extern int cfg_height;
 
 bool isDedicated;
 uint64_t initialTime = 0;
@@ -471,8 +475,19 @@ int main(int argc, char **argv)
 	}
 	sceIoDclose(dd);
 	
+	// Loading resolution from config file, this is not handled vita Host cause Host_Init required vitaGL to be working
+	char res_str[64];
+	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "rb");
+	if (f != NULL){
+		fread(res_str, 1, 64, f);
+		fclose(f);
+		sscanf(res_str, "%dx%d", &scr_width, &scr_height);
+	}
+	cfg_width = scr_width;
+	cfg_height = scr_height;
+	
 	// Initializing vitaGL
-	vglInit(0x1400000);
+	vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000);
 	vglUseVram(GL_TRUE);
     vglMapHeapMem();
 	

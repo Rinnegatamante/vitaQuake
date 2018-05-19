@@ -34,6 +34,10 @@ extern cvar_t motion_vertical_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
+extern int scr_width;
+extern int scr_height;
+int cfg_width;
+int cfg_height;
 extern bool bilinear;
 int m_state = m_none;
 
@@ -119,6 +123,15 @@ CVAR (fov,		90,	 CVAR_ARCHIVE) // LIMITS: 10 - 170
 
 void M_ConfigureNetSubsystem(void);
 
+void SetResolution(int w, int h){
+	char res_str[64];
+	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "wb");
+	sprintf(res_str, "%dx%d", w, h);
+	fwrite(res_str, 1, strlen(res_str), f);
+	fclose(f);
+	cfg_width = w;
+	cfg_height = h;
+}
 
 void M_DrawColorBar (int x, int y, int highlight)
 {
@@ -1104,7 +1117,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 27
+#define	OPTIONS_ITEMS 28
 
 #define	SLIDER_RANGE 10
 
@@ -1246,7 +1259,23 @@ void M_AdjustSliders (int dir)
 	case 26:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 27:	// performance test
+	case 27:	// resolution
+		switch (cfg_width){
+		case 480:
+			SetResolution(640, 368);
+			break;
+		case 640:
+			SetResolution(720, 408);
+			break;
+		case 720:
+			SetResolution(960, 544);
+			break;
+		case 960:
+			SetResolution(480, 272);
+			break;
+		}
+		break;
+	case 28:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1367,6 +1396,11 @@ void M_Options_Draw (void)
 
 	M_Print (16, 240, "         Specular Mode");
 	M_DrawCheckbox (220, 240, gl_xflip.value);
+	
+	char res_str[64];
+	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
+	M_Print (16, 248, "            Resolution");
+	M_Print (220, 248, res_str);
 
 	M_Print (16, 260, "      Test Performance");
 
@@ -1450,7 +1484,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
 			Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
 			Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
-
+			SetResolution(960, 544);
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings
