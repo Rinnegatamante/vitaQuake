@@ -898,6 +898,9 @@ void Sbar_Draw (void)
 	if (scr_con_current == vid.height)
 		return;		// console is full screen
 
+	if (cl.intermission)
+		return; //johnfitz -- never draw sbar during intermission
+
 	if (sb_updates >= vid.numpages)
 		return;
 
@@ -905,10 +908,10 @@ void Sbar_Draw (void)
 
 	sb_updates++;
 
-	/*if (sb_lines && vid.width > 320) 
-		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);*/
+	if (viewsize.value < 100.0 && vid.width > 320) 
+		Draw_TileClear (0, vid.height - sb_lines, vid.width, sb_lines);
 
-	if (sb_lines > 24)
+	if (viewsize.value < 110.0)
 	{
 		Sbar_DrawInventory ();
 		if (cl.maxclients != 1)
@@ -921,7 +924,7 @@ void Sbar_Draw (void)
 		Sbar_DrawScoreboard ();
 		sb_updates = 0;
 	}
-	else if (sb_lines)
+	else if (viewsize.value < 120)
 	{
 		Sbar_DrawPicAlpha (0, 0, sb_sbar, scr_sbaralpha.value);
 
