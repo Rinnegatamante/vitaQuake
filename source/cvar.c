@@ -131,6 +131,9 @@ void Cvar_SetFull (char *var_name, char *value, bool forced)
 		if (sv.active)
 			SV_BroadcastPrintf ("\"%s\" changed to \"%s\"\n", var->name, var->string);
 	}
+
+	if (var->callback)
+		var->callback(var);
 }
 
 void Cvar_Set (char *var_name, char *value)
@@ -156,6 +159,13 @@ void Cvar_SetValue (char *var_name, float value)
 	Cvar_Set (var_name, val);
 }
 
+void	Cvar_ToggleValue(cvar_t *cvar)
+{
+	char val[32];
+	sprintf(val, "%i", !cvar->value);
+
+	Cvar_Set(cvar->name, val);
+}
 
 /*
 ============
@@ -196,9 +206,26 @@ void Cvar_RegisterVariable (cvar_t *variable)
 	Q_strcpy (variable->string, oldstr);
 	variable->value = Q_atof (variable->string);
 	
+	if (!(variable->flags & CVAR_CALLBACK))
+		variable->callback = NULL;
+
 // link the variable in
 	variable->next = cvar_vars;
 	cvar_vars = variable;
+}
+
+/*
+============
+Cvar_SetCallback
+Set a callback function to the var
+============
+*/
+void Cvar_SetCallback(cvar_t *var, cvarcallback_t func)
+{
+	var->callback = func;
+	if (func)
+		var->flags |= CVAR_CALLBACK;
+	else	var->flags &= ~CVAR_CALLBACK;
 }
 
 /*

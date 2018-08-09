@@ -43,8 +43,7 @@ CVAR (m_forward, 1,		CVAR_ARCHIVE)
 CVAR (m_side,	0.8,	CVAR_ARCHIVE)
 
 // PSVITA extra Cvars (ToDo: redirect them to in_psp2.c, since it has nothing to do here)
-cvar_t inverted = {"invert_camera", "0", CVAR_ARCHIVE};
-cvar_t res_val = {"render_res", "1.0", CVAR_ARCHIVE};
+CVAR (invert_camera, 0, CVAR_ARCHIVE)
 
 //----------------------------------------------
 

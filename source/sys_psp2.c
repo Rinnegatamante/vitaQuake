@@ -52,7 +52,6 @@ extern int setup_cursor;
 extern int lanConfig_cursor;
 int isKeyboard;
 extern uint64_t rumble_tick;
-extern cvar_t res_val;
 extern cvar_t psvita_touchmode;
 extern cvar_t vid_vsync;
 extern int scr_width;

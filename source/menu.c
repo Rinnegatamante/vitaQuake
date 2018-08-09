@@ -23,9 +23,8 @@ char res_string[256];
 extern cvar_t	fov;
 extern cvar_t	crosshair;
 CVAR (vid_vsync, 1, CVAR_ARCHIVE)
-extern cvar_t	inverted;
+extern cvar_t	invert_camera;
 extern cvar_t	pstv_rumble;
-extern cvar_t	res_val;
 extern cvar_t	retrotouch;
 extern cvar_t scr_sbaralpha;
 extern cvar_t	motioncam;
@@ -38,7 +37,7 @@ extern int scr_width;
 extern int scr_height;
 int cfg_width;
 int cfg_height;
-extern bool bilinear;
+extern cvar_t gl_bilinear;
 int m_state = m_none;
 
 extern ModsList* mods;
@@ -1167,7 +1166,7 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("sensitivity", sensitivity.value);
 		break;
 	case 8:	// invert camera
-		Cvar_SetValue ("invert_camera", !inverted.value);
+		Cvar_ToggleValue (&invert_camera);
 		break;
 	case 9:	// music volume
 		bgmvolume.value += dir * 0.1;
@@ -1232,18 +1231,17 @@ void M_AdjustSliders (int dir)
 		reset_shaders = true;
 		break;
 	case 21:	// dynamic torchflares
-		Cvar_SetValue ("gl_torchflares", !gl_torchflares.value);
+		Cvar_ToggleValue(&gl_torchflares);
 		break;
 	case 22:	// dynamic shadows
-		Cvar_SetValue ("r_shadows", !r_shadows.value);
+		Cvar_ToggleValue(&r_shadows);
 		break;
 	case 23:	// smooth animations
-		Cvar_SetValue ("r_interpolate_model_animation", !r_interpolate_model_animation.value);
-		Cvar_SetValue ("r_interpolate_model_transform", !r_interpolate_model_transform.value);
+		Cvar_ToggleValue(&r_interpolate_model_animation);
+		Cvar_ToggleValue(&r_interpolate_model_transform);
 		break;
 	case 24:  // bilinear filtering
-		if (bilinear) Cbuf_AddText("gl_texturemode GL_NEAREST\n");
-		else Cbuf_AddText("gl_texturemode GL_LINEAR\n");
+		Cvar_ToggleValue(&gl_bilinear);
 		break;
 	case 25:	// mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
@@ -1332,7 +1330,7 @@ void M_Options_Draw (void)
 	M_DrawSlider (220, 88, r);
 
 	M_Print (16, 96, "         Invert Camera");
-	M_DrawCheckbox (220, 96, inverted.value);
+	M_DrawCheckbox (220, 96, invert_camera.value);
 
 	M_Print (16, 104, "          Music Volume");
 	r = bgmvolume.value;
@@ -1385,7 +1383,7 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 216, r_interpolate_model_animation.value);
 
 	M_Print (16, 224, "    Bilinear Filtering");
-	M_DrawCheckbox (220, 224, bilinear);
+	M_DrawCheckbox (220, 224, gl_bilinear.value);
 
 	M_Print (16, 232, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
@@ -1438,7 +1436,7 @@ void M_Options_Key (int k)
 			viewsize.value = 120;
 			v_gamma.value = 1;
 			sensitivity.value = 3;
-			inverted.value = 0;
+			invert_camera.value = 0;
 			bgmvolume.value = 1.0;
 			volume.value = 0.7;
 			retrotouch.value = 0;
@@ -1461,7 +1459,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
-			Cvar_SetValue ("inverted", inverted.value);
+			Cvar_SetValue ("invert_camera", invert_camera.value);
 			Cvar_SetValue ("bgmvolume", bgmvolume.value);
 			Cvar_SetValue ("volume", volume.value);
 			Cvar_SetValue ("retrotouch", retrotouch.value);

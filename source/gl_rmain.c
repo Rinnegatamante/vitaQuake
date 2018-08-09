@@ -111,39 +111,39 @@ int		d_lightstylevalue[256];	// 8.8 fraction of base light value
 
 void R_MarkLeaves (void);
 
-cvar_t	r_norefresh = {"r_norefresh","0"};
-cvar_t	r_drawentities = {"r_drawentities","1"};
-cvar_t	r_drawviewmodel = {"r_drawviewmodel","1"};
-cvar_t	r_speeds = {"r_speeds","0"};
-cvar_t	r_fullbright = {"r_fullbright","0"};
-cvar_t	r_lightmap = {"r_lightmap","0"};
-cvar_t	r_shadows = {"r_shadows","1", true}; 
-cvar_t	r_mirroralpha = {"r_mirroralpha","1.0"};
-cvar_t	r_wateralpha = {"r_wateralpha","1"};
-cvar_t	r_dynamic = {"r_dynamic","1", true};
-cvar_t	r_novis = {"r_novis","0"};
-cvar_t gl_xflip = {"gl_xflip", "0", true};
+CVAR	(r_norefresh, 0, CVAR_NONE)
+CVAR	(r_drawentities, 1, CVAR_NONE)
+CVAR	(r_drawviewmodel, 1, CVAR_ARCHIVE)
+CVAR	(r_speeds, 0, CVAR_NONE)
+CVAR	(r_fullbright, 0, CVAR_NONE)
+CVAR	(r_lightmap, 0, CVAR_NONE)
+CVAR	(r_shadows, 1, CVAR_ARCHIVE) 
+CVAR	(r_mirroralpha, 1.0, CVAR_NONE)
+CVAR	(r_wateralpha, 1, CVAR_NONE)
+CVAR	(r_dynamic, 1, CVAR_ARCHIVE)
+CVAR	(r_novis, 0, CVAR_NONE)
+CVAR	(gl_xflip, 0, CVAR_ARCHIVE)
 
 // fenix@io.com: model interpolation
-cvar_t  r_interpolate_model_animation = { "r_interpolate_model_animation", "1", true };
-cvar_t  r_interpolate_model_transform = { "r_interpolate_model_transform", "1", true };
+CVAR	(r_interpolate_model_animation, 1, CVAR_ARCHIVE)
+CVAR	(r_interpolate_model_transform, 1, CVAR_ARCHIVE)
 
-cvar_t	gl_finish = {"gl_finish","0"};
-cvar_t	gl_clear = {"gl_clear","0"};
-cvar_t	gl_cull = {"gl_cull","1"};
-cvar_t	gl_texsort = {"gl_texsort","1"};
-cvar_t	gl_smoothmodels = {"gl_smoothmodels","1"};
-cvar_t	gl_affinemodels = {"gl_affinemodels","1"};
-cvar_t	gl_polyblend = {"gl_polyblend","1"};
-cvar_t	gl_flashblend = {"gl_flashblend","0"};
-cvar_t	gl_playermip = {"gl_playermip","0"};
-cvar_t	gl_nocolors = {"gl_nocolors","0"};
-cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","1"};
-cvar_t	gl_reporttjunctions = {"gl_reporttjunctions","0"};
-cvar_t	gl_doubleeyes = {"gl_doubleeyes", "1"};
+CVAR	(gl_finish, 0, CVAR_NONE)
+CVAR	(gl_clear, 0, CVAR_NONE)
+CVAR	(gl_cull, 1, CVAR_NONE)
+CVAR	(gl_texsort, 1, CVAR_NONE)
+CVAR	(gl_smoothmodels, 1, CVAR_NONE)
+CVAR	(gl_affinemodels, 1, CVAR_NONE)
+CVAR	(gl_polyblend, 1, CVAR_NONE)
+CVAR	(gl_flashblend, 0, CVAR_NONE)
+CVAR	(gl_playermip, 0, CVAR_NONE)
+CVAR	(gl_nocolors, 0, CVAR_NONE)
+CVAR	(gl_keeptjunctions, 1, CVAR_NONE)
+CVAR	(gl_reporttjunctions, 0, CVAR_NONE)
+CVAR	(gl_doubleeyes, 1, CVAR_NONE)
 
 // Torch flares. KH
-cvar_t  gl_torchflares = {"gl_torchflares", "1", true};
+CVAR	(gl_torchflares, 1, CVAR_ARCHIVE)
 
 extern	cvar_t	gl_ztrick;
 extern bool gl_warp;

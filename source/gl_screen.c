@@ -81,17 +81,18 @@ float		scr_conlines;		// lines of console to display
 
 float		oldscreensize, oldfov, oldsbaralpha;
 
-CVAR		(viewsize, 100, CVAR_ARCHIVE)
-CVAR		(fov,		90, CVAR_ARCHIVE) // LIMITS: 10 - 170
+CVAR	(viewsize, 100, CVAR_ARCHIVE)
+CVAR	(fov,		90, CVAR_ARCHIVE) // LIMITS: 10 - 170
 
-cvar_t		scr_conspeed = {"scr_conspeed","300"};
-cvar_t		scr_centertime = {"scr_centertime","2"};
-cvar_t		scr_sbaralpha = {"scr_sbaralpha", "0.50", true};
-cvar_t		scr_showram = {"showram","1"};
-cvar_t		scr_showturtle = {"showturtle","0"};
-cvar_t		scr_showpause = {"showpause","1"};
-cvar_t		scr_printspeed = {"scr_printspeed","8"};
-cvar_t		gl_triplebuffer = {"gl_triplebuffer", "0", true };
+CVAR	(scr_conspeed, 300, CVAR_NONE)
+CVAR	(scr_centertime, 2, CVAR_NONE)
+CVAR	(scr_sbaralpha, 0.50, CVAR_ARCHIVE)
+
+CVAR	(showram, 1,	CVAR_ARCHIVE)
+CVAR	(showturtle, 0, CVAR_ARCHIVE)
+CVAR	(showpause, 1, CVAR_NONE)
+CVAR	(scr_printspeed, 8, CVAR_NONE)
+CVAR	(gl_triplebuffer, 0, CVAR_ARCHIVE)
 
 extern	cvar_t	crosshair;
 
@@ -370,14 +371,13 @@ SCR_Init
 */
 void SCR_Init (void)
 {
-
 	Cvar_RegisterVariable (&viewsize);
 	Cvar_RegisterVariable (&fov);
 	Cvar_RegisterVariable (&scr_sbaralpha);
 	Cvar_RegisterVariable (&scr_conspeed);
-	Cvar_RegisterVariable (&scr_showram);
-	Cvar_RegisterVariable (&scr_showturtle);
-	Cvar_RegisterVariable (&scr_showpause);
+	Cvar_RegisterVariable (&showram);
+	Cvar_RegisterVariable (&showturtle);
+	Cvar_RegisterVariable (&showpause);
 	Cvar_RegisterVariable (&scr_centertime);
 	Cvar_RegisterVariable (&scr_printspeed);
 	Cvar_RegisterVariable (&gl_triplebuffer);
@@ -405,7 +405,7 @@ SCR_DrawRam
 */
 void SCR_DrawRam (void)
 {
-	if (!scr_showram.value)
+	if (!showram.value)
 		return;
 
 	if (!r_cache_thrash)
@@ -423,7 +423,7 @@ void SCR_DrawTurtle (void)
 {
 	static int	count;
 	
-	if (!scr_showturtle.value)
+	if (!showturtle.value)
 		return;
 
 	if (host_frametime < 0.1)
@@ -463,7 +463,7 @@ void SCR_DrawPause (void)
 {
 	qpic_t	*pic;
 
-	if (!scr_showpause.value)		// turn off for screenshots
+	if (!showpause.value)		// turn off for screenshots
 		return;
 
 	if (!cl.paused)
