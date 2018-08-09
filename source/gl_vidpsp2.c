@@ -41,9 +41,9 @@ int		svgalib_inited=0;
 int		UseMouse = 1;
 int		UseKeyboard = 1;
 
-cvar_t		vid_mode = {"vid_mode","5",false};
-cvar_t		vid_redrawfull = {"vid_redrawfull","0",false};
-cvar_t		vid_waitforrefresh = {"vid_waitforrefresh","0",true};
+CVAR (vid_mode, 5, CVAR_NONE)
+CVAR (vid_redrawfull, 0, CVAR_NONE)
+CVAR (vid_waitforrefresh, 1, CVAR_ARCHIVE)
  
 signed char *framebuffer_ptr;
 
@@ -69,7 +69,7 @@ int		texture_extension_number = 1;
 
 float		gldepthmin, gldepthmax;
 
-cvar_t	gl_ztrick = {"gl_ztrick","0"}; // Default now OFF. KH
+CVAR (gl_ztrick, 0, CVAR_NONE) // Default now OFF. KH
 
 const char *gl_vendor;
 const char *gl_renderer;

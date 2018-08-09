@@ -29,9 +29,10 @@ extern "C"{
 
 extern unsigned char d_15to8table[65536];
 
-cvar_t		gl_nobind = {"gl_nobind", "0"};
-cvar_t		gl_max_size = {"gl_max_size", "4096"};
-cvar_t		gl_picmip = {"gl_picmip", "0"};
+CVAR	(gl_nobind, 0, CVAR_NONE)
+CVAR	(gl_max_size, 4096, CVAR_NONE)
+CVAR	(gl_picmip, 0, CVAR_NONE)
+CVAR	(gl_bilinear, 1, CVAR_ARCHIVE)
 
 byte		*draw_chars;				// 8*8 graphic characters
 qpic_t		*draw_disc;
@@ -565,7 +566,6 @@ glmode_t modes[] = {
 Draw_TextureMode_f
 ===============
 */
-bool bilinear = true;
 void Draw_TextureMode_f (void)
 {
 	int		i;
@@ -596,8 +596,6 @@ void Draw_TextureMode_f (void)
 
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
-	if (gl_filter_min == GL_LINEAR) bilinear = true;
-	else bilinear = false;
     
 	// change all the existing mipmap texture objects
 	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
@@ -609,6 +607,20 @@ void Draw_TextureMode_f (void)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		}
 	}
+}
+
+/*
+===============
+Callback_Bilinear_f
+This callback is used to set at launch the texture mode.
+===============
+*/
+static void Callback_Bilinear_f(cvar_t *var)
+{
+	if (gl_bilinear.value)
+		Cbuf_AddText("gl_texturemode GL_LINEAR\n");
+	else
+		Cbuf_AddText("gl_texturemode GL_NEAREST\n");
 }
 
 /*
@@ -631,6 +643,9 @@ void Draw_Init (void)
 	Cvar_RegisterVariable (&gl_nobind);
 	Cvar_RegisterVariable (&gl_max_size);
 	Cvar_RegisterVariable (&gl_picmip);
+	Cvar_RegisterVariable (&gl_bilinear);
+
+	Cvar_SetCallback (&gl_bilinear, &Callback_Bilinear_f);
 
 	// texture_max_size
 	if ((i = COM_CheckParm("-maxsize")) != 0) {

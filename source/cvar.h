@@ -58,10 +58,13 @@ interface from being ambiguous.
 #define CVAR_SERVERINFO BIT(2)	// Informative CVAR from the server.
 #define CVAR_ROM	 	BIT(3) 	// Only set by the engine.
 #define CVAR_DEBUG		BIT(4)	// CVARs only enabled if the DEBUG flag is set.
+#define	CVAR_CALLBACK	BIT(5)	// CVAR has a callback
 
 // Specific platform CVARs. (ToDo)
-#define CVAR_PSVITA		BIT(5)
-#define CVAR_PSTV		BIT(6)
+#define CVAR_PSVITA		BIT(6)
+#define CVAR_PSTV		BIT(7)
+
+typedef void(*cvarcallback_t) (struct cvar_s *);
 
 typedef struct cvar_s
 {
@@ -69,6 +72,7 @@ typedef struct cvar_s
 	char	*string;
 	unsigned int flags;
 	float	value;
+	cvarcallback_t	callback;
 	struct cvar_s *next;
 } cvar_t;
 
@@ -79,22 +83,28 @@ void 	Cvar_RegisterVariable (cvar_t *variable);
 // registers a cvar that already has the name, string, and optionally the
 // archive elements set.
 
+// equivelant to "<name> <variable>" typed at the console
 void 	Cvar_Set (char *var_name, char *value);
 void 	Cvar_ForceSet (char *var_name, char *value);
-// equivelant to "<name> <variable>" typed at the console
 
-void	Cvar_SetValue (char *var_name, float value);
+// set a callback function to the var
+void	Cvar_SetCallback(cvar_t *var, cvarcallback_t func);
+
 // expands value to a string and calls Cvar_Set
+void	Cvar_SetValue (char *var_name, float value);
 
-float	Cvar_VariableValue (char *var_name);
+// Toggles a value
+void	Cvar_ToggleValue(cvar_t *cvar);
+
 // returns 0 if not defined or non numeric
+float	Cvar_VariableValue (char *var_name);
 
-char	*Cvar_VariableString (char *var_name);
 // returns an empty string if not defined
+char	*Cvar_VariableString (char *var_name);
 
-char 	*Cvar_CompleteVariable (char *partial);
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
+char 	*Cvar_CompleteVariable (char *partial);
 
 bool Cvar_Command (void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known

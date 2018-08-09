@@ -34,7 +34,7 @@ CVAR (motioncam,					 0, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (motion_horizontal_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
 CVAR (motion_vertical_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
 
-extern cvar_t always_run, inverted;
+extern cvar_t always_run, invert_camera;
 extern void Log (const char *format, ...);
 
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
@@ -48,7 +48,7 @@ void IN_Init (void)
   Cvar_RegisterVariable (&m_filter);
   Cvar_RegisterVariable (&retrotouch);
   Cvar_RegisterVariable (&always_run);
-  Cvar_RegisterVariable (&inverted);
+  Cvar_RegisterVariable (&invert_camera);
   Cvar_RegisterVariable (&pstv_rumble);
   Cvar_RegisterVariable(&psvita_touchmode);
 
@@ -165,7 +165,7 @@ void IN_Move (usercmd_t *cmd)
 	if (gl_xflip.value) cl.viewangles[YAW] += x_cam;
 	else cl.viewangles[YAW] -= x_cam;
 	V_StopPitchDrift();
-	if (inverted.value) cl.viewangles[PITCH] -= y_cam;
+	if (invert_camera.value) cl.viewangles[PITCH] -= y_cam;
 	else cl.viewangles[PITCH] += y_cam;
 
 	// TOUCH SUPPORT
@@ -183,7 +183,7 @@ void IN_Move (usercmd_t *cmd)
 			y_cam = abs(touch_y) < 20 ? 0 : touch_y * psvita_back_sensitivity_x.value * 0.008;
 			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
-			if (inverted.value) cl.viewangles[PITCH] -= y_cam;
+			if (invert_camera.value) cl.viewangles[PITCH] -= y_cam;
 			else cl.viewangles[PITCH] += y_cam;
 		}
 	}
@@ -200,7 +200,7 @@ void IN_Move (usercmd_t *cmd)
 			y_cam = abs(touch_y) < 20 ? 0 : touch_y * psvita_front_sensitivity_y.value * 0.008;
 			cl.viewangles[YAW] -= x_cam;
 			V_StopPitchDrift();
-			if (inverted.value) cl.viewangles[PITCH] -= y_cam;
+			if (invert_camera.value) cl.viewangles[PITCH] -= y_cam;
 			else cl.viewangles[PITCH] += y_cam;
 		}
 	}
@@ -222,7 +222,7 @@ void IN_Move (usercmd_t *cmd)
 
     V_StopPitchDrift();
 
-    if (inverted.value)
+    if (invert_camera.value)
       cl.viewangles[PITCH] += y_gyro_cam;
     else
       cl.viewangles[PITCH] -= y_gyro_cam;
