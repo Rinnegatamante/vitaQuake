@@ -67,6 +67,8 @@ CVAR(gl_cshiftpercent, 100, CVAR_NONE)
 CVAR(v_centermove, 0.15, CVAR_NONE)
 CVAR(v_centerspeed, 500, CVAR_NONE)
 
+CVAR(r_viewmodel_quake, 1, CVAR_ARCHIVE)
+
 //----------------------------------------------
 
 float v_dmg_time, v_dmg_roll, v_dmg_pitch;
@@ -866,14 +868,17 @@ void V_CalcRefdef (void)
 // fudge position around to keep amount of weapon visible
 // roughly equal with different FOV
 
-	if (viewsize.value == 110)
-		view->origin[2] += 1;
-	else if (viewsize.value == 100)
-		view->origin[2] += 2;
-	else if (viewsize.value == 90)
-		view->origin[2] += 1;
-	else if (viewsize.value == 80)
-		view->origin[2] += 0.5;
+	if (r_viewmodel_quake.value)
+	{
+		if (viewsize.value == 110)
+			view->origin[2] += 1;
+		else if (viewsize.value == 100)
+			view->origin[2] += 2;
+		else if (viewsize.value == 90)
+			view->origin[2] += 1;
+		else if (viewsize.value == 80)
+			view->origin[2] += 0.5;
+	}
 
 	view->model = cl.model_precache[cl.stats[STAT_WEAPON]];
 	view->frame = cl.stats[STAT_WEAPONFRAME];
@@ -1031,6 +1036,8 @@ void V_Init (void)
 	
 	BuildGammaTable (1.0);	// no gamma yet
 	Cvar_RegisterVariable (&v_gamma);
+
+	Cvar_RegisterVariable (&r_viewmodel_quake);
 }
 
 
