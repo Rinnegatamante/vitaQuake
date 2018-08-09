@@ -430,8 +430,6 @@ void GL_DrawPolygon(GLenum prim, int num);
 void GL_Color(float r, float g, float b, float a);
 void GL_ResetShaders();
 
-extern bool reset_shaders;
-
 extern float sintablef[17];
 extern float costablef[17];
 

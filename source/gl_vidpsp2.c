@@ -319,7 +319,6 @@ void GL_Color(float r, float g, float b, float a){
 	cur_clr[3] = a;
 }
 
-bool reset_shaders = false;
 bool shaders_set = false;
 void GL_ResetShaders(){
 	glFinish();
@@ -437,6 +436,16 @@ void GL_ResetShaders(){
 	}
 }
 
+static void Callback_Fog_f(cvar_t *var)
+{
+	if (gl_fog.value) 
+		Cvar_SetValue("r_fullbright", 1);
+	else
+		Cvar_SetValue("r_fullbright", 0);
+
+	GL_ResetShaders();
+}
+
 /*
 ===============
 GL_Init
@@ -461,6 +470,7 @@ void GL_Init (void)
 
 	//->glShadeModel (GL_FLAT);
 	Cvar_RegisterVariable (&gl_fog);
+	Cvar_SetCallback(&gl_fog, &Callback_Fog_f);
 	GL_ResetShaders();
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -514,12 +524,7 @@ void GL_EndRendering (void)
 		vglUpdateCommonDialog();
 		vglStopRenderingTerm();
 	}else vglStopRendering();
-	
-	if (reset_shaders){
-		reset_shaders = false;
-		GL_ResetShaders();
-	}
-	
+		
 }
 
 static void Check_Gamma (unsigned char *pal)

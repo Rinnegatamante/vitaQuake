@@ -1227,8 +1227,7 @@ void M_AdjustSliders (int dir)
 	case 20:	// Fog
 		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
 		else Cvar_SetValue ("r_fullbright", 1);
-		Cvar_SetValue ("gl_fog", !gl_fog.value);
-		reset_shaders = true;
+		Cvar_ToggleValue (&gl_fog);
 		break;
 	case 21:	// dynamic torchflares
 		Cvar_ToggleValue(&gl_torchflares);
