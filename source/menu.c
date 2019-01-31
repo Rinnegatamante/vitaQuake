@@ -119,6 +119,8 @@ char		m_return_reason [32];
 
 void M_ConfigureNetSubsystem(void);
 
+int msaa = 0;
+
 void SetResolution(int w, int h){
 	char res_str[64];
 	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "wb");
@@ -127,6 +129,14 @@ void SetResolution(int w, int h){
 	fclose(f);
 	cfg_width = w;
 	cfg_height = h;
+}
+
+void SetAntiAliasing(int m){
+	char res_str[64];
+	FILE *f = fopen("ux0:data/Quake/antialiasing.cfg", "wb");
+	sprintf(res_str, "%d", m);
+	fwrite(res_str, 1, strlen(res_str), f);
+	fclose(f);
 }
 
 void M_DrawColorBar (int x, int y, int highlight)
@@ -1113,7 +1123,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 28
+#define	OPTIONS_ITEMS 29
 
 #define	SLIDER_RANGE 10
 
@@ -1253,7 +1263,11 @@ void M_AdjustSliders (int dir)
 	case 26:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 27:	// resolution
+	case 27:
+		msaa = (msaa + 1) % 3;
+		SetAntiAliasing(msaa);
+		break;
+	case 28:	// resolution
 		switch (cfg_width){
 		case 480:
 			SetResolution(640, 368);
@@ -1269,7 +1283,7 @@ void M_AdjustSliders (int dir)
 			break;
 		}
 		break;
-	case 28:	// performance test
+	case 29:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1391,15 +1405,20 @@ void M_Options_Draw (void)
 	M_Print (16, 240, "         Specular Mode");
 	M_DrawCheckbox (220, 240, gl_xflip.value);
 	
+	M_Print (16, 248, "         Anti-Aliasing");
+	if (msaa == 0) M_Print (220, 248, "Disabled");
+	else if (msaa == 1) M_Print (220, 248, "MSAA 2x");
+	else M_Print (220, 248, "MSAA 4x");
+	
 	char res_str[64];
 	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 248, "            Resolution");
-	M_Print (220, 248, res_str);
+	M_Print (16, 256, "            Resolution");
+	M_Print (220, 256, res_str);
 
-	M_Print (16, 260, "      Test Performance");
+	M_Print (16, 268, "      Test Performance");
 
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 260, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 268, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1479,6 +1498,8 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
 			Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
 			SetResolution(960, 544);
+			msaa = 0;
+			SetAntiAliasing(msaa);
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings

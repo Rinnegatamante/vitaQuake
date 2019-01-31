@@ -27,6 +27,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
 
+extern int msaa;
+
 // Mods support
 int max_mod_idx = -1;
 
@@ -474,7 +476,7 @@ int main(int argc, char **argv)
 	}
 	sceIoDclose(dd);
 	
-	// Loading resolution from config file, this is not handled vita Host cause Host_Init required vitaGL to be working
+	// Loading resolution and MSAA mode from config files, those are not handled vita Host cause Host_Init requires vitaGL to be working
 	char res_str[64];
 	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "rb");
 	if (f != NULL){
@@ -482,11 +484,27 @@ int main(int argc, char **argv)
 		fclose(f);
 		sscanf(res_str, "%dx%d", &scr_width, &scr_height);
 	}
+	f = fopen("ux0:data/Quake/antialiasing.cfg", "rb");
+	if (f != NULL){
+		fread(res_str, 1, 64, f);
+		fclose(f);
+		sscanf(res_str, "%d", &msaa);
+	}
 	cfg_width = scr_width;
 	cfg_height = scr_height;
 	
 	// Initializing vitaGL
-	vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000);
+	switch (msaa) {
+	case 1:
+		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_2X);
+		break;
+	case 2:
+		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_4X);
+		break;
+	default:
+		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_NONE);
+		break;
+	}
 	vglUseVram(GL_TRUE);
     vglMapHeapMem();
 	
