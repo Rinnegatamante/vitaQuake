@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define BIGSTACK_SIZE 20 * 1024 * 1024
 byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
-
+uint8_t is_uma0 = 0;
 extern int msaa;
 
 // Mods support
@@ -257,7 +257,9 @@ void Sys_Error(char *error, ...)
 	vsnprintf(buf, sizeof(buf), error, argptr);
 	va_end(argptr);
 	sprintf(buf, "%s\n", buf);
-	FILE* f = fopen("ux0:/data/Quake/log.txt", "a+");
+	FILE* f = NULL;
+	if (is_uma0) f = fopen("uma0:/data/Quake/log.txt", "a+");
+	else f = fopen("ux0:/data/Quake/log.txt", "a+");
 	fwrite(buf, 1, strlen(buf), f);
 	fclose(f);
 	Sys_Quit();
@@ -438,6 +440,13 @@ int main(int argc, char **argv)
 	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
 	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
 
+	// Checking for uma0 support
+	FILE *f = fopen("uma0:/data/Quake/id0/pak0.pak", "rb");
+	if (f) {
+		fclose(f);
+		is_uma0 = 1;
+	}
+	
 	// Initializing stuffs
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);
@@ -455,7 +464,8 @@ int main(int argc, char **argv)
 
 	parms.memsize = 30 * 1024 * 1024;
 	parms.membase = malloc(parms.memsize);
-	parms.basedir = "ux0:/data/Quake";
+	if (is_uma0) parms.basedir = "uma0:/data/Quake";
+	else parms.basedir = "ux0:/data/Quake";
 	
 	// Initializing empty ModList
 	mods = NULL;
@@ -476,15 +486,17 @@ int main(int argc, char **argv)
 	}
 	sceIoDclose(dd);
 	
-	// Loading resolution and MSAA mode from config files, those are not handled vita Host cause Host_Init requires vitaGL to be working
+	// Loading resolution and MSAA mode from config files, those are not handled via Host cause Host_Init requires vitaGL to be working
 	char res_str[64];
-	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "rb");
+	if (is_uma0) f = fopen("uma0:data/Quake/resolution.cfg", "rb");
+	else f = fopen("ux0:data/Quake/resolution.cfg", "rb");
 	if (f != NULL){
 		fread(res_str, 1, 64, f);
 		fclose(f);
 		sscanf(res_str, "%dx%d", &scr_width, &scr_height);
 	}
-	f = fopen("ux0:data/Quake/antialiasing.cfg", "rb");
+	if (is_uma0) f = fopen("uma0:data/Quake/antialiasing.cfg", "rb");
+	else f = fopen("ux0:data/Quake/antialiasing.cfg", "rb");
 	if (f != NULL){
 		fread(res_str, 1, 64, f);
 		fclose(f);

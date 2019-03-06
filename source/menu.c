@@ -35,6 +35,7 @@ extern cvar_t	show_fps;
 extern cvar_t gl_fog;
 extern int scr_width;
 extern int scr_height;
+extern uint8_t is_uma0;
 int cfg_width;
 int cfg_height;
 extern cvar_t gl_bilinear;
@@ -123,7 +124,9 @@ int msaa = 0;
 
 void SetResolution(int w, int h){
 	char res_str[64];
-	FILE *f = fopen("ux0:data/Quake/resolution.cfg", "wb");
+	FILE *f = NULL;
+	if (is_uma0) f = fopen("uma0:data/Quake/resolution.cfg", "wb");
+	else f = fopen("ux0:data/Quake/resolution.cfg", "wb");
 	sprintf(res_str, "%dx%d", w, h);
 	fwrite(res_str, 1, strlen(res_str), f);
 	fclose(f);
@@ -133,7 +136,9 @@ void SetResolution(int w, int h){
 
 void SetAntiAliasing(int m){
 	char res_str[64];
-	FILE *f = fopen("ux0:data/Quake/antialiasing.cfg", "wb");
+	FILE *f = NULL;
+	if (is_uma0) f = fopen("uma0:data/Quake/antialiasing.cfg", "wb");
+	else f = fopen("ux0:data/Quake/antialiasing.cfg", "wb");
 	sprintf(res_str, "%d", m);
 	fwrite(res_str, 1, strlen(res_str), f);
 	fclose(f);
