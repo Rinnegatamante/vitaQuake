@@ -441,7 +441,7 @@ int main(int argc, char **argv)
 	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
 
 	// Checking for uma0 support
-	FILE *f = fopen("uma0:/data/Quake/id0/pak0.pak", "rb");
+	FILE *f = fopen("uma0:/data/Quake/id1/pak0.pak", "rb");
 	if (f) {
 		fclose(f);
 		is_uma0 = 1;
