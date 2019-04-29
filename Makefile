@@ -1,6 +1,7 @@
 TARGET		:= vitaQuake
 TITLE		:= QUAK00001
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
+SHADERS     := shaders
 
 LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
@@ -69,8 +70,9 @@ CPPSOURCES	:= source/audiodec
 
 CFILES	:= $(COMMON_OBJS)
 CPPFILES   := $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
-BINFILES := $(foreach dir,$(DATA), $(wildcard $(dir)/*.bin))
-OBJS     := $(addsuffix .o,$(BINFILES)) $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
+CGFILES  := $(foreach dir,$(SHADERS), $(wildcard $(dir)/*.cg))
+CGSHADERS  := $(CGFILES:.cg=.h)
+OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
@@ -93,6 +95,14 @@ $(TARGET).vpk: $(TARGET).velf
 	7z a -tzip ./$(TARGET).vpk -r ./build/sce_sys ./build/eboot.bin ./build/shaders
 	#-------------------------------------------------------------------
 
+%_f.h:
+	psp2cgc -profile sce_fp_psp2 $(@:_f.h=_f.cg) -Wperf -fastprecision -O3 -o build/$(@:_f.h=_f.gxp)
+	
+%_v.h:
+	psp2cgc -profile sce_vp_psp2 $(@:_v.h=_v.cg) -Wperf -fastprecision -O3 -o build/$(@:_v.h=_v.gxp)
+	
+shaders: $(CGSHADERS)
+	
 %.velf: %.elf
 	cp $< $<.unstripped.elf
 	$(PREFIX)-strip -g $<
