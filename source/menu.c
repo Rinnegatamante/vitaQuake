@@ -1129,7 +1129,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 30
+#define	OPTIONS_ITEMS 31
 
 #define	SLIDER_RANGE 10
 
@@ -1295,7 +1295,10 @@ void M_AdjustSliders (int dir)
 		else if (r_idx < 0) r_idx = 3;
 		SetResolution(w_res[r_idx], h_res[r_idx]);
 		break;
-	case 30:	// performance test
+	case 30:
+		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
+		break;
+	case 31:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1431,10 +1434,13 @@ void M_Options_Draw (void)
 	M_Print (16, 264, "            Resolution");
 	M_Print (220, 264, res_str);
 
-	M_Print (16, 276, "      Test Performance");
+	M_Print (16, 272, "                V-Sync");
+	M_DrawCheckbox (220, 272, vid_vsync.value);
+	
+	M_Print (16, 284, "      Test Performance");
 
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 276, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 284, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1487,9 +1493,11 @@ void M_Options_Key (int k)
 			r_mirroralpha.value = 1.0;
 			gl_xflip.value = 0;
 			motioncam.value = 0;
+			vid_vsync.value = 1;
 			motion_horizontal_sensitivity.value = 3;
 			motion_vertical_sensitivity.value = 3;
 			scr_sbaralpha.value = 0.5;
+			gl_outline.value = 0;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
@@ -1513,6 +1521,8 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
 			Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
 			Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
+			Cvar_SetValue ("vid_vsync", vid_vsync.value);
+			Cvar_SetValue ("gl_outline", gl_outline.value);
 			SetResolution(960, 544);
 			msaa = 0;
 			r_idx = -1;

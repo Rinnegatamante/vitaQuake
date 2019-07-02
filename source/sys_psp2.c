@@ -566,12 +566,19 @@ int main(int argc, char **argv)
 	}*/
 
 	vglWaitVblankStart(vid_vsync.value);
-
+	int old_vsync = vid_vsync.value;
+	
 	SceRtcTick lastTick;
 	sceRtcGetCurrentTick(&lastTick);
 
 	while (1)
 	{
+		// Changing V-Sync setting in realtime
+		if (old_vsync != vid_vsync.value) {
+			vglWaitVblankStart(vid_vsync.value);
+			old_vsync = vid_vsync.value;
+		}
+		
 		// Prevent screen power-off
 		sceKernelPowerTick(0);
 
