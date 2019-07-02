@@ -33,6 +33,7 @@ extern cvar_t motion_vertical_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
+extern cvar_t gl_outline;
 extern int scr_width;
 extern int scr_height;
 extern uint8_t is_uma0;
@@ -1128,7 +1129,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 29
+#define	OPTIONS_ITEMS 30
 
 #define	SLIDER_RANGE 10
 
@@ -1239,7 +1240,7 @@ void M_AdjustSliders (int dir)
 	case 19:	// field of view
 		fov.value += dir * 5;
 		if (fov.value > 130) fov.value = 130;
-		if (fov.value < 75) fov.value = 75;
+		else if (fov.value < 75) fov.value = 75;
 		Cvar_SetValue ("fov",fov.value);
 		break;
 	case 20:	// Fog
@@ -1260,7 +1261,13 @@ void M_AdjustSliders (int dir)
 	case 24:  // bilinear filtering
 		Cvar_ToggleValue(&gl_bilinear);
 		break;
-	case 25:	// mirrors opacity
+	case 25:  // cell shading
+		gl_outline.value += dir;
+		if (gl_outline.value > 6) gl_outline.value = 6;
+		else if (gl_outline.value < 0) gl_outline.value = 0;
+		Cvar_SetValue ("gl_outline",gl_outline.value);
+		break;
+	case 26:  // mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
 		if (r_mirroralpha.value < 0)
 			r_mirroralpha.value = 0;
@@ -1268,16 +1275,16 @@ void M_AdjustSliders (int dir)
 			r_mirroralpha.value = 1;
 		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 		break;
-	case 26:	// specular mode
+	case 27:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 27:
+	case 28:
 		msaa += dir;
 		if (msaa < 0) msaa = 2;
 		else if (msaa > 2) msaa = 0;
 		SetAntiAliasing(msaa);
 		break;
-	case 28:	// resolution
+	case 29:	// resolution
 		if (r_idx == -1) {
 			for (r_idx = 0; r_idx < 4; r_idx++) {
 				if (cfg_width == w_res[r_idx]) break;
@@ -1288,7 +1295,7 @@ void M_AdjustSliders (int dir)
 		else if (r_idx < 0) r_idx = 3;
 		SetResolution(w_res[r_idx], h_res[r_idx]);
 		break;
-	case 29:	// performance test
+	case 30:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1402,28 +1409,32 @@ void M_Options_Draw (void)
 
 	M_Print (16, 224, "    Bilinear Filtering");
 	M_DrawCheckbox (220, 224, gl_bilinear.value);
-
-	M_Print (16, 232, "       Mirrors Opacity");
-	r = r_mirroralpha.value;
+	
+	M_Print (16, 232, "          Cell Shading");
+	r = gl_outline.value / 6;
 	M_DrawSlider (220, 232, r);
 
-	M_Print (16, 240, "         Specular Mode");
-	M_DrawCheckbox (220, 240, gl_xflip.value);
+	M_Print (16, 240, "       Mirrors Opacity");
+	r = r_mirroralpha.value;
+	M_DrawSlider (220, 240, r);
+
+	M_Print (16, 248, "         Specular Mode");
+	M_DrawCheckbox (220, 248, gl_xflip.value);
 	
-	M_Print (16, 248, "         Anti-Aliasing");
-	if (msaa == 0) M_Print (220, 248, "Disabled");
-	else if (msaa == 1) M_Print (220, 248, "MSAA 2x");
-	else M_Print (220, 248, "MSAA 4x");
+	M_Print (16, 256, "         Anti-Aliasing");
+	if (msaa == 0) M_Print (220, 256, "Disabled");
+	else if (msaa == 1) M_Print (220, 256, "MSAA 2x");
+	else M_Print (220, 256, "MSAA 4x");
 	
 	char res_str[64];
 	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 256, "            Resolution");
-	M_Print (220, 256, res_str);
+	M_Print (16, 264, "            Resolution");
+	M_Print (220, 264, res_str);
 
-	M_Print (16, 268, "      Test Performance");
+	M_Print (16, 276, "      Test Performance");
 
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 268, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 276, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 

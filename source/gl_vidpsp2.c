@@ -44,7 +44,8 @@ int		UseKeyboard = 1;
 CVAR (vid_mode, 5, CVAR_NONE)
 CVAR (vid_redrawfull, 0, CVAR_NONE)
 CVAR (vid_waitforrefresh, 1, CVAR_ARCHIVE)
- 
+CVAR (gl_outline, 0, CVAR_ARCHIVE)
+
 signed char *framebuffer_ptr;
 
 int     mouse_buttons;
@@ -562,6 +563,7 @@ void VID_Init(unsigned char *palette)
 	Cvar_RegisterVariable (&vid_redrawfull);
 	Cvar_RegisterVariable (&vid_waitforrefresh);
 	Cvar_RegisterVariable (&gl_ztrick);
+	Cvar_RegisterVariable (&gl_outline);
 	
 	vid.maxwarpwidth = width;
 	vid.maxwarpheight = height;
