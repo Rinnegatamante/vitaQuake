@@ -315,17 +315,17 @@ void DrawGLWaterPoly (glpoly_t *p)
 	float* pnt = gTexCoordBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[2] = v[2];
-		pnt[0] = v[3];
-		pnt[1] = v[4];
-		pnv +=3;
-		pnt +=2;
+		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[2] = v[2];
+		gTexCoordBuffer[0] = v[3];
+		gTexCoordBuffer[1] = v[4];
+		gVertexBuffer +=3;
+		gTexCoordBuffer +=2;
 	}
 	
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointerMapped(0, pnv);
+	vglVertexAttribPointerMapped(1, pnt);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
@@ -342,16 +342,16 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 	float* pnt = gTexCoordBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[2] = v[2];
-		pnt[0] = v[5];
-		pnt[1] = v[6];
-		pnv +=3;
-		pnt +=2;
+		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[2] = v[2];
+		gTexCoordBuffer[0] = v[5];
+		gTexCoordBuffer[1] = v[6];
+		gVertexBuffer +=3;
+		gTexCoordBuffer +=2;
 	}
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointerMapped(0, pnv);
+	vglVertexAttribPointerMapped(1, pnt);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
@@ -365,34 +365,36 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 
 	v = p->verts[0];
 
-	float* pnv = gVertexBuffer;
-	float* pnt = gTexCoordBuffer;
-	float* pnt2 = gTexCoordBuffer;
+	float *pnv = gVertexBuffer;
+	float *pnt = gTexCoordBuffer;
+	float *pnt2 = gTexCoordBuffer;
 	pnt2 += ((p->numverts+1) * 2);
-	float* gTexCoordBuffer2 = pnt2;
+	float *gTexCoordBuffer2 = pnt2;
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		pnv[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		pnv[2] = v[2];
-		pnt[0] = v[3];
-		pnt[1] = v[4];
-		pnt2[0] = v[5];
-		pnt2[1] = v[6];
-		pnv +=3;
-		pnt +=2;
-		pnt2+=2;
+		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		gVertexBuffer[2] = v[2];
+		gTexCoordBuffer[0] = v[3];
+		gTexCoordBuffer[1] = v[4];
+		gTexCoordBuffer2[0] = v[5];
+		gTexCoordBuffer2[1] = v[6];
+		gVertexBuffer +=3;
+		gTexCoordBuffer +=2;
+		gTexCoordBuffer2 +=2;
 	}
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointerMapped(0, pnv);
+	vglVertexAttribPointerMapped(1, pnt);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 
 	GL_Bind (t2);
 	glEnable (GL_BLEND);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer2);
+	vglVertexAttribPointerMapped(1, pnt2);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	glDisable (GL_BLEND);
+	
+	gTexCoordBuffer = gTexCoordBuffer2;
 }
 
 /*
@@ -409,17 +411,17 @@ void DrawGLPoly (glpoly_t *p)
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		pnv[0] = v[0];
-		pnv[1] = v[1];
-		pnv[2] = v[2];
-		pnt[0] = v[3];
-		pnt[1] = v[4];
-		pnv += 3;
-		pnt +=2;
+		gVertexBuffer[0] = v[0];
+		gVertexBuffer[1] = v[1];
+		gVertexBuffer[2] = v[2];
+		gTexCoordBuffer[0] = v[3];
+		gTexCoordBuffer[1] = v[4];
+		gVertexBuffer += 3;
+		gTexCoordBuffer +=2;
 	}
 	
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointerMapped(0, pnv);
+	vglVertexAttribPointerMapped(1, pnt);
     GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 
@@ -432,17 +434,17 @@ void DrawGLPolyLightmap (glpoly_t *p)
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		pnv[0] = v[0];
-		pnv[1] = v[1];
-		pnv[2] = v[2];
-		pnt[0] = v[5];
-		pnt[1] = v[6];
-		pnv += 3;
-		pnt +=2;
+		gVertexBuffer[0] = v[0];
+		gVertexBuffer[1] = v[1];
+		gVertexBuffer[2] = v[2];
+		gTexCoordBuffer[0] = v[5];
+		gTexCoordBuffer[1] = v[6];
+		gVertexBuffer += 3;
+		gTexCoordBuffer +=2;
 	}
 	
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+	vglVertexAttribPointerMapped(0, pnv);
+	vglVertexAttribPointerMapped(1, pnt);
     GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 }
 

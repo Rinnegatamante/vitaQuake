@@ -386,10 +386,9 @@ void GL_DrawFPS(void);
 void GL_DrawBenchmark(void);
 void GL_SelectTexture (GLenum target);
 
-#define VERTEXARRAYSIZE 18360
-extern float gVertexBuffer[VERTEXARRAYSIZE];
-extern float gColorBuffer[VERTEXARRAYSIZE];
-extern float gTexCoordBuffer[VERTEXARRAYSIZE];
+extern float *gVertexBuffer;
+extern float *gColorBuffer;
+extern float *gTexCoordBuffer;
 
 // Fragment shaders
 #define MODULATE_WITH_COLOR  0

@@ -1345,10 +1345,6 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 
 static GLenum oldtarget = 0; // KH
 
-float gVertexBuffer[VERTEXARRAYSIZE];
-float gColorBuffer[VERTEXARRAYSIZE];
-float gTexCoordBuffer[VERTEXARRAYSIZE];
-
 // Benchmark
 int max_fps = 0;
 int average_fps = 0; // TODO: Add this

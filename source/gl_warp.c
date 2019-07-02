@@ -201,8 +201,8 @@ void EmitWaterPolys (msurface_t *fa)
 
 	for (p=fa->polys ; p ; p=p->next)
 	{
-		float* pUV = gTexCoordBuffer;
-		float* pPoint = gVertexBuffer;
+		float *pUV = gTexCoordBuffer;
+		float *pPoint = gVertexBuffer;
 		for (i=0,v=p->verts[0] ; i<p->numverts ; i++, v+=VERTEXSIZE)
 		{
 			os = v[3];
@@ -211,13 +211,13 @@ void EmitWaterPolys (msurface_t *fa)
 			s *= (0.015625f);
 			t = ot + turbsin[(int)((os*0.125+realtime) * TURBSCALE) & 255];
 			t *= (0.015625f);
-			*pUV++ = s;
-			*pUV++ = t;
-			memcpy(pPoint, &v[0], sizeof(vec3_t));
-			pPoint += 3;
+			*gTexCoordBuffer++ = s;
+			*gTexCoordBuffer++ = t;
+			memcpy(gVertexBuffer, &v[0], sizeof(vec3_t));
+			gVertexBuffer += 3;
 		}
-		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+		vglVertexAttribPointerMapped(0, pPoint);
+		vglVertexAttribPointerMapped(1, pUV);
 		GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	}
 }
@@ -241,8 +241,8 @@ void EmitSkyPolys (msurface_t *fa)
 
 	for (p=fa->polys ; p ; p=p->next)
 	{
-		float* pUV = gTexCoordBuffer;
-		float* pPoint = gVertexBuffer;
+		float *pUV = gTexCoordBuffer;
+		float *pPoint = gVertexBuffer;
 		for (i=0,v=p->verts[0] ; i<p->numverts ; i++, v+=VERTEXSIZE)
 		{
 			VectorSubtract (v, r_origin, dir);
@@ -254,13 +254,13 @@ void EmitSkyPolys (msurface_t *fa)
 			dir[1] *= length;
 			s = (speedscale + dir[0]) * (0.0078125f);
 			t = (speedscale + dir[1]) * (0.0078125f);
-			*pUV++ = s;
-			*pUV++ = t;
-			memcpy(pPoint, &v[0], sizeof(vec3_t));
-			pPoint += 3;
+			*gTexCoordBuffer++ = s;
+			*gTexCoordBuffer++ = t;
+			memcpy(gVertexBuffer, &v[0], sizeof(vec3_t));
+			gVertexBuffer += 3;
 		}
-		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, p->numverts, gVertexBuffer);
-		vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, p->numverts, gTexCoordBuffer);
+		vglVertexAttribPointerMapped(0, pPoint);
+		vglVertexAttribPointerMapped(1, pUV);
 		GL_DrawPolygon(GL_TRIANGLE_FAN, p->numverts);
 	}
 }

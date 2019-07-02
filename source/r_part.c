@@ -805,37 +805,37 @@ void R_DrawParticles (void)
 		colors[0] = ((float)(c[0])) / 255.0f;
 		colors[1] = ((float)(c[1])) / 255.0f;
 		colors[2] = ((float)(c[2])) / 255.0f;
-		*pColor++ = colors[0];
-		*pColor++ = colors[1];
-		*pColor++ = colors[2];
-		*pColor++ = 1.0f;
-		*pUV++ = 0.0f;
-		*pUV++ = 0.0f;
-		*pPos++ = p->org[0];
-		*pPos++ = p->org[1];
-		*pPos++ = p->org[2];
+		*gColorBuffer++ = colors[0];
+		*gColorBuffer++ = colors[1];
+		*gColorBuffer++ = colors[2];
+		*gColorBuffer++ = 1.0f;
+		*gTexCoordBuffer++ = 0.0f;
+		*gTexCoordBuffer++ = 0.0f;
+		*gVertexBuffer++ = p->org[0];
+		*gVertexBuffer++ = p->org[1];
+		*gVertexBuffer++ = p->org[2];
 
-		*pColor++ = colors[0];
-		*pColor++ = colors[1];
-		*pColor++ = colors[2];
-		*pColor++ = 1.0f;
-		*pUV++ = 1.0f;
-		*pUV++ = 0.0f;
+		*gColorBuffer++ = colors[0];
+		*gColorBuffer++ = colors[1];
+		*gColorBuffer++ = colors[2];
+		*gColorBuffer++ = 1.0f;
+		*gTexCoordBuffer++ = 1.0f;
+		*gTexCoordBuffer++ = 0.0f;
 		VectorMA (p->org, scale, up, p_up);
-		*pPos++ = (p_up[0]);
-		*pPos++ = (p_up[1]);
-		*pPos++ = (p_up[2]);
+		*gVertexBuffer++ = (p_up[0]);
+		*gVertexBuffer++ = (p_up[1]);
+		*gVertexBuffer++ = (p_up[2]);
 
-		*pColor++ = colors[0];
-		*pColor++ = colors[1];
-		*pColor++ = colors[2];
-		*pColor++ = 1.0f;
-		*pUV++ = 0.0;
-		*pUV++ = 1.0;
+		*gColorBuffer++ = colors[0];
+		*gColorBuffer++ = colors[1];
+		*gColorBuffer++ = colors[2];
+		*gColorBuffer++ = 1.0f;
+		*gTexCoordBuffer++ = 0.0;
+		*gTexCoordBuffer++ = 1.0;
 		VectorMA (p->org, scale, right, p_right);
-		*pPos++ = (p_right[0]);
-		*pPos++ = (p_right[1]);
-		*pPos++ = (p_right[2]);
+		*gVertexBuffer++ = (p_right[0]);
+		*gVertexBuffer++ = (p_right[1]);
+		*gVertexBuffer++ = (p_right[2]);
 
 #else
 		D_DrawParticle (p);
@@ -843,9 +843,9 @@ void R_DrawParticles (void)
 	}
 
 #ifdef GLQUAKE
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, num_vertices, gVertexBuffer);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, num_vertices, gTexCoordBuffer);
-	vglVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, num_vertices, gColorBuffer);
+	vglVertexAttribPointerMapped(0, pPos);
+	vglVertexAttribPointerMapped(1, pUV);
+	vglVertexAttribPointerMapped(2, pColor);
 	GL_DrawPolygon(GL_TRIANGLES, num_vertices);
 	GL_DisableState(GL_COLOR_ARRAY);
 	//->glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);

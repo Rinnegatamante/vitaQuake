@@ -91,24 +91,24 @@ void R_RenderDlight (dlight_t *light)
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 	float* pPos = gVertexBuffer;
 	float* pColor = gColorBuffer;
-	*pColor++ = 0.8f;
-	*pColor++ = 0.1f;
-	*pColor++ = 0.0f;
-	*pColor++ = 0.1f;
+	*gColorBuffer++ = 0.8f;
+	*gColorBuffer++ = 0.1f;
+	*gColorBuffer++ = 0.0f;
+	*gColorBuffer++ = 0.1f;
 	for (i=0 ; i<3 ; i++)
-		*pPos++ = light->origin[i] - vpn[i]*rad;
+		*gVertexBuffer++ = light->origin[i] - vpn[i]*rad;
 	for (i=16 ; i>=0 ; i--)
 	{
-		*pColor++ = 0.8f;
-		*pColor++ = 0.4f;
-		*pColor++ = 0.0f;
-		*pColor++ = 0.0f;
+		*gColorBuffer++ = 0.8f;
+		*gColorBuffer++ = 0.4f;
+		*gColorBuffer++ = 0.0f;
+		*gColorBuffer++ = 0.0f;
 		for (j=0 ; j<3 ; j++)
-			*pPos++ = light->origin[j] + vright[j]*costablef[i]*rad
+			*gVertexBuffer++ = light->origin[j] + vright[j]*costablef[i]*rad
 				+ vup[j]*sintablef[i]*rad;
 	}
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 18, gVertexBuffer);
-	vglVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 18, gColorBuffer);
+	vglVertexAttribPointerMapped(0, pPos);
+	vglVertexAttribPointerMapped(1, pColor);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 18);
 	GL_DisableState(GL_COLOR_ARRAY);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
