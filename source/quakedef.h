@@ -48,7 +48,7 @@ extern int m_state;
 //#define	DEBUG
 
 #define ENGINE_NAME			"vitaQuake"
-#define	VERSION				3.10
+#define	VERSION				3.20
 #define VERSION_PROQUAKE	3.50
 #define	GLQUAKE_VERSION	    1.00
 

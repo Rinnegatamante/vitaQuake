@@ -453,9 +453,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			break;		// done
 		
 		int primType;
-		float* pColor;
-		float* pTexCoord;
-		float* pPos;
 		if (count < 0)
 		{
 			count = -count;
@@ -464,9 +461,9 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		else
 			primType = GL_TRIANGLE_STRIP;
 		
-		pColor = gColorBuffer;
-		pPos = gVertexBuffer;
-		pTexCoord = gTexCoordBuffer;
+		float *pColor = gColorBuffer;
+		float *pPos = gVertexBuffer;
+		float *pTexCoord = gTexCoordBuffer;
 		int c;
 		for (c = 0; c < count; ++c)
 		{
@@ -520,6 +517,8 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		
 	}
 	
+	GL_DisableState(GL_COLOR_ARRAY);
+	
 	if (gl_outline.value > 0) {
 	
 		verts = (trivertx_t *)((byte *)paliashdr + paliashdr->posedata);
@@ -543,9 +542,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 				break;		// done
 			
 			int primType;
-			float* pColor;
-			float* pTexCoord;
-			float* pPos;
 			if (count < 0)
 			{
 				count = -count;
@@ -554,26 +550,21 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 			else
 				primType = GL_TRIANGLE_STRIP;
 			
-			pColor = gColorBuffer;
-			pPos = gVertexBuffer;
-			pTexCoord = gTexCoordBuffer;
+			float *pPos = gVertexBuffer;
 			int c;
 			for (c = 0; c < count; ++c)
 			{
 				order += 2;
 			
-				*pColor++ = 0.0f;
-				*pColor++ = 0.0f;
-				*pColor++ = 0.0f;
-				*pColor++ = 1.0f;
 				*pPos++ = verts->v[0];
 				*pPos++ = verts->v[1];
 				*pPos++ = verts->v[2];
 				++verts;
 			}
-		
+			
+			float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+			glUniform4fv(monocolor, 1, color);
 			vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, count, gVertexBuffer);
-			vglVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, count, gColorBuffer);
 			GL_DrawPolygon(primType, count);
 		
 		}
@@ -585,8 +576,6 @@ void GL_DrawAliasFrame (aliashdr_t *paliashdr, int posenum)
 		glDisable (GL_BLEND);
 		GL_EnableState(GL_TEXTURE_COORD_ARRAY);	
 	}
-	
-	GL_DisableState(GL_COLOR_ARRAY);
 	
 }
 

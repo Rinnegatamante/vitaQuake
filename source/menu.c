@@ -1261,7 +1261,7 @@ void M_AdjustSliders (int dir)
 	case 24:  // bilinear filtering
 		Cvar_ToggleValue(&gl_bilinear);
 		break;
-	case 25:  // cell shading
+	case 25:  // cel shading
 		gl_outline.value += dir;
 		if (gl_outline.value > 6) gl_outline.value = 6;
 		else if (gl_outline.value < 0) gl_outline.value = 0;
@@ -1413,7 +1413,7 @@ void M_Options_Draw (void)
 	M_Print (16, 224, "    Bilinear Filtering");
 	M_DrawCheckbox (220, 224, gl_bilinear.value);
 	
-	M_Print (16, 232, "          Cell Shading");
+	M_Print (16, 232, "           Cel Shading");
 	r = gl_outline.value / 6;
 	M_DrawSlider (220, 232, r);
 
