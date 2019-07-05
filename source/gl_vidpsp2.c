@@ -31,6 +31,7 @@ float *gVertexBufferPtr;
 float *gColorBufferPtr;
 float *gTexCoordBufferPtr;
 
+extern uint8_t netcheck_dialog_running;
 extern cvar_t vid_vsync;
 extern bool benchmark;
 unsigned short	d_8to16table[256];
@@ -532,7 +533,7 @@ void GL_EndRendering (void)
 	
 	//->glFlush();
 
-	if (isKeyboard){
+	if (isKeyboard || netcheck_dialog_running){
 		vglStopRenderingInit();
 		vglUpdateCommonDialog();
 		vglStopRenderingTerm();

@@ -28,6 +28,8 @@ byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
 uint8_t is_uma0 = 0;
 extern int msaa;
+extern uint8_t netcheck_dialog_running;
+extern uint8_t proto_idx;
 
 // Mods support
 int max_mod_idx = -1;
@@ -453,6 +455,7 @@ int main(int argc, char **argv)
 	scePowerSetGpuClockFrequency(222);
 	scePowerSetGpuXbarClockFrequency(166);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_PSPNET_ADHOC);
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
@@ -586,6 +589,25 @@ int main(int argc, char **argv)
 		if (rumble_tick != 0) {
 			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
 		}
+		
+		// AdHoc Message Dialog
+		if (netcheck_dialog_running == 1) {
+			SceCommonDialogStatus status = sceNetCheckDialogGetStatus();
+			if (status == 2) {
+				SceNetCheckDialogResult result;
+				memset(&result, 0, sizeof(SceNetCheckDialogResult));
+				sceNetCheckDialogGetResult(&result);
+
+				if (result.result == SCE_COMMON_DIALOG_RESULT_OK) {
+					proto_idx = 1;
+				} else {
+					proto_idx = 0;
+				}
+
+				sceNetCheckDialogTerm();
+				Datagram_Init();
+			}
+		}
 
 		// OSK manage for Console / Input
 		if (key_dest == key_console || m_state == m_lanconfig || m_state == m_setup)
@@ -608,8 +630,7 @@ int main(int argc, char **argv)
 							utf2ascii(title_keyboard, input_text);
 							Q_strcpy(key_lines[edit_line] + 1, title_keyboard);
 							Key_SendText(key_lines[edit_line] + 1);
-						}
-						else {
+						} else {
 							utf2ascii(title_keyboard, input_text);
 							simulateKeyPress(title_keyboard);
 						}
@@ -622,16 +643,15 @@ int main(int argc, char **argv)
 			else {
 				if ((tmp_pad.buttons & SCE_CTRL_SELECT) && (!(oldpad.buttons & SCE_CTRL_SELECT)))
 				{
-					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 0 || lanConfig_cursor == 2)))
+					if ((m_state == m_setup && (setup_cursor == 0 || setup_cursor == 1)) || (key_dest == key_console) || (m_state == m_lanconfig && (lanConfig_cursor == 0 || lanConfig_cursor == 3)))
 					{
 						memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
 						memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
 						if (key_dest == key_console) {
 							sprintf(title_keyboard, "Insert Quake command");
-						}
-						else if (m_state == m_setup) {
+						} else if (m_state == m_setup) {
 							(setup_cursor == 0) ? sprintf(title_keyboard, "Insert hostname") : sprintf(title_keyboard, "Insert player name");
-						}else if (m_state == m_lanconfig){
+						} else if (m_state == m_lanconfig){
 							(lanConfig_cursor == 0) ? sprintf(title_keyboard, "Insert port number") : sprintf(title_keyboard, "Insert server address");
 						}
 						ascii2utf(title, title_keyboard);

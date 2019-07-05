@@ -122,6 +122,7 @@ char		m_return_reason [32];
 void M_ConfigureNetSubsystem(void);
 
 int msaa = 0;
+uint8_t netcheck_dialog_running = 0;
 
 void SetResolution(int w, int h){
 	char res_str[64];
@@ -1989,8 +1990,8 @@ void M_Quit_Draw (void)
 /* LAN CONFIG MENU */
 
 int		lanConfig_cursor = 1;
-int		lanConfig_cursor_table [] = {72, 92, 124,138};
-#define NUM_LANCONFIG_CMDS	3
+int		lanConfig_cursor_table [] = {72, 92, 112, 144, 158};
+#define NUM_LANCONFIG_CMDS	4
 
 int 	lanConfig_port;
 char	lanConfig_portname[6];
@@ -2004,9 +2005,9 @@ void M_Menu_LanConfig_f (void)
 	if (lanConfig_cursor == -1)
 	{
 		if (JoiningGame && TCPIPConfig)
-			lanConfig_cursor = 3;
+			lanConfig_cursor = NUM_LANCONFIG_CMDS;
 	}
-	if (StartingGame && lanConfig_cursor >= 2)
+	if (StartingGame && lanConfig_cursor >= 3)
 		lanConfig_cursor = 1;
 	lanConfig_port = DEFAULTnet_hostport;
 	sprintf(lanConfig_portname, "%u", lanConfig_port);
@@ -2015,14 +2016,16 @@ void M_Menu_LanConfig_f (void)
 	m_return_reason[0] = 0;
 }
 
+char protocol[64];
+uint8_t proto_idx = 0;
 
 void M_LanConfig_Draw (void)
 {
 	qpic_t	*p;
 	int		basex;
 	char	*startJoin;
-	char	*protocol;
-
+	
+	
 	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
 	p = Draw_CachePic ("gfx/p_multi.lmp");
 	basex = (320-p->width)/2;
@@ -2033,7 +2036,9 @@ void M_LanConfig_Draw (void)
 	else
 		startJoin = "Join Game";
 
-	protocol = "TCP/IP";
+	if (proto_idx == 0) sprintf(protocol, "TCP/IP");
+	else sprintf(protocol, "AdHoc");
+	
 	M_Print (basex, 32, va ("%s - %s", startJoin, protocol));
 	basex += 8;
 
@@ -2043,19 +2048,20 @@ void M_LanConfig_Draw (void)
 	M_Print (basex, lanConfig_cursor_table[0], "Port");
 	M_DrawTextBox (basex+8*8, lanConfig_cursor_table[0]-8, 6, 1);
 	M_Print (basex+9*8, lanConfig_cursor_table[0], lanConfig_portname);
-
+	M_Print (basex, lanConfig_cursor_table[1], "Protocol");
+	M_Print (basex+9*8, lanConfig_cursor_table[1], protocol);
 	if (JoiningGame)
 	{
-		M_Print (basex, lanConfig_cursor_table[1], "Search for local games...");
-		M_Print (basex, 108, "Join game at:");
-		M_DrawTextBox (basex+8, lanConfig_cursor_table[2]-8, 22, 1);
-		M_Print (basex+16, lanConfig_cursor_table[2], lanConfig_joinname);
-		M_Print (basex, 138, "Join an online server");
+		M_Print (basex, lanConfig_cursor_table[2], "Search for local games...");
+		M_Print (basex, 128, "Join game at:");
+		M_DrawTextBox (basex+8, lanConfig_cursor_table[3]-8, 22, 1);
+		M_Print (basex+16, lanConfig_cursor_table[3], lanConfig_joinname);
+		M_Print (basex, 158, "Join an online server");
 	}
 	else
 	{
-		M_DrawTextBox (basex, lanConfig_cursor_table[1]-8, 2, 1);
-		M_Print (basex+8, lanConfig_cursor_table[1], "OK");
+		M_DrawTextBox (basex, lanConfig_cursor_table[2]-8, 2, 1);
+		M_Print (basex+8, lanConfig_cursor_table[2], "OK");
 	}
 
 	M_DrawCharacter (basex-8, lanConfig_cursor_table [lanConfig_cursor], 12+((int)(realtime*4)&1));
@@ -2063,11 +2069,11 @@ void M_LanConfig_Draw (void)
 	if (lanConfig_cursor == 0)
 		M_DrawCharacter (basex+9*8 + 8*strlen(lanConfig_portname), lanConfig_cursor_table [0], 10+((int)(realtime*4)&1));
 
-	if (lanConfig_cursor == 2)
-		M_DrawCharacter (basex+16 + 8*strlen(lanConfig_joinname), lanConfig_cursor_table [2], 10+((int)(realtime*4)&1));
+	if (lanConfig_cursor == 3)
+		M_DrawCharacter (basex+16 + 8*strlen(lanConfig_joinname), lanConfig_cursor_table [3], 10+((int)(realtime*4)&1));
 
 	if (*m_return_reason)
-		M_PrintWhite (basex, 148, m_return_reason);
+		M_PrintWhite (basex, 168, m_return_reason);
 }
 
 
@@ -2108,8 +2114,39 @@ void M_LanConfig_Key (int key)
 		m_entersound = true;
 
 		M_ConfigureNetSubsystem ();
-
+		
 		if (lanConfig_cursor == 1)
+		{
+			Datagram_Shutdown();
+			proto_idx = (proto_idx + 1) % 2;
+			if (proto_idx == 1) { // Setup AdHoc
+				// Start sceNetAdhoc and sceNetAdhocctl
+				sceNetAdhocInit();
+				SceNetAdhocctlAdhocId adhocId;
+				memset(&adhocId, 0, sizeof(SceNetAdhocctlAdhocId));
+				adhocId.type = SCE_NET_ADHOCCTL_ADHOCTYPE_RESERVED;
+				memcpy(&adhocId.data[0], "QUAK00001", SCE_NET_ADHOCCTL_ADHOCID_LEN);
+				sceNetAdhocctlInit(&adhocId);
+	
+				SceNetCheckDialogParam param;
+				sceNetCheckDialogParamInit(&param);
+				SceNetAdhocctlGroupName groupName;
+				memset(groupName.data, 0, SCE_NET_ADHOCCTL_GROUPNAME_LEN);
+				param.groupName = &groupName;
+				memcpy(&param.npCommunicationId.data, "QUAK00001", 9);
+				param.npCommunicationId.term = '\0';
+				param.npCommunicationId.num = 0;
+				param.mode = SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_CONN;
+				param.timeoutUs = 0;
+	
+				int res = sceNetCheckDialogInit(&param);
+				if (res >= 0) {
+					netcheck_dialog_running = 1;
+				}
+			} else Datagram_Init();
+		}
+
+		if (lanConfig_cursor == 2)
 		{
 			if (StartingGame)
 			{
@@ -2120,7 +2157,7 @@ void M_LanConfig_Key (int key)
 			break;
 		}
 
-		if (lanConfig_cursor == 2)
+		if (lanConfig_cursor == 3)
 		{
 			m_return_state = m_state;
 			m_return_onerror = true;
@@ -2130,7 +2167,7 @@ void M_LanConfig_Key (int key)
 			break;
 		}
 
-		if (lanConfig_cursor == 3)
+		if (lanConfig_cursor == 4)
 		{
 			M_Menu_OnlineServerList_f ();
 			break;
@@ -2145,7 +2182,7 @@ void M_LanConfig_Key (int key)
 				lanConfig_portname[strlen(lanConfig_portname)-1] = 0;
 		}
 
-		if (lanConfig_cursor == 2)
+		if (lanConfig_cursor == 3)
 		{
 			if (strlen(lanConfig_joinname))
 				lanConfig_joinname[strlen(lanConfig_joinname)-1] = 0;
@@ -2156,7 +2193,7 @@ void M_LanConfig_Key (int key)
 		if (key < 32 || key > 127)
 			break;
 
-		if (lanConfig_cursor == 2)
+		if (lanConfig_cursor == 3)
 		{
 			l = strlen(lanConfig_joinname);
 			if (l < 21)
@@ -2179,9 +2216,9 @@ void M_LanConfig_Key (int key)
 		}
 	}
 
-	if (StartingGame && lanConfig_cursor == 2)
+	if (StartingGame && lanConfig_cursor == 3)
 		if (key == K_UPARROW)
-			lanConfig_cursor = 1;
+			lanConfig_cursor = 2;
 		else
 			lanConfig_cursor = 0;
 

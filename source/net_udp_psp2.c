@@ -211,13 +211,13 @@ int UDP_Init (void)
 		ret = sceNetInit(&initparam);
 		if (ret < 0) return -1;
 		
+		ret = sceNetCtlInit();
+		if (ret < 0){
+			sceNetTerm();
+			free(net_memory);
+			return -1;
+		}
 	}	
-	ret = sceNetCtlInit();
-	if (ret < 0){
-		sceNetTerm();
-		free(net_memory);
-		return -1;
-	}
 	
 	// Getting IP address
 	SceNetCtlInfo info;
@@ -264,9 +264,9 @@ void UDP_Shutdown (void)
 	Log("UDP_Shutdown");
 	UDP_Listen (false);
 	UDP_CloseSocket (net_controlsocket);
-	sceNetCtlTerm();
-	sceNetTerm();
-	free(net_memory);
+	//sceNetCtlTerm();
+	//sceNetTerm();
+	//free(net_memory);
 }
 
 //=============================================================================

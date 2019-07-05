@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // net_dgrm.h
 
-
+extern uint8_t proto_idx;
 int			Datagram_Init (void);
 void		Datagram_Listen (bool state);
 void		Datagram_SearchForHosts (bool xmit);

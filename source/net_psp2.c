@@ -61,6 +61,7 @@ net_driver_t net_drivers[MAX_NET_DRIVERS] =
 int net_numdrivers = 2;
 
 #include "net_udp.h"
+#include "net_adhoc.h"
 
 net_landriver_t	net_landrivers[MAX_NET_DRIVERS] =
 {
@@ -86,7 +87,30 @@ net_landriver_t	net_landrivers[MAX_NET_DRIVERS] =
 	UDP_AddrCompare,
 	UDP_GetSocketPort,
 	UDP_SetSocketPort
+	},
+	{
+	"AdHoc",
+	false,
+	0,
+	AdHoc_Init,
+	AdHoc_Shutdown,
+	AdHoc_Listen,
+	AdHoc_OpenSocket,
+	AdHoc_CloseSocket,
+	AdHoc_Connect,
+	AdHoc_CheckNewConnections,
+	AdHoc_Read,
+	AdHoc_Write,
+	AdHoc_Broadcast,
+	AdHoc_AddrToString,
+	AdHoc_StringToAddr,
+	AdHoc_GetSocketAddr,
+	AdHoc_GetNameFromAddr,
+	AdHoc_GetAddrFromName,
+	AdHoc_AddrCompare,
+	AdHoc_GetSocketPort,
+	AdHoc_SetSocketPort
 	}
 };
 
-int net_numlandrivers = 1;
+int net_numlandrivers = 2;

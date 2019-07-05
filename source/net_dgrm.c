@@ -91,13 +91,26 @@ extern char m_return_reason[32];
 // JPG - recognize ip:port
 void Strip_Port(char *ch)
 {
-	if ((ch = strchr(ch, ':')))
+	int occurrances = 0;
+	char *last_valid_ch = NULL;
+	while (ch) {
+		ch = strchr(ch, ':');
+		if (ch){
+			occurrances++;
+			last_valid_ch = ch;
+			ch++;
+		}
+	}
+	if ((occurrances == 1) || (occurrances == 6))
 	{
+		ch = last_valid_ch;
 		int old_port = net_hostport;
 
 		sscanf(ch + 1, "%d", &net_hostport);
-		for (; ch[-1] == ' '; ch--);
-		*ch = 0;
+		if (proto_idx == 0) {
+			for (; ch[-1] == ' '; ch--);
+			*ch = 0;
+		}
 		if (net_hostport != old_port)
 			Con_Printf("Setting port to %d\n", net_hostport);
 	}
@@ -815,6 +828,7 @@ JustDoIt:
 	SchedulePollProcedure(&test2PollProcedure, 0.05);
 }
 
+int first_boot = 1;
 
 int Datagram_Init (void)
 {
@@ -822,25 +836,29 @@ int Datagram_Init (void)
 	int csock;
 
 	myDriverLevel = net_driverlevel;
-	Cmd_AddCommand ("net_stats", NET_Stats_f);
+	if (first_boot) Cmd_AddCommand ("net_stats", NET_Stats_f);
 
 	if (COM_CheckParm("-nolan"))
 		return -1;
-
-	for (i = 0; i < net_numlandrivers; i++)
+	
+	i = proto_idx;
+	//for (i = 0; i < net_numlandrivers; i++)
 		{
 		csock = net_landrivers[i].Init ();
-		if (csock == -1)
-			continue;
+		if (csock == -1) return 0;
+			//continue;
 		net_landrivers[i].initialized = true;
 		net_landrivers[i].controlSock = csock;
 		}
-
+	
+	if (first_boot) {
 #ifdef BAN_TEST
-	Cmd_AddCommand ("ban", NET_Ban_f);
+		Cmd_AddCommand ("ban", NET_Ban_f);
 #endif
-	Cmd_AddCommand ("test", Test_f);
-	Cmd_AddCommand ("test2", Test2_f);
+		Cmd_AddCommand ("test", Test_f);
+		Cmd_AddCommand ("test2", Test2_f);
+		first_boot = 0;
+	}
 
 	return 0;
 }

@@ -3,7 +3,7 @@ TITLE		:= QUAK00001
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 SHADERS     := shaders
 
-LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
+LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lScePspnetAdhoc_stub \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
@@ -60,7 +60,8 @@ COMMON_OBJS =	source/chase.o \
 	source/snd_mix.o \
 	source/snd_mem.o \
 	source/snd_psp2.o \
-	source/net_bsd.o \
+	source/net_psp2.o \
+	source/net_adhoc_psp2.o \
 	source/net_udp_psp2.o \
 	source/in_psp2.o \
 	source/gl_vidpsp2.o \
