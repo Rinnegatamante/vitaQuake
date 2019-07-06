@@ -17,10 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// net_udp.c
+// net_adhoc.c
 
 #include "quakedef.h"
-#include "net_udp.h"
+#include "net_adhoc.h"
 
 #include <sys/types.h>
 #include <vitasdk.h>
@@ -36,16 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern cvar_t hostname;
 extern void Log (const char *format, ...);
-
-#define MAX_NAME 512
-struct hostent{
-  char  *h_name;         /* official (cannonical) name of host               */
-  char **h_aliases;      /* pointer to array of pointers of alias names      */
-  int    h_addrtype;     /* host address type: AF_INET                       */
-  int    h_length;       /* length of address: 4                             */
-  char **h_addr_list;    /* pointer to array of pointers with IPv4 addresses */
-};
-#define h_addr h_addr_list[0]
 
 #define ADHOC_NET 29
 
@@ -70,11 +60,8 @@ static struct qsockaddr broadcastaddr;
 int AdHoc_Init (void)
 {
 	Log("ADHoc_Init called...");
-	struct hostent *local;
-	char	buff[15];
 	struct qsockaddr addr;
 	char *colon;
-	SceNetInitParam initparam;
 	
 	// if the quake hostname isn't set, set it to player nickname
 	if (!Q_strcmp(hostname.string, "UNNAMED"))
@@ -90,7 +77,7 @@ int AdHoc_Init (void)
 	}
 
 	if ((net_controlsocket = AdHoc_OpenSocket (0)) == -1)
-		Sys_Error("UDP_Init: Unable to open control socket\n");
+		Sys_Error("AdHoc_Init: Unable to open control socket\n");
 
 	((struct sockaddr_adhoc *)&broadcastaddr)->family = ADHOC_NET;
 	int i;
@@ -106,7 +93,7 @@ int AdHoc_Init (void)
 	
 	AdHoc_Listen(1);
 	
-	Con_Printf("UDP Initialized as IP %s\n", my_tcpip_address);
+	Con_Printf("AdHoc Initialized as IP %s\n", my_tcpip_address);
 	tcpipAvailable = true;
 
 	return net_controlsocket;
@@ -134,7 +121,7 @@ void AdHoc_Listen (bool state)
 		if (net_acceptsocket != -1)
 			return;
 		if ((net_acceptsocket = AdHoc_OpenSocket (net_hostport)) == -1)
-			Sys_Error ("UDP_Listen: Unable to open accept socket\n");
+			Sys_Error ("AdHoc_Listen: Unable to open accept socket\n");
 		return;
 	}
 

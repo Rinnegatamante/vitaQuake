@@ -374,7 +374,7 @@ void M_Main_Draw (void)
 	M_Print (-40, 308, "- RaveHeart");
 	M_Print (-40, 316, "- nobodywasishere");
 	M_Print (-40, 324, "- Tain Sueiras");
-	M_Print (-40, 332, "- XandridFire");
+	M_Print (-40, 332, "- The Vita3K project");
 }
 
 
