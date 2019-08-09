@@ -525,7 +525,6 @@ int main(int argc, char **argv)
 		break;
 	}
 	vglUseVram(GL_TRUE);
-    vglMapHeapMem();
 	
 	// Official mission packs support
 	SceAppUtilAppEventParam eventParam;
