@@ -949,13 +949,11 @@ void PF_vtos(void)
 	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
 }
 
-#ifdef QUAKE2
 void PF_etos(void)
 {
 	sprintf(pr_string_temp, "entity %i", G_EDICTNUM(OFS_PARM0));
 	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
 }
-#endif
 
 void PF_Spawn(void)
 {
@@ -1805,7 +1803,7 @@ void PF_WaterMove(void)
 
 	G_FLOAT(OFS_RETURN) = damage;
 }
-
+#endif
 
 void PF_sin(void)
 {
@@ -1821,116 +1819,333 @@ void PF_sqrt(void)
 {
 	G_FLOAT(OFS_RETURN) = sqrt(G_FLOAT(OFS_PARM0));
 }
-#endif
 
 void PF_Fixme(void)
 {
 	PR_RunError("unimplemented bulitin");
 }
 
-
-
-builtin_t pr_builtin[] =
+// 2001-09-16 New BuiltIn Function: cmd_find() by Maddes  start
+/*
+=================
+PF_cmd_find
+float cmd_find (string)
+=================
+*/
+void PF_cmd_find (void)
 {
-	PF_Fixme,
-	PF_makevectors,	// void(entity e)	makevectors 		= #1;
-	PF_setorigin,	// void(entity e, vector o) setorigin	= #2;
-	PF_setmodel,	// void(entity e, string m) setmodel	= #3;
-	PF_setsize,	// void(entity e, vector min, vector max) setsize = #4;
-	PF_Fixme,	// void(entity e, vector min, vector max) setabssize = #5;
-	PF_break,	// void() break						= #6;
-	PF_random,	// float() random						= #7;
-	PF_sound,	// void(entity e, float chan, string samp) sound = #8;
-	PF_normalize,	// vector(vector v) normalize			= #9;
-	PF_error,	// void(string e) error				= #10;
-	PF_objerror,	// void(string e) objerror				= #11;
-	PF_vlen,	// float(vector v) vlen				= #12;
-	PF_vectoyaw,	// float(vector v) vectoyaw		= #13;
-	PF_Spawn,	// entity() spawn						= #14;
-	PF_Remove,	// void(entity e) remove				= #15;
-	PF_traceline,	// float(vector v1, vector v2, float tryents) traceline = #16;
-	PF_checkclient,	// entity() clientlist					= #17;
-	PF_Find,	// entity(entity start, .string fld, string match) find = #18;
-	PF_precache_sound,	// void(string s) precache_sound		= #19;
-	PF_precache_model,	// void(string s) precache_model		= #20;
-	PF_stuffcmd,	// void(entity client, string s)stuffcmd = #21;
-	PF_findradius,	// entity(vector org, float rad) findradius = #22;
-	PF_bprint,	// void(string s) bprint				= #23;
-	PF_sprint,	// void(entity client, string s) sprint = #24;
-	PF_dprint,	// void(string s) dprint				= #25;
-	PF_ftos,	// void(string s) ftos				= #26;
-	PF_vtos,	// void(string s) vtos				= #27;
-	PF_coredump,
-	PF_traceon,
-	PF_traceoff,
-	PF_eprint,	// void(entity e) debug print an entire entity
-	PF_walkmove, // float(float yaw, float dist) walkmove
-	PF_Fixme, // float(float yaw, float dist) walkmove
-	PF_droptofloor,
-	PF_lightstyle,
-	PF_rint,
-	PF_floor,
-	PF_ceil,
-	PF_Fixme,
-	PF_checkbottom,
-	PF_pointcontents,
-	PF_Fixme,
-	PF_fabs,
-	PF_aim,
-	PF_cvar,
-	PF_localcmd,
-	PF_nextent,
-	PF_particle,
-	PF_changeyaw,
-	PF_Fixme,
-	PF_vectoangles,
+	char	*cmdname;
+	float	result;
 
-	PF_WriteByte,
-	PF_WriteChar,
-	PF_WriteShort,
-	PF_WriteLong,
-	PF_WriteCoord,
-	PF_WriteAngle,
-	PF_WriteString,
-	PF_WriteEntity,
+	cmdname = G_STRING(OFS_PARM0);
+	result = Cmd_Exists (cmdname);
+	G_FLOAT(OFS_RETURN) = result;
+}
+// 2001-09-16 New BuiltIn Function: cmd_find() by Maddes  end
 
+// 2001-09-16 New BuiltIn Function: cvar_find() by Maddes  start
+/*
+=================
+PF_cvar_find
+float cvar_find (string)
+=================
+*/
+void PF_cvar_find (void)
+{
+	char	*varname;
+	float	result;
+
+	varname = G_STRING(OFS_PARM0);
+	result = 0;
+	if (Cvar_FindVar (varname))
+	{
+		result = 1;
+	}
+	G_FLOAT(OFS_RETURN) = result;
+}
+// 2001-09-16 New BuiltIn Function: cvar_find() by Maddes  end
+
+// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes  start
+/*
+=================
+PF_cvar_string
+string cvar_string (string)
+=================
+*/
+void PF_cvar_string (void)
+{
+	char	*varname;
+	cvar_t	*var;
+	varname = G_STRING(OFS_PARM0);
+	var = Cvar_FindVar (varname);
+	if (!var)
+	{
+		Con_DPrintf ("Cvar_String: variable \"%s\" not found\n", varname);	// 2001-09-09 Made 'Cvar not found' a developer message by Maddes
+		G_INT(OFS_RETURN) = OFS_NULL;
+	}
+	else
+	{
+		G_INT(OFS_RETURN) = var->string - pr_strings;
+	}
+}
+// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes  end
+
+// 2001-09-16 New BuiltIn Function: WriteFloat() by Maddes  start
+/*
+PF_WriteFloat
+void (float to, float f) WriteFloat
+*/
+void PF_WriteFloat (void)
+{
+	MSG_WriteFloat (WriteDest(), G_FLOAT(OFS_PARM1));
+}
+// 2001-09-16 New BuiltIn Function: WriteFloat() by Maddes  end
+
+// 2001-09-25 New BuiltIn Function: etof() by Maddes  start
+/*
+=================
+PF_etof
+float etof (entity)
+=================
+*/
+void PF_etof (void)
+{
+	G_FLOAT(OFS_RETURN) = G_EDICTNUM(OFS_PARM0);
+}
+// 2001-09-25 New BuiltIn Function: etof() by Maddes  end
+
+// 2001-09-25 New BuiltIn Function: ftoe() by Maddes  start
+/*
+=================
+PF_ftoe
+entity ftoe (float)
+=================
+*/
+void PF_ftoe (void)
+{
+	edict_t		*e;
+	e = EDICT_NUM(G_FLOAT(OFS_PARM0));
+	RETURN_EDICT(e);
+}
+// 2001-09-25 New BuiltIn Function: ftoe() by Maddes  end
+
+builtin_t *pr_builtins;
+int pr_numbuiltins;
+
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
+// for builtin function definitions see Quake Standards Group at http://www.quakesrc.org/
+
+/*
+=================
+PF_builtin_find
+float builtin_find (string)
+=================
+*/
+void PF_builtin_find (void)
+{
+	int		j;
+	float	funcno;
+	char	*funcname;
+
+	funcno = 0;
+	funcname = G_STRING(OFS_PARM0);
+
+	// search function name
+	for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
+	{
+		if ((pr_ebfs_builtins[j].funcname) && (!(Q_strcasecmp(funcname,pr_ebfs_builtins[j].funcname))))
+		{
+			break;	// found
+		}
+	}
+
+	if (j < pr_ebfs_numbuiltins)
+	{
+		funcno = pr_ebfs_builtins[j].funcno;
+	}
+
+	G_FLOAT(OFS_RETURN) = funcno;
+
+}
+
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
+
+ebfs_builtin_t pr_ebfs_builtins[] = {
+	{   0, NULL, PF_Fixme },		// has to be first entry as it is needed for initialization in PR_LoadProgs()
+	{   1, "makevectors", PF_makevectors },	// void(entity e)	makevectors 		= #1;
+	{   2, "setorigin", PF_setorigin },		// void(entity e, vector o) setorigin	= #2;
+	{   3, "setmodel", PF_setmodel },		// void(entity e, string m) setmodel	= #3;
+	{   4, "setsize", PF_setsize },			// void(entity e, vector min, vector max) setsize = #4;
+//	{   5, "fixme", PF_Fixme },				// void(entity e, vector min, vector max) setabssize = #5;
+	{   6, "break", PF_break },				// void() break						= #6;
+	{   7, "random", PF_random },			// float() random						= #7;
+	{   8, "sound", PF_sound },				// void(entity e, float chan, string samp) sound = #8;
+	{   9, "normalize", PF_normalize },		// vector(vector v) normalize			= #9;
+	{  10, "error", PF_error },				// void(string e) error				= #10;
+	{  11, "objerror", PF_objerror },		// void(string e) objerror				= #11;
+	{  12, "vlen", PF_vlen },				// float(vector v) vlen				= #12;
+	{  13, "vectoyaw", PF_vectoyaw },		// float(vector v) vectoyaw		= #13;
+	{  14, "spawn", PF_Spawn },				// entity() spawn						= #14;
+	{  15, "remove", PF_Remove },			// void(entity e) remove				= #15;
+	{  16, "traceline", PF_traceline },		// float(vector v1, vector v2, float tryents) traceline = #16;
+	{  17, "checkclient", PF_checkclient },	// entity() clientlist					= #17;
+	{  18, "find", PF_Find },				// entity(entity start, .string fld, string match) find = #18;
+	{  19, "precache_sound", PF_precache_sound },	// void(string s) precache_sound		= #19;
+	{  20, "precache_model", PF_precache_model },	// void(string s) precache_model		= #20;
+	{  21, "stuffcmd", PF_stuffcmd },		// void(entity client, string s)stuffcmd = #21;
+	{  22, "findradius", PF_findradius },	// entity(vector org, float rad) findradius = #22;
+	{  23, "bprint", PF_bprint },			// void(string s) bprint				= #23;
+	{  24, "sprint", PF_sprint },			// void(entity client, string s) sprint = #24;
+	{  25, "dprint", PF_dprint },			// void(string s) dprint				= #25;
+	{  26, "ftos", PF_ftos },				// void(string s) ftos				= #26;
+	{  27, "vtos", PF_vtos },				// void(string s) vtos				= #27;
+	{  28, "coredump", PF_coredump },
+	{  29, "traceon", PF_traceon },
+	{  30, "traceoff", PF_traceoff },
+	{  31, "eprint", PF_eprint },			// void(entity e) debug print an entire entity
+	{  32, "walkmove", PF_walkmove },		// float(float yaw, float dist) walkmove
+//	{  33, "fixme", PF_Fixme },				// float(float yaw, float dist) walkmove
+	{  34, "droptofloor", PF_droptofloor },
+	{  35, "lightstyle", PF_lightstyle },
+	{  36, "rint", PF_rint },
+	{  37, "floor", PF_floor },
+	{  38, "ceil", PF_ceil },
+//	{  39, "fixme", PF_Fixme },
+	{  40, "checkbottom", PF_checkbottom },
+	{  41, "pointcontents", PF_pointcontents },
+//	{  42, "fixme", PF_Fixme },
+	{  43, "fabs", PF_fabs },
+	{  44, "aim", PF_aim },
+	{  45, "cvar", PF_cvar },
+	{  46, "localcmd", PF_localcmd },
+	{  47, "nextent", PF_nextent },
+	{  48, "particle", PF_particle },
+	{  49, "ChangeYaw", PF_changeyaw },
+//	{  50, "fixme", PF_Fixme },
+	{  51, "vectoangles", PF_vectoangles },
+	{  52, "WriteByte", PF_WriteByte },
+	{  53, "WriteChar", PF_WriteChar },
+	{  54, "WriteShort", PF_WriteShort },
+	{  55, "WriteLong", PF_WriteLong },
+	{  56, "WriteCoord", PF_WriteCoord },
+	{  57, "WriteAngle", PF_WriteAngle },
+	{  58, "WriteString", PF_WriteString },
+	{  59, "WriteEntity", PF_WriteEntity },
+	{  60, "sin", PF_sin },
+	{  61, "cos", PF_cos },
+	{  62, "sqrt", PF_sqrt },
 #ifdef QUAKE2
-	PF_sin,
-	PF_cos,
-	PF_sqrt,
-	PF_changepitch,
-	PF_TraceToss,
-	PF_etos,
-	PF_WaterMove,
-#else
-	PF_Fixme,
-	PF_Fixme,
-	PF_Fixme,
-	PF_Fixme,
-	PF_Fixme,
-	PF_Fixme,
-	PF_Fixme,
+	{  63, "changepitch", PF_changepitch },
+	{  64, "TraceToss", PF_TraceToss },
 #endif
-
-	SV_MoveToGoal,
-	PF_precache_file,
-	PF_makestatic,
-
-	PF_changelevel,
-	PF_Fixme,
-
-	PF_cvar_set,
-	PF_centerprint,
-
-	PF_ambientsound,
-
-	PF_precache_model,
-	PF_precache_sound,		// precache_sound2 is different only for qcc
-	PF_precache_file,
-
-	PF_setspawnparms
+	{  65, "etos", PF_etos },
+#ifdef QUAKE2
+	{  66, "WaterMove", PF_WaterMove },
+#endif
+	{  67, "movetogoal", SV_MoveToGoal },
+	{  68, "precache_file", PF_precache_file },
+	{  69, "makestatic", PF_makestatic },
+	{  70, "changelevel", PF_changelevel },
+//	{  71, "fixme", PF_Fixme },
+	{  72, "cvar_set", PF_cvar_set },
+	{  73, "centerprint", PF_centerprint },
+	{  74, "ambientsound", PF_ambientsound },
+	{  75, "precache_model2", PF_precache_model },
+	{  76, "precache_sound2", PF_precache_sound },	// precache_sound2 is different only for qcc
+	{  77, "precache_file2", PF_precache_file },
+	{  78, "setspawnparms", PF_setspawnparms },
+//	{  81, "stof", PF_stof },	// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes
+// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  start
+// not implemented yet
+/*
+	{  90, "tracebox", PF_tracebox },
+	{  91, "randomvec", PF_randomvec },
+	{  92, "getlight", PF_GetLight },	// not implemented yet
+	{  93, "cvar_create", PF_cvar_create },		// 2001-09-18 New BuiltIn Function: cvar_create() by Maddes
+	{  94, "fmin", PF_fmin },
+	{  95, "fmax", PF_fmax },
+	{  96, "fbound", PF_fbound },
+	{  97, "fpow", PF_fpow },
+	{  98, "findfloat", PF_FindFloat },
+	{ PR_DEFAULT_FUNCNO_EXTENSION_FIND, "extension_find", PF_extension_find },	// 2001-10-20 Extension System by Lord Havoc/Maddes
+	{   0, "registercvar", PF_cvar_create },	// 0 indicates that this entry is just for remapping (because of name change)
+	{   0, "checkextension", PF_extension_find },
+*/
+// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  end
+	{ PR_DEFAULT_FUNCNO_BUILTIN_FIND, "builtin_find", PF_builtin_find },	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
+	{ 101, "cmd_find", PF_cmd_find },		// 2001-09-16 New BuiltIn Function: cmd_find() by Maddes
+	{ 102, "cvar_find", PF_cvar_find },		// 2001-09-16 New BuiltIn Function: cvar_find() by Maddes
+	{ 103, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
+//	{ 105, "cvar_free", PF_cvar_free },		// 2001-09-18 New BuiltIn Function: cvar_free() by Maddes
+//	{ 106, "NVS_InitSVCMsg", PF_NVS_InitSVCMsg },	// 2000-05-02 NVS SVC by Maddes
+	{ 107, "WriteFloat", PF_WriteFloat },	// 2001-09-16 New BuiltIn Function: WriteFloat() by Maddes
+	{ 108, "etof", PF_etof },	// 2001-09-25 New BuiltIn Function: etof() by Maddes
+	{ 109, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
+// 2001-09-20 QuakeC file access by FrikaC/Maddes  start
+// not implemented yet
+/*
+	{ 110, "fopen", PF_fopen },
+	{ 111, "fclose", PF_fclose },
+	{ 112, "fgets", PF_fgets },
+	{ 113, "fputs", PF_fputs },
+	{   0, "open", PF_fopen },		// 0 indicates that this entry is just for remapping (because of name and number change)
+	{   0, "close", PF_fclose },
+	{   0, "read", PF_fgets },
+	{   0, "write", PF_fputs },
+*/
+// 2001-09-20 QuakeC file access by FrikaC/Maddes  end
+// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes  start
+// not implemented yet
+/*
+	{ 114, "strlen", PF_strlen },
+	{ 115, "strcat", PF_strcat },
+	{ 116, "substring", PF_substring },
+	{ 117, "stov", PF_stov },
+	{ 118, "strzone", PF_strzone },
+	{ 119, "strunzone", PF_strunzone },
+	{   0, "zone", PF_strzone },		// 0 indicates that this entry is just for remapping (because of name and number change)
+	{   0, "unzone", PF_strunzone },
+*/
+// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes  end
+// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  start
+// not implemented yet
+/*
+	{ 400, "copyentity", PF_... },
+	{ 401, "setcolor", PF_... },
+	{ 402, "findchain", PF_... },
+	{ 403, "findchainfloat", PF_... },
+	{ 404, "effect", PF_... },
+	{ 405, "te_blood", PF_... },
+	{ 406, "te_bloodshower", PF_... },
+	{ 407, "te_explosionrgb", PF_... },
+	{ 408, "te_particlecube", PF_... },
+	{ 409, "te_particlerain", PF_... },
+	{ 410, "te_particlesnow", PF_... },
+	{ 411, "te_spark", PF_... },
+	{ 412, "te_gunshotquad", PF_... },
+	{ 413, "te_spikequad", PF_... },
+	{ 414, "te_superspikequad", PF_... },
+	{ 415, "te_explosionquad", PF_... },
+	{ 416, "te_smallflash", PF_... },
+	{ 417, "te_customflash", PF_... },
+	{ 418, "te_gunshot", PF_... },
+	{ 419, "te_spike", PF_... },
+	{ 420, "te_superspike", PF_... },
+	{ 421, "te_explosion", PF_... },
+	{ 422, "te_tarexplosion", PF_... },
+	{ 423, "te_wizspike", PF_... },
+	{ 424, "te_knightspike", PF_... },
+	{ 425, "te_lavasplash", PF_... },
+	{ 426, "te_teleport", PF_... },
+	{ 427, "te_explosion2", PF_... },
+	{ 428, "te_lightning1", PF_... },
+	{ 429, "te_lightning2", PF_... },
+	{ 430, "te_lightning3", PF_... },
+	{ 431, "te_beam", PF_... },
+	{ 432, "vectorvectors", PF_... },
+*/
+// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  end
 };
 
-builtin_t *pr_builtins = pr_builtin;
-int pr_numbuiltins = sizeof(pr_builtin) / sizeof(pr_builtin[0]);
-
+int pr_ebfs_numbuiltins = sizeof(pr_ebfs_builtins)/sizeof(pr_ebfs_builtins[0]);
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end

@@ -50,6 +50,11 @@ cvar_t	saved2 = {"saved2", "0", true};
 cvar_t	saved3 = {"saved3", "0", true};
 cvar_t	saved4 = {"saved4", "0", true};
 
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
+cvar_t	pr_builtin_find = {"pr_builtin_find", "0", false, false};
+cvar_t	pr_builtin_remap = {"pr_builtin_remap", "0", false, false};
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
+
 #define	MAX_FIELD_LEN	64
 #define GEFV_CACHESIZE	2
 
@@ -985,6 +990,12 @@ void PR_LoadProgs (void)
 {
 	int		i;
 
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  start
+	int 	j;
+	int		funcno;
+	char	*funcname;
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  end
+
 // flush the non-C variable lookup cache
 	for (i=0 ; i<GEFV_CACHESIZE ; i++)
 		gefvCache[i].field[0] = 0;
@@ -1028,15 +1039,141 @@ void PR_LoadProgs (void)
 		pr_statements[i].c = LittleShort(pr_statements[i].c);
 	}
 
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  start
+	// initialize function numbers for PROGS.DAT
+	pr_numbuiltins = 0;
+	pr_builtins = NULL;
+	if (pr_builtin_remap.value)
+	{
+		// remove all previous assigned function numbers
+		for ( j=1 ; j < pr_ebfs_numbuiltins; j++)
+		{
+			pr_ebfs_builtins[j].funcno = 0;
+		}
+	}
+	else
+	{
+		// use default function numbers
+		for ( j=1 ; j < pr_ebfs_numbuiltins; j++)
+		{
+			pr_ebfs_builtins[j].funcno = pr_ebfs_builtins[j].default_funcno;
+			// determine highest builtin number (when NOT remapped)
+			if (pr_ebfs_builtins[j].funcno > pr_numbuiltins)
+			{
+				pr_numbuiltins = pr_ebfs_builtins[j].funcno;
+			}
+		}
+	}
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  end
+
 	for (i=0 ; i<progs->numfunctions; i++)
 	{
-	pr_functions[i].first_statement = LittleLong (pr_functions[i].first_statement);
-	pr_functions[i].parm_start = LittleLong (pr_functions[i].parm_start);
-	pr_functions[i].s_name = LittleLong (pr_functions[i].s_name);
-	pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
-	pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
-	pr_functions[i].locals = LittleLong (pr_functions[i].locals);
-	}	
+		pr_functions[i].first_statement = LittleLong (pr_functions[i].first_statement);
+		pr_functions[i].parm_start = LittleLong (pr_functions[i].parm_start);
+		pr_functions[i].s_name = LittleLong (pr_functions[i].s_name);
+		pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
+		pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
+		pr_functions[i].locals = LittleLong (pr_functions[i].locals);
+
+		// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  start
+		if (pr_builtin_remap.value)
+		{
+			if (pr_functions[i].first_statement < 0)	// builtin function
+			{
+				funcno = -pr_functions[i].first_statement;
+				funcname = pr_strings + pr_functions[i].s_name;
+
+				// search function name
+				for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
+				{
+					if (!(Q_strcasecmp(funcname, pr_ebfs_builtins[j].funcname)))
+					{
+						break;	// found
+					}
+				}
+
+				if (j < pr_ebfs_numbuiltins)	// found
+				{
+					pr_ebfs_builtins[j].funcno = funcno;
+				}
+				else
+				{
+					Con_DPrintf("Can not assign builtin number #%i to %s - function unknown\n", funcno, funcname);
+				}
+			}
+		}
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  end
+	}
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  start
+	if (pr_builtin_remap.value)
+	{
+		// check for unassigned functions and try to assign their default function number
+		for ( i=1 ; i < pr_ebfs_numbuiltins; i++)
+		{
+			if ((!pr_ebfs_builtins[i].funcno) && (pr_ebfs_builtins[i].default_funcno))	// unassigned and has a default number
+			{
+				// check if default number is already assigned to another function
+				for ( j=1 ; j < pr_ebfs_numbuiltins; j++)
+				{
+					if (pr_ebfs_builtins[j].funcno == pr_ebfs_builtins[i].default_funcno)
+					{
+						break;	// number already assigned to another builtin function
+					}
+				}
+
+				if (j < pr_ebfs_numbuiltins)	// already assigned
+				{
+					Con_DPrintf("Can not assign default builtin number #%i to %s - number is already assigned to %s\n",
+					pr_ebfs_builtins[i].default_funcno, pr_ebfs_builtins[i].funcname, pr_ebfs_builtins[j].funcname);
+				}
+				else
+				{
+					pr_ebfs_builtins[i].funcno = pr_ebfs_builtins[i].default_funcno;
+				}
+			}
+			// determine highest builtin number (when remapped)
+			if (pr_ebfs_builtins[i].funcno > pr_numbuiltins)
+			{
+				pr_numbuiltins = pr_ebfs_builtins[i].funcno;
+			}
+		}
+	}
+	pr_numbuiltins++;
+
+	// allocate and initialize builtin list for execution time
+	pr_builtins = Hunk_AllocName (pr_numbuiltins*sizeof(builtin_t), "builtins");
+	for ( i=0 ; i < pr_numbuiltins ; i++)
+	{
+		pr_builtins[i] = pr_ebfs_builtins[0].function;
+	}
+
+	// create builtin list for execution time and set cvars accordingly
+	Cvar_Set("pr_builtin_find", "0");
+//	Cvar_Set("pr_checkextension", "0");	// 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)
+
+	for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
+	{
+		if (pr_ebfs_builtins[j].funcno)	// only put assigned functions into builtin list
+		{
+			pr_builtins[pr_ebfs_builtins[j].funcno] = pr_ebfs_builtins[j].function;
+		}
+
+		if (pr_ebfs_builtins[j].default_funcno == PR_DEFAULT_FUNCNO_BUILTIN_FIND)
+		{
+			Cvar_SetValue("pr_builtin_find", pr_ebfs_builtins[j].funcno);
+		}
+
+// 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)  start
+// not implemented yet
+/*
+		if (pr_ebfs_builtins[j].default_funcno == PR_DEFAULT_FUNCNO_EXTENSION_FIND)
+		{
+			Cvar_SetValue("pr_checkextension", pr_ebfs_builtins[j].funcno);
+		}
+*/
+// 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)  end
+	}
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  end
 
 	for (i=0 ; i<progs->numglobaldefs ; i++)
 	{
@@ -1058,6 +1195,51 @@ void PR_LoadProgs (void)
 		((int *)pr_globals)[i] = LittleLong (((int *)pr_globals)[i]);
 }
 
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
+/*
+=============
+PR_BuiltInList_f
+For debugging, prints all builtin functions with assigned and default number
+=============
+*/
+
+void PR_BuiltInList_f (void)
+{
+	int		i;
+	char	*partial;
+	int		len;
+	int		count;
+
+	if (Cmd_Argc() > 1)
+	{
+		partial = Cmd_Argv (1);
+		len = strlen(partial);
+	}
+	else
+	{
+		partial = NULL;
+		len = 0;
+	}
+
+	count=0;
+	for (i=1; i < pr_ebfs_numbuiltins; i++)
+	{
+		if (partial && Q_strncasecmp (partial, pr_ebfs_builtins[i].funcname, len))
+		{
+			continue;
+		}
+		count++;
+		Con_Printf ("%i(%i): %s\n", pr_ebfs_builtins[i].funcno, pr_ebfs_builtins[i].default_funcno, pr_ebfs_builtins[i].funcname);
+	}
+
+	Con_Printf ("------------\n");
+	if (partial)
+	{
+		Con_Printf ("%i beginning with \"%s\" out of ", count, partial);
+	}
+	Con_Printf ("%i builtin functions\n", i);
+}
+// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
 
 /*
 ===============
@@ -1070,6 +1252,7 @@ void PR_Init (void)
 	Cmd_AddCommand ("edicts", ED_PrintEdicts);
 	Cmd_AddCommand ("edictcount", ED_Count);
 	Cmd_AddCommand ("profile", PR_Profile_f);
+	Cmd_AddCommand ("builtinlist", PR_BuiltInList_f);	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
 	Cvar_RegisterVariable (&nomonsters);
 	Cvar_RegisterVariable (&gamecfg);
 	Cvar_RegisterVariable (&scratch1);
@@ -1081,6 +1264,10 @@ void PR_Init (void)
 	Cvar_RegisterVariable (&saved2);
 	Cvar_RegisterVariable (&saved3);
 	Cvar_RegisterVariable (&saved4);
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
+	Cvar_RegisterVariable (&pr_builtin_find);
+	Cvar_RegisterVariable (&pr_builtin_remap);
+	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
 }
 
 
