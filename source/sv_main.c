@@ -461,11 +461,9 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 	ent = NEXT_EDICT(sv.edicts);
 	for (e=1 ; e<sv.num_edicts ; e++, ent = NEXT_EDICT(ent))
 	{
-#ifdef QUAKE2
 		// don't send if flagged for NODRAW and there are no lighting effects
 		if (ent->v.effects == EF_NODRAW)
 			continue;
-#endif
 
 // ignore if not touching a PV leaf
 		if (ent != clent)	// clent is ALWAYS sent
