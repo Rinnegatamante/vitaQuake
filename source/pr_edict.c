@@ -49,6 +49,7 @@ cvar_t	saved1 = {"saved1", "0", true};
 cvar_t	saved2 = {"saved2", "0", true};
 cvar_t	saved3 = {"saved3", "0", true};
 cvar_t	saved4 = {"saved4", "0", true};
+cvar_t	pr_checkextension = {"pr_checkextension", "0", false, false};	// 2001-10-20 Extension System by LordHavoc (DP compatibility)
 
 // 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
 cvar_t	pr_builtin_find = {"pr_builtin_find", "0", false, false};
@@ -1149,7 +1150,7 @@ void PR_LoadProgs (void)
 
 	// create builtin list for execution time and set cvars accordingly
 	Cvar_Set("pr_builtin_find", "0");
-//	Cvar_Set("pr_checkextension", "0");	// 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)
+	Cvar_Set("pr_checkextension", "0");	// 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)
 
 	for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
 	{
@@ -1164,13 +1165,10 @@ void PR_LoadProgs (void)
 		}
 
 // 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)  start
-// not implemented yet
-/*
 		if (pr_ebfs_builtins[j].default_funcno == PR_DEFAULT_FUNCNO_EXTENSION_FIND)
 		{
 			Cvar_SetValue("pr_checkextension", pr_ebfs_builtins[j].funcno);
 		}
-*/
 // 2001-10-20 Extension System by Lord Havoc/Maddes (DP compatibility)  end
 	}
 // 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes/Firestorm  end
@@ -1194,6 +1192,42 @@ void PR_LoadProgs (void)
 	for (i=0 ; i<progs->numglobals ; i++)
 		((int *)pr_globals)[i] = LittleLong (((int *)pr_globals)[i]);
 }
+
+// 2001-10-20 Extension System by LordHavoc  start
+void PR_Extension_List_f (void)
+{
+	int		i;
+	char	*partial;
+	int		len;
+	int		count;
+	
+	if (Cmd_Argc() > 1)
+	{
+		partial = Cmd_Argv (1);
+		len = strlen(partial);
+	}
+	else
+	{
+		partial = NULL;
+		len = 0;
+	}
+	count=0;
+	for (i=0; i < pr_numextensions; i++)
+	{
+		if (partial && Q_strncasecmp (partial, pr_extensions[i], len))
+		{
+			continue;
+		}
+		Con_Printf ("%s\n", pr_extensions[i]);
+	}
+	Con_Printf ("------------\n");
+	if (partial)
+	{
+		Con_Printf ("%i beginning with \"%s\" out of ", count, partial);
+	}
+	Con_Printf ("%i extensions\n", i);
+}
+// 2001-10-20 Extension System by LordHavoc  end
 
 // 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  start
 /*
@@ -1253,6 +1287,7 @@ void PR_Init (void)
 	Cmd_AddCommand ("edictcount", ED_Count);
 	Cmd_AddCommand ("profile", PR_Profile_f);
 	Cmd_AddCommand ("builtinlist", PR_BuiltInList_f);	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
+	Cmd_AddCommand ("extensionlist", PR_Extension_List_f);	// 2001-10-20 Extension System by LordHavoc
 	Cvar_RegisterVariable (&nomonsters);
 	Cvar_RegisterVariable (&gamecfg);
 	Cvar_RegisterVariable (&scratch1);
@@ -1268,6 +1303,7 @@ void PR_Init (void)
 	Cvar_RegisterVariable (&pr_builtin_find);
 	Cvar_RegisterVariable (&pr_builtin_remap);
 	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
+	Cvar_RegisterVariable (&pr_checkextension);	// 2001-10-20 Extension System by LordHavoc (DP compatibility)
 }
 
 

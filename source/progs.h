@@ -137,6 +137,11 @@ extern cvar_t	pr_builtin_remap;
 #define PR_DEFAULT_FUNCNO_EXTENSION_FIND	99	// 2001-10-20 Extension System by Lord Havoc/Maddes
 // 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes  end
 
+// 2001-10-20 Extension System by LordHavoc  start
+extern char *pr_extensions[];
+extern int	pr_numextensions;
+// 2001-10-20 Extension System by LordHavoc  end
+
 extern int		pr_argc;
 
 extern	bool	pr_trace;
