@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include <assert.h>
+#include <vitasdk.h>
 
 CVAR (registered, 0, CVAR_ROM)
 CVAR (platform, 0, CVAR_ROM)
@@ -1542,7 +1543,7 @@ void COM_AddGameDirectory(char *dir)
 	searchpath_t    *search;
 	pack_t                  *pak;
 	char                    pakfile[MAX_OSPATH];
-
+ 
 	strcpy(com_gamedir, dir);
 
 	// add the directory to the search path
@@ -1550,19 +1551,25 @@ void COM_AddGameDirectory(char *dir)
 	strcpy(search->filename, dir);
 	search->next = com_searchpaths;
 	com_searchpaths = search;
-
-	// add any pak files in the format pak0.pak pak1.pak, ...
-	for (i = 0; ; i++)
-	{
-		snprintf(pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
-		pak = COM_LoadPackFile(pakfile);
-		if (!pak)
-			break;
-		search = Z_Malloc(sizeof(searchpath_t));
-		search->pack = pak;
-		search->next = com_searchpaths;
-		com_searchpaths = search;
+	
+	SceUID d = sceIoDopen(dir);
+	if (d >= 0) {
+		SceIoDirent file;
+		while (sceIoDread(d, &file) > 0) {
+			if (strstr(file.d_name, ".pak") != 0) {
+				sprintf(pakfile,"%s/%s", dir, file.d_name);
+				pak = COM_LoadPackFile (pakfile);
+				if (!pak)
+					continue;
+				search = Z_Malloc (sizeof(searchpath_t));
+				search->pack = pak;
+				search->next = com_searchpaths;
+				com_searchpaths = search;
+			}
+		}
+		sceIoDclose(d);
 	}
+
 }
 
 /*
