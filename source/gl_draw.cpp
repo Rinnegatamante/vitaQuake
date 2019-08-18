@@ -29,10 +29,30 @@ extern "C"{
 
 extern unsigned char d_15to8table[65536];
 
+int			cs_texture;
+
+static byte cs_data[64]  = {
+	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff,
+	0xfe, 0xff, 0xfe, 0xff, 0xfe, 0xff, 0xfe, 0xff,
+	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
+
 CVAR	(gl_nobind, 0, CVAR_NONE)
 CVAR	(gl_max_size, 4096, CVAR_NONE)
 CVAR	(gl_picmip, 0, CVAR_NONE)
 CVAR	(gl_bilinear, 1, CVAR_ARCHIVE)
+
+extern cvar_t crosshaircolor_r;
+extern cvar_t crosshaircolor_g;
+extern cvar_t crosshaircolor_b;
+extern cvar_t cl_crossx;
+extern cvar_t cl_crossy;
+extern cvar_t crosshair;
 
 byte		*draw_chars;				// 8*8 graphic characters
 qpic_t		*draw_disc;
@@ -667,6 +687,16 @@ void Draw_Init (void)
 
 	// now turn them into textures
 	char_texture = GL_LoadTexture ("charset", 128, 128, draw_chars, false, true);
+	
+	// custom crosshair support
+	char crosshair_file[1024];
+	sprintf(crosshair_file, "%s/xhair.bin", com_gamedir);
+	SceUID fd = sceIoOpen(crosshair_file, SCE_O_RDONLY, 0777);
+	if (fd >= 0) {
+		sceIoRead(fd, cs_data, 64);
+		sceIoClose(fd);
+	}
+	cs_texture = GL_LoadTexture ("crosshair", 8, 8, cs_data, false, true);
 
 	start = Hunk_LowMark();
 
@@ -801,6 +831,25 @@ of the code.
 */
 void Draw_DebugChar (signed char num)
 {
+}
+
+void Draw_Crosshair(void)
+{
+	int x, y;
+	extern vrect_t scr_vrect;
+
+	if (crosshair.value == 2) {
+		x = scr_vrect.x + scr_vrect.width/2 + 1 + cl_crossx.value;
+		y = scr_vrect.y + scr_vrect.height/2  + cl_crossy.value;
+		
+		GL_EnableState(GL_MODULATE);
+		GL_Bind (cs_texture);
+		GL_Color(crosshaircolor_r.value, crosshaircolor_g.value, crosshaircolor_b.value, 1);
+		DrawQuad(x, y, 12, 12, 0, 0, 1, 1);
+		GL_EnableState(GL_REPLACE);
+	}
+	else if (crosshair.value)
+		Draw_Character (scr_vrect.x + scr_vrect.width/2 + cl_crossx.value, scr_vrect.y + scr_vrect.height/2 + cl_crossy.value, '+');
 }
 
 /*

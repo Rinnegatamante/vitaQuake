@@ -1236,7 +1236,9 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
 		break;
 	case 18:	// crosshair
-		Cvar_SetValue ("crosshair", !crosshair.value);
+		crosshair.value = crosshair.value + 1;
+		if (crosshair.value > 2) crosshair.value = 0;
+		Cvar_SetValue ("crosshair", crosshair.value);
 		break;
 	case 19:	// field of view
 		fov.value += dir * 5;
@@ -1393,7 +1395,9 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 168, r_drawviewmodel.value);
 
 	M_Print (16, 176, "        Show Crosshair");
-	M_DrawCheckbox (220, 176, crosshair.value);
+	if (crosshair.value == 0) M_Print (220, 176, "Off");
+	else if (crosshair.value == 1) M_Print (220, 176, "Original");
+	else M_Print (220, 176, "Custom");
 
 	M_Print (16, 184, "         Field of View");
 	r = (fov.value - 75) / 55;

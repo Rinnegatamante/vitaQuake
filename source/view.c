@@ -59,6 +59,9 @@ CVAR(v_ipitch_level, 0.3, CVAR_NONE)
 CVAR(v_idlescale, 0, CVAR_NONE)
 
 CVAR(crosshair, 1, CVAR_ARCHIVE)
+CVAR(crosshaircolor_r, 255, CVAR_ARCHIVE)
+CVAR(crosshaircolor_g, 255, CVAR_ARCHIVE)
+CVAR(crosshaircolor_b, 0, CVAR_ARCHIVE)
 CVAR(cl_crossx, 0, CVAR_NONE)
 CVAR(cl_crossy, 0, CVAR_NONE)
 
@@ -1017,6 +1020,9 @@ void V_Init (void)
 
 	Cvar_RegisterVariable (&v_idlescale);
 	Cvar_RegisterVariable (&crosshair);
+	Cvar_RegisterVariable (&crosshaircolor_r);
+	Cvar_RegisterVariable (&crosshaircolor_g);
+	Cvar_RegisterVariable (&crosshaircolor_b);
 	Cvar_RegisterVariable (&cl_crossx);
 	Cvar_RegisterVariable (&cl_crossy);
 	Cvar_RegisterVariable (&gl_cshiftpercent);
