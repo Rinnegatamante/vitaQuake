@@ -90,8 +90,10 @@ void Z_Free(void *ptr)
 		Sys_Error("Z_Free: NULL pointer");
 
 	block = (memblock_t *)((byte *)ptr - sizeof(memblock_t));
-	if (block->id != ZONEID)
-		Sys_Error("Z_Free: freed a pointer without ZONEID");
+	if (block->id != ZONEID){
+		Con_DPrintf("Z_Free: freed a pointer without ZONEID\n");
+		return;
+	}
 	if (block->tag == 0)
 		Sys_Error("Z_Free: freed a freed pointer");
 
