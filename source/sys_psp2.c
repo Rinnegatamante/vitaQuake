@@ -530,17 +530,62 @@ int main(int argc, char **argv)
 	SceAppUtilAppEventParam eventParam;
 	memset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
 	sceAppUtilReceiveAppEvent(&eventParam);
-	if (eventParam.type == 0x05){
-		char* int_argv[3];
+	if (eventParam.type == 0x05) {
+		char *int_argv[16];
 		int_argv[0] = int_argv[2] = "";
 		char buffer[2048];
 		memset(buffer, 0, 2048);
 		sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
-		int_argv[1] = buffer;
-		COM_InitArgv(3, int_argv);
-		sprintf(mp_path, "%s", &buffer[1]);
-		mod_path = mp_path;
-	}else COM_InitArgv(argc, argv);
+		if (strstr(buffer, "custom") != NULL) {
+			memset(input_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1) << 1);
+			memset(initial_text, 0, (SCE_IME_DIALOG_MAX_TEXT_LENGTH) << 1);
+			sprintf(title_keyboard, "Insert args list");
+			ascii2utf(title, title_keyboard);
+			SceImeDialogParam param;
+			sceImeDialogParamInit(&param);
+			param.supportedLanguages = 0x0001FFFF;
+			param.languagesForced = SCE_TRUE;
+			param.type = SCE_IME_TYPE_BASIC_LATIN;
+			param.title = title;
+			param.maxTextLength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+			param.initialText = initial_text;
+			param.inputTextBuffer = input_text;
+			sceImeDialogInit(&param);
+			while (sceImeDialogGetStatus() != 2) {
+				vglStartRendering();
+				vglStopRenderingInit();
+				vglUpdateCommonDialog();
+				vglStopRenderingTerm();
+			}
+			SceCommonDialogStatus status = sceImeDialogGetStatus();
+			SceImeDialogResult result;
+			memset(&result, 0, sizeof(SceImeDialogResult));
+			sceImeDialogGetResult(&result);
+			if (result.button == SCE_IME_DIALOG_BUTTON_ENTER)
+			{
+				utf2ascii(title_keyboard, input_text);
+				if (strlen(title_keyboard) > 1) {
+					int int_argc = 2;
+					int_argv[1] = title_keyboard;
+					char *ptr = title_keyboard;
+					for (;;) {
+						char *space = strstr(ptr, " ");
+						if (space == NULL) break;
+						*space = 0;
+						int_argv[int_argc++] = ptr = space + 1;
+					}
+					int_argv[int_argc++] = "";
+					COM_InitArgv(int_argc, int_argv);
+				} else COM_InitArgv(argc, argv);
+			} else COM_InitArgv(argc, argv);
+			sceImeDialogTerm();
+		} else {
+			int_argv[1] = buffer;
+			COM_InitArgv(3, int_argv);
+			sprintf(mp_path, "%s", &buffer[1]);
+			mod_path = mp_path;
+		}
+	} else COM_InitArgv(argc, argv);
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
@@ -561,11 +606,6 @@ int main(int argc, char **argv)
 
 	IN_ResetInputs();
 	Cbuf_AddText("exec config.cfg\n");
-
-	/*if ( sceKernelGetModelForCDialog() == PLATFORM_PSVITA) // Ch0wW: SOMEONE HEEEELP ME :c
-	{
-	Cvar_ForceSet("platform", "2");
-	}*/
 
 	vglWaitVblankStart(vid_vsync.value);
 	int old_vsync = vid_vsync.value;

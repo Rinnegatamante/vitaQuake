@@ -22,5 +22,14 @@
 			<image>rogue.png</image>
 		</liveitem>
 	</frame>
+	
+	<frame id="frame3">
+		<liveitem>
+			<target>psla:-custom</target>
+			<text valign="bottom" align="left" text-align="left" word-wrap="off" ellipsis="on">
+				<str size="20" color="#ffffff" shadow="on">Click here to launch with custom args</str>
+			</text>
+		</liveitem>
+	</frame>	
 
 </livearea>
