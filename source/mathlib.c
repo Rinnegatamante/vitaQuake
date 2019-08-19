@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // mathlib.c -- math primitives
 
 #include <math.h>
+#include <math_neon.h>
 #include "quakedef.h"
 
 void Sys_Error(char *error, ...);
@@ -63,10 +64,11 @@ void PerpendicularVector(vec3_t dst, const vec3_t src)
 	*/
 	for (pos = 0, i = 0; i < 3; i++)
 	{
-		if (fabs(src[i]) < minelem)
+		float absrc = fabsf(src[i]);
+		if (absrc < minelem)
 		{
 			pos = i;
-			minelem = fabs(src[i]);
+			minelem = absrc;
 		}
 	}
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
@@ -123,13 +125,13 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 
 	memset(zrot, 0, sizeof(zrot));
 	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
-
-	float sz = sinf(DEG2RAD(degrees));
-	float cz = cosf(DEG2RAD(degrees));
-	zrot[0][0] = cz;
-	zrot[0][1] = sz;
-	zrot[1][0] = -sz;
-	zrot[1][1] = cz;
+	
+	float cs[2];
+	sincosf_c(DEG2RAD(degrees), cs);
+	zrot[0][0] = cs[1];
+	zrot[0][1] = cs[0];
+	zrot[1][0] = -cs[0];
+	zrot[1][1] = cs[1];
 
 	R_ConcatRotations(m, zrot, tmpmat);
 	R_ConcatRotations(tmpmat, im, rot);
@@ -328,7 +330,7 @@ vec_t Length(vec3_t v)
 	length = 0;
 	for (i = 0; i< 3; i++)
 		length += v[i] * v[i];
-	length = sqrt(length);		// FIXME
+	length = sqrtf(length);		// FIXME
 
 	return length;
 }
@@ -338,7 +340,7 @@ float VectorLength(vec3_t v)
 	float	length;
 
 	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-	return sqrt(length);
+	return sqrtf(length);
 }
 
 
@@ -358,7 +360,6 @@ float VectorNormalize(vec3_t v)
 	}
 
 	return length;
-
 }
 
 void VectorInverse(vec3_t v)

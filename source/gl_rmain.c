@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 
 #include "quakedef.h"
+#include <math_neon.h>
 
 entity_t	r_worldentity;
 
@@ -1120,9 +1121,11 @@ void R_DrawAliasModel (entity_t *e)
 	VectorScale(lightcolor, 1.0f / 200.0f, lightcolor);
 	// LordHavoc: .lit support end
 	
+	float cs[2];
 	an = e->angles[1]/180*M_PI;
-	shadevector[0] = cosf(-an);
-	shadevector[1] = sinf(-an);
+	sincosf_neon(-an, cs);
+	shadevector[0] = cs[1];
+	shadevector[1] = cs[0];
 	shadevector[2] = 1;
 	VectorNormalize (shadevector);
 

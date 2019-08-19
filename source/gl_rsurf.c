@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_surf.c: surface-related refresh code
 
 #include "quakedef.h"
+#include <math_neon.h>
 
 int			skytexturenum;
 
@@ -315,8 +316,9 @@ void DrawGLWaterPoly (glpoly_t *p)
 	float* pnt = gTexCoordBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		float sinv2 = sinf_neon(v[2]*0.05f+realtime);
+		gVertexBuffer[0] = v[0] + 8*sinf_neon(v[1]*0.05f+realtime)*sinv2;
+		gVertexBuffer[1] = v[1] + 8*sinf_neon(v[0]*0.05f+realtime)*sinv2;
 		gVertexBuffer[2] = v[2];
 		gTexCoordBuffer[0] = v[3];
 		gTexCoordBuffer[1] = v[4];
@@ -342,8 +344,9 @@ void DrawGLWaterPolyLightmap (glpoly_t *p)
 	float* pnt = gTexCoordBuffer;
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		float sinv2 = sinf_neon(v[2]*0.05f+realtime);
+		gVertexBuffer[0] = v[0] + 8*sinf_neon(v[1]*0.05f+realtime)*sinv2;
+		gVertexBuffer[1] = v[1] + 8*sinf_neon(v[0]*0.05f+realtime)*sinv2;
 		gVertexBuffer[2] = v[2];
 		gTexCoordBuffer[0] = v[5];
 		gTexCoordBuffer[1] = v[6];
@@ -373,8 +376,9 @@ void DrawGLWaterPolyWithLightmap(glpoly_t *p, int t1, int t2)
 	
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
 	{
-		gVertexBuffer[0] = v[0] + 8*sinf(v[1]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
-		gVertexBuffer[1] = v[1] + 8*sinf(v[0]*0.05f+realtime)*sinf(v[2]*0.05f+realtime);
+		float sinv2 = sinf_neon(v[2]*0.05f+realtime);
+		gVertexBuffer[0] = v[0] + 8*sinf_neon(v[1]*0.05f+realtime)*sinv2;
+		gVertexBuffer[1] = v[1] + 8*sinf_neon(v[0]*0.05f+realtime)*sinv2;
 		gVertexBuffer[2] = v[2];
 		gTexCoordBuffer[0] = v[3];
 		gTexCoordBuffer[1] = v[4];
