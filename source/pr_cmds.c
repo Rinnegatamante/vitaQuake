@@ -29,6 +29,7 @@ char	pr_varstring_temp[PR_MAX_TEMPSTRING];	// 2001-10-25 Enhanced temp string ha
 char *pr_extensions[] =
 {
 // add the extension names here, syntax: "extensionname",
+	"DP_SV_MODELFLAGS_AS_EFFECTS  "
 };
 
 int pr_numextensions = sizeof(pr_extensions)/sizeof(pr_extensions[0]);

@@ -83,6 +83,7 @@ typedef struct entity_s
 	vec3_t                  angles1;
 	vec3_t                  angles2;
 	
+	int                     modelflags;
 } entity_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!

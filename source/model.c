@@ -1444,7 +1444,8 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer)
 		sizeof(pheader->frames[0]));
 
 	//	mod->cache.data = pheader;
-	mod->flags = LittleLong(pinmodel->flags);
+	i = LittleLong (pinmodel->flags);
+	mod->flags = ((i & 255) << 24) | (i & 0x00FFFF00);
 
 	//
 	// endian-adjust and copy the data, starting with the alias model header

@@ -452,6 +452,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 	vec3_t	org;
 	float	miss;
 	edict_t	*ent;
+	eval_t	*val;
 
 // find the client's PVS
 	VectorAdd (clent->v.origin, clent->v.view_ofs, org);
@@ -518,6 +519,13 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 			
 		if (ent->baseline.frame != ent->v.frame)
 			bits |= U_FRAME;
+		
+		if ((val = GetEdictFieldValue(ent, "modelflags")))
+		{
+			i= (unsigned int)ent->v.effects;
+			i |= ((unsigned int)val->_float & 0xff) << 24;
+			ent->v.effects = i;
+		}
 		
 		if (ent->baseline.effects != ent->v.effects)
 			bits |= U_EFFECTS;

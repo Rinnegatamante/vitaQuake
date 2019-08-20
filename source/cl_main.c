@@ -531,9 +531,12 @@ void CL_RelinkEntities (void)
 			}
 
 		}
-
+		
+		if (!(ent->effects & 0xFF800000))  //qbism based on DP model flags
+			ent->effects |= ent->model->flags;
+		
 // rotate binary objects locally
-		if (ent->model->flags & EF_ROTATE)
+		if (ent->effects & EF_ROTATE)
 		{
 			ent->angles[1] = bobjrotate;
 			// MUFF - makes them bob as well as rotate ;)
@@ -593,15 +596,15 @@ void CL_RelinkEntities (void)
 		}
 #endif
 
-		if (ent->model->flags & EF_GIB)
+		if (ent->effects & EF_GIB)
 			R_RocketTrail (oldorg, ent->origin, 2);
-		else if (ent->model->flags & EF_ZOMGIB)
+		else if (ent->effects & EF_ZOMGIB)
 			R_RocketTrail (oldorg, ent->origin, 4);
-		else if (ent->model->flags & EF_TRACER)
+		else if (ent->effects & EF_TRACER)
 			R_RocketTrail (oldorg, ent->origin, 3);
-		else if (ent->model->flags & EF_TRACER2)
+		else if (ent->effects & EF_TRACER2)
 			R_RocketTrail (oldorg, ent->origin, 5);
-		else if (ent->model->flags & EF_ROCKET)
+		else if (ent->effects & EF_ROCKET)
 		{
 			R_RocketTrail (oldorg, ent->origin, 0);
 			dl = CL_AllocDlight (i);
@@ -609,9 +612,9 @@ void CL_RelinkEntities (void)
 			dl->radius = 200;
 			dl->die = cl.time + 0.01;
 		}
-		else if (ent->model->flags & EF_GRENADE)
+		else if (ent->effects & EF_GRENADE)
 			R_RocketTrail (oldorg, ent->origin, 1);
-		else if (ent->model->flags & EF_TRACER3)
+		else if (ent->effects & EF_TRACER3)
 			R_RocketTrail (oldorg, ent->origin, 6);
 
 		ent->forcelink = false;

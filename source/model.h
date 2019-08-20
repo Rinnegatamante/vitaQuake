@@ -288,14 +288,14 @@ typedef struct {
 
 typedef enum {mod_brush, mod_sprite, mod_alias} modtype_t;
 
-#define	EF_ROCKET	1			// leave a trail
-#define	EF_GRENADE	2			// leave a trail
-#define	EF_GIB		4			// leave a trail
-#define	EF_ROTATE	8			// rotate (bonus items)
-#define	EF_TRACER	16			// green split trail
-#define	EF_ZOMGIB	32			// small blood trail
-#define	EF_TRACER2	64			// orange split trail + rotate
-#define	EF_TRACER3	128			// purple trail
+#define	MF_ROCKET	1			// leave a trail
+#define	MF_GRENADE	2			// leave a trail
+#define	MF_GIB		4			// leave a trail
+#define	MF_ROTATE	8			// rotate (bonus items)
+#define	MF_TRACER	16			// green split trail
+#define	MF_ZOMGIB	32			// small blood trail
+#define	MF_TRACER2	64			// orange split trail + rotate
+#define	MF_TRACER3	128			// purple trail
 
 typedef struct model_s
 {

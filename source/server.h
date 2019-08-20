@@ -177,6 +177,16 @@ typedef struct client_s
 #define EF_NODRAW				128
 #endif
 
+#define EF_NOMODELFLAGS  0x800000   // indicates the model's .effects should be ignored (allows overriding them)
+#define EF_ROCKET       0x1000000   // leave a trail
+#define EF_GRENADE      0x2000000   // leave a trail
+#define EF_GIB          0x4000000   // leave a trail
+#define EF_ROTATE       0x8000000   // rotate (bonus items)
+#define EF_TRACER      0x10000000   // green split trail
+#define EF_ZOMGIB      0x20000000   // small blood trail
+#define EF_TRACER2     0x40000000   // orange split trail + rotate
+#define EF_TRACER3     0x80000000   // purple trail
+
 #define	SPAWNFLAG_NOT_EASY			256
 #define	SPAWNFLAG_NOT_MEDIUM		512
 #define	SPAWNFLAG_NOT_HARD			1024
