@@ -70,7 +70,7 @@ typedef struct
 byte		conback_buffer[sizeof(qpic_t) + sizeof(glpic_t)];
 qpic_t	*conback = (qpic_t *)&conback_buffer;
 
-int		gl_lightmap_format = GL_LUMINANCE;
+int		gl_lightmap_format = GL_RGBA;
 int		gl_solid_format = 3;
 int		gl_alpha_format = 4;
 
@@ -92,6 +92,10 @@ typedef struct
 gltexture_t	gltextures[MAX_GLTEXTURES];
 int numgltextures = 0;
 
+// FIXME: It seems the texture manager fails with Half Life BSPs
+// Turned off for the moment since not strictly required for the engine to correctly work
+// Rinnegatamante - 20/08/19
+#ifndef DISABLE_TEXTURE_CACHE
 /*
  * Texture Manager - derived from glesquake
  */
@@ -106,6 +110,7 @@ private:
         entry* next;
         entry* prev;
         GLuint real_texnum;    // UNUSED, PAGED_OUT
+		bool is32;
         byte* pData; // 0 ==> not created by us.
         size_t size;
         bool alpha;
@@ -194,9 +199,13 @@ public:
             ensure(e->size);
 
             glGenTextures( 1, &e->real_texnum);
-
+			
             glBindTexture(GL_TEXTURE_2D, e->real_texnum);
-            GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
+			if (e->is32)
+				GL_Upload32 ((unsigned*)e->pData, e->width, e->height, e->mipmap,
+                    e->alpha);
+			else
+				GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
                     e->alpha);
         }
         else {
@@ -208,8 +217,9 @@ public:
     // it again later.
 
     void create(int width, int height, byte* data, bool mipmap,
-            bool alpha) {
+            bool alpha, bool is32) {
         int size = width * height;
+		if (is32) size *= 4;
         if (size + mLength > mCapacity) {
             Sys_Error("Ran out of virtual texture space. %d", size);
         };
@@ -228,6 +238,7 @@ public:
         e->width = width;
         e->height = height;
         e->mipmap = mipmap;
+		e->is32 = is32;
         e->real_texnum = PAGED_OUT;
         mLength += size;
 
@@ -241,8 +252,12 @@ public:
             if (! (e->real_texnum == UNUSED || e->real_texnum == PAGED_OUT)) {
                 glBindTexture(GL_TEXTURE_2D, e->real_texnum);
                 if (e->pData) {
-                    GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
-                        e->alpha);
+					if (e->is32)
+						GL_Upload32 ((unsigned*)e->pData, e->width, e->height, e->mipmap,
+							e->alpha);
+					else
+						GL_Upload8 (e->pData, e->width, e->height, e->mipmap,
+							e->alpha);
                 }
             }
         }
@@ -308,7 +323,7 @@ private:
 
     static const size_t TEXTURE_STORE_SIZE = 16 * 1024 * 1024;
     static const size_t LIVE_TEXTURE_LIMIT = 1 * 1024 * 1024;
-    static const size_t TEXTURE_STORE_NUM_TEXTURES = 512;
+    static const size_t TEXTURE_STORE_NUM_TEXTURES = 1024;
 
     byte* mBase;
     size_t mLength;
@@ -330,6 +345,7 @@ private:
 };
 
 textureStore* textureStore::g_pTextureCache;
+#endif
 
 void GL_Bind (int texnum)
 {
@@ -338,9 +354,11 @@ void GL_Bind (int texnum)
 	if (currenttexture == texnum)
 		return;
 	currenttexture = texnum;
-
+#ifdef DISABLE_TEXTURE_CACHE
+	glBindTexture(GL_TEXTURE_2D, texnum);
+#else
 	textureStore::get()->bind(texnum);
-
+#endif
 }
 
 /*
@@ -717,8 +735,8 @@ void Draw_Init (void)
 	conback->height = cb->height;
 	ncdata = cb->data;
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);  // 13/02/2000 changed: M.Tretene
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);  // 13/02/2000 changed: M.Tretene
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 	gl = (glpic_t *)conback->data;
 	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, true); //  30/01/2000 modified: M.Tretene
@@ -1254,7 +1272,7 @@ static	unsigned	scaled[1024*512];	// [512*256];
 		;
 	for (scaled_height = 1 ; scaled_height < height ; scaled_height<<=1)
 		;
-
+	
 	scaled_width >>= (int)gl_picmip.value;
 	scaled_height >>= (int)gl_picmip.value;
 
@@ -1275,7 +1293,6 @@ static	unsigned	scaled[1024*512];	// [512*256];
 		if (!mipmap)
 		{
 			glTexImage2D (GL_TEXTURE_2D, 0, samples, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
 			goto done;
 		}
 		memcpy (scaled, data, width*height*4);
@@ -1290,13 +1307,13 @@ done: ;
 	
 	if (mipmap)
 	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 	else
 	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 	
 }
@@ -1365,7 +1382,7 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 			if (!strcmp (identifier, glt->identifier))
 			{
 				if (width != glt->width || height != glt->height)
-					Sys_Error ("GL_LoadTexture: cache mismatch");
+					Sys_Error ("GL_LoadTexture: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
 				return gltextures[i].texnum;
 			}
 		}
@@ -1382,9 +1399,57 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 	glt->mipmap = mipmap;
 
 	GL_Bind(texture_extension_number );
+#ifdef DISABLE_TEXTURE_CACHE
+	GL_Upload8 (data, width, height, mipmap, alpha);
+#else
+	textureStore::get()->create(width, height, data, mipmap, alpha, false);
+#endif
+	texture_extension_number++;
 
-	textureStore::get()->create(width, height, data, mipmap, alpha);
+	return texture_extension_number-1;
+}
 
+/*
+================
+GL_LoadTexture32
+================
+*/
+int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool mipmap, bool alpha)
+{
+	bool	noalpha;
+	int			i, p, s;
+	gltexture_t	*glt;
+
+	// see if the texture is already present
+	if (identifier[0])
+	{
+		for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
+		{
+			if (!strcmp (identifier, glt->identifier))
+			{
+				if (width != glt->width || height != glt->height)
+					Sys_Error ("GL_LoadTexture: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
+				return gltextures[i].texnum;
+			}
+		}
+	}
+	//else {                                    // 13/02/2000 removed: M.Tretene
+		glt = &gltextures[numgltextures];
+		numgltextures++;
+	//}
+
+	strcpy (glt->identifier, identifier);
+	glt->texnum = texture_extension_number;
+	glt->width = width;
+	glt->height = height;
+	glt->mipmap = mipmap;
+	
+	GL_Bind(texture_extension_number );
+#ifdef DISABLE_TEXTURE_CACHE
+	GL_Upload32 ((unsigned*)data, width, height, mipmap, alpha);
+#else
+	textureStore::get()->create(width, height, data, mipmap, alpha, true);
+#endif
 	texture_extension_number++;
 
 	return texture_extension_number-1;

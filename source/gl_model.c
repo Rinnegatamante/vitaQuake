@@ -379,25 +379,38 @@ void Mod_LoadTextures (lump_t *l)
 		for (j=0 ; j<MIPLEVELS ; j++)
 			tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
 
-		if (!Q_strncmp(mt->name,"sky",3))	
+		if (!Q_strncmp(mt->name,"sky",3)) {
 			R_InitSky (mt);
-		else
-		{
-			texture_mode = GL_LINEAR;
-			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(mt+1), true, false);
-
-			// check for fullbright pixels in the texture - only if it ain't liquid, etc also
-			if ((tx->name[0] != '*') && (FindFullbrightTexture ((byte *)(mt+1), pixels)))
-			{
-				// convert any non fullbright pixel to fully transparent
-				ConvertPixels ((byte *)(mt + 1), pixels);
-				// get a new name for the fullbright mask to avoid cache mismatches
-				sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
-				// load the fullbright pixels version of the texture
-				tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(mt + 1), true, true);
-			}
-			else tx->fullbright = -1; // because 0 is a potentially valid texture number
+			continue;
 		}
+		
+		if (loadmodel->bspversion == HL_BSPVERSION) {
+			byte      *data;
+			if ((data = WAD3_LoadTexture(mt))) {
+				//com_netpath[0] = 0;      
+				//alpha_flag = ISALPHATEX(tx->name) ? TEX_ALPHA : 0;
+				texture_mode = GL_LINEAR;
+				tx->gl_texturenum = GL_LoadTexture32 (mt->name, tx->width, tx->height, (byte *)data, true, false);
+				tx->fullbright = -1;
+				free(data);
+				continue;
+			}
+		}
+			
+		texture_mode = GL_LINEAR;
+		tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(mt+1), true, false);
+
+		// check for fullbright pixels in the texture - only if it ain't liquid, etc also
+		if ((tx->name[0] != '*') && (FindFullbrightTexture ((byte *)(mt+1), pixels)))
+		{
+			// convert any non fullbright pixel to fully transparent
+			ConvertPixels ((byte *)(mt+1), pixels);
+			// get a new name for the fullbright mask to avoid cache mismatches
+			sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
+			// load the fullbright pixels version of the texture
+			tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(mt + 1), true, true);
+		}
+		else tx->fullbright = -1; // because 0 is a potentially valid texture number
 	}
 
 //
@@ -496,13 +509,24 @@ void Mod_LoadTextures (lump_t *l)
 
 void Mod_LoadLighting (lump_t *l)
 {
+	loadmodel->lightdata = NULL;
+
+	// Half-Life models support
+	if (loadmodel->bspversion == HL_BSPVERSION) {
+		if (!l->filelen) return;
+		// FIXME: For some reason, lightmaps for HL BSP are broken
+		// Rinnegatamante 20/08/19
+		//loadmodel->lightdata = Hunk_AllocName(l->filelen, loadname);
+		//memcpy (loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
+		return;
+	}
+	
 	// LordHavoc: .lit support begin
 	int i;
 	byte *in, *out, *data;
 	byte d;
 	char litfilename[1024];
-	loadmodel->lightdata = NULL;
-
+	
 	// LordHavoc: check for a .lit file
 	strcpy(litfilename, loadmodel->name);
 	COM_StripExtension(litfilename, litfilename);
@@ -526,9 +550,10 @@ void Mod_LoadLighting (lump_t *l)
 			Con_Printf("Corrupt .lit file (old version?), ignoring\n");
 	}
 
-	// LordHavoc: no .lit found, expand the white lighting data to color
 	if (!l->filelen)
 		return;
+	
+	// LordHavoc: no .lit found, expand the white lighting data to color
 	loadmodel->lightdata = Hunk_AllocName ( l->filelen*3, litfilename);
 	in = loadmodel->lightdata + l->filelen*2; // place the file at the end, so it will not be overwritten until the very last write
 	out = loadmodel->lightdata;
@@ -1187,10 +1212,11 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	loadmodel->type = mod_brush;
 	
 	header = (dheader_t *)buffer;
-
-	i = LittleLong (header->version);
-	if (i != BSPVERSION)
-		Sys_Error ("Mod_LoadBrushModel: %s has wrong version number (%i should be %i)", mod->name, i, BSPVERSION);
+	
+	mod->bspversion = LittleLong (header->version);
+	
+	if (mod->bspversion != Q1_BSPVERSION && mod->bspversion != HL_BSPVERSION)
+		Host_Error ("Mod_LoadBrushModel: %s has wrong version number (%i should be %i (Quake) or %i (Half-Life))", mod->name, mod->bspversion, Q1_BSPVERSION, HL_BSPVERSION);
 
 // swap all the lumps
 	mod_base = (byte *)header;

@@ -167,6 +167,12 @@ inline void Q_strncpy (char *dest, char *src, int count)
 	strncpy(dest, src, count);
 }
 
+inline void Q_strncpyz (char *dest, char *src, size_t size)
+{
+   strncpy (dest, src, size - 1);
+   dest[size-1] = 0;
+}
+
 inline int Q_strlen (char *str)
 {
 	return strlen(str);
@@ -1076,7 +1082,7 @@ typedef struct
 	int             dirlen;
 } dpackheader_t;
 
-#define MAX_FILES_IN_PACK       1024
+#define MAX_FILES_IN_PACK       4096
 
 char    com_cachedir[MAX_OSPATH];
 char    com_gamedir[MAX_OSPATH];

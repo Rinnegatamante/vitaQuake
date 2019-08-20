@@ -135,6 +135,7 @@ void Q_memcpy (void *dest, void *src, int count);
 int Q_memcmp (void *m1, void *m2, int count);
 void Q_strcpy (char *dest, char *src);
 void Q_strncpy (char *dest, char *src, int count);
+void Q_strncpyz (char *dest, char *src, size_t size);
 int Q_strlen (char *str);
 char *Q_strrchr (char *s, char c);
 void Q_strcat (char *dest, char *src);
