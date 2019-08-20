@@ -438,7 +438,6 @@ int main(int argc, char **argv)
 {
 	
 	cl_entities = malloc(sizeof(entity_t) * MAX_EDICTS);
-	cl_static_entities = malloc(sizeof(entity_t) * MAX_STATIC_ENTITIES);
 	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
 	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
 

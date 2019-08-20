@@ -219,7 +219,6 @@ typedef struct
 	struct model_s	*worldmodel;	// cl_entitites[0].model
 	struct efrag_s	*free_efrags;
 	int			num_entities;	// held in cl_entities array
-	int			num_statics;	// held in cl_staticentities array
 	entity_t	viewent;			// the gun model
 
 	int			cdtrack, looptrack;	// cd audio
@@ -265,14 +264,12 @@ extern	cvar_t	m_side;
 
 
 #define	MAX_TEMP_ENTITIES	64			// lightning bolts, etc
-#define	MAX_STATIC_ENTITIES	128			// torches, etc
 
 extern	client_state_t	cl;
 
 // FIXME, allocate dynamically
 extern	efrag_t*			cl_efrags;
 extern	entity_t*		cl_entities;
-extern	entity_t*		cl_static_entities;
 extern	lightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
 extern	dlight_t		cl_dlights[MAX_DLIGHTS];
 extern	entity_t*		cl_temp_entities;

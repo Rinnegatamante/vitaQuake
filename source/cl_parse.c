@@ -694,16 +694,13 @@ CL_ParseStatic
 void CL_ParseStatic (void)
 {
 	entity_t *ent;
-	int		i;
 
-	i = cl.num_statics;
-	if (i >= MAX_STATIC_ENTITIES)
-		Host_Error ("Too many static entities");
-	ent = &cl_static_entities[i];
-	cl.num_statics++;
+	// mh - extended static entities begin
+	ent = (entity_t *) Hunk_Alloc (sizeof (entity_t));
 	CL_ParseBaseline (ent);
+	// mh - extended static entities end
 
-// copy it to the current state
+	// copy it to the current state
 	ent->model = cl.model_precache[ent->baseline.modelindex];
 	ent->frame = ent->baseline.frame;
 	ent->colormap = vid.colormap;
@@ -711,7 +708,7 @@ void CL_ParseStatic (void)
 	ent->effects = ent->baseline.effects;
 
 	VectorCopy (ent->baseline.origin, ent->origin);
-	VectorCopy (ent->baseline.angles, ent->angles);
+	VectorCopy (ent->baseline.angles, ent->angles);   
 	R_AddEfrags (ent);
 }
 
