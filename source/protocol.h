@@ -50,56 +50,56 @@ Here is a short list of known protocol used by other NetQuake ports:
 #define	U_LONGENTITY	BIT(14)
 
 // FitzQuake -- Protocol extender
-#define U_EXTEND1		(1<<15)
-#define U_ALPHA			(1<<16) // 1 byte, uses ENTALPHA_ENCODE, not sent if equal to baseline
-#define U_FRAME2		(1<<17) // 1 byte, this is .frame & 0xFF00 (second byte)
-#define U_MODEL2		(1<<18) // 1 byte, this is .modelindex & 0xFF00 (second byte)
-#define U_LERPFINISH	(1<<19) // 1 byte, 0.0-1.0 maps to 0-255, not sent if exactly 0.1, this is ent->v.nextthink - sv.time, used for lerping
-#define U_SCALE			(1<<20) // 1 byte, for PROTOCOL_RMQ PRFL_EDICTSCALE, currently read but ignored
-#define U_UNUSED21		(1<<21)
-#define U_UNUSED22		(1<<22)
-#define U_EXTEND2		(1<<23) // another byte to follow, future expansion
+#define U_EXTEND1		BIT(15)
+#define U_ALPHA			BIT(16) // 1 byte, uses ENTALPHA_ENCODE, not sent if equal to baseline
+#define U_FRAME2		BIT(17) // 1 byte, this is .frame & 0xFF00 (second byte)
+#define U_MODEL2		BIT(18) // 1 byte, this is .modelindex & 0xFF00 (second byte)
+#define U_LERPFINISH	BIT(19) // 1 byte, 0.0-1.0 maps to 0-255, not sent if exactly 0.1, this is ent->v.nextthink - sv.time, used for lerping
+#define U_SCALE			BIT(20) // 1 byte, for PROTOCOL_RMQ PRFL_EDICTSCALE, currently read but ignored
+#define U_UNUSED21		BIT(21)
+#define U_UNUSED22		BIT(22)
+#define U_EXTEND2		BIT(23) // another byte to follow, future expansion
 
-#define	SU_VIEWHEIGHT	(1<<0)
-#define	SU_IDEALPITCH	(1<<1)
-#define	SU_PUNCH1		(1<<2)
-#define	SU_PUNCH2		(1<<3)
-#define	SU_PUNCH3		(1<<4)
-#define	SU_VELOCITY1	(1<<5)
-#define	SU_VELOCITY2	(1<<6)
-#define	SU_VELOCITY3	(1<<7)
-//define	SU_AIMENT		(1<<8)  AVAILABLE BIT
-#define	SU_ITEMS		(1<<9)
-#define	SU_ONGROUND		(1<<10)		// no data follows, the bit is it
-#define	SU_INWATER		(1<<11)		// no data follows, the bit is it
-#define	SU_WEAPONFRAME	(1<<12)
-#define	SU_ARMOR		(1<<13)
-#define	SU_WEAPON		(1<<14)
+#define	SU_VIEWHEIGHT	BIT(0)
+#define	SU_IDEALPITCH	BIT(1)
+#define	SU_PUNCH1		BIT(2)
+#define	SU_PUNCH2		BIT(3)
+#define	SU_PUNCH3		BIT(4)
+#define	SU_VELOCITY1	BIT(5)
+#define	SU_VELOCITY2	BIT(6)
+#define	SU_VELOCITY3	BIT(7)
+//define	SU_AIMENT		BIT(8)  AVAILABLE BIT
+#define	SU_ITEMS		BIT(9)
+#define	SU_ONGROUND		BIT(10)		// no data follows, the bit is it
+#define	SU_INWATER		BIT(11)		// no data follows, the bit is it
+#define	SU_WEAPONFRAME	BIT(12)
+#define	SU_ARMOR		BIT(13)
+#define	SU_WEAPON		BIT(14)
 
 // FitzQuake -- Protocol extender 
-#define SU_EXTEND1		(1<<15) // another byte to follow
-#define SU_WEAPON2		(1<<16) // 1 byte, this is .weaponmodel & 0xFF00 (second byte)
-#define SU_ARMOR2		(1<<17) // 1 byte, this is .armorvalue & 0xFF00 (second byte)
-#define SU_AMMO2		(1<<18) // 1 byte, this is .currentammo & 0xFF00 (second byte)
-#define SU_SHELLS2		(1<<19) // 1 byte, this is .ammo_shells & 0xFF00 (second byte)
-#define SU_NAILS2		(1<<20) // 1 byte, this is .ammo_nails & 0xFF00 (second byte)
-#define SU_ROCKETS2		(1<<21) // 1 byte, this is .ammo_rockets & 0xFF00 (second byte)
-#define SU_CELLS2		(1<<22) // 1 byte, this is .ammo_cells & 0xFF00 (second byte)
-#define SU_EXTEND2		(1<<23) // another byte to follow
-#define SU_WEAPONFRAME2	(1<<24) // 1 byte, this is .weaponframe & 0xFF00 (second byte)
-#define SU_WEAPONALPHA	(1<<25) // 1 byte, this is alpha for weaponmodel, uses ENTALPHA_ENCODE, not sent if ENTALPHA_DEFAULT
-#define SU_UNUSED26		(1<<26)
-#define SU_UNUSED27		(1<<27)
-#define SU_UNUSED28		(1<<28)
-#define SU_UNUSED29		(1<<29)
-#define SU_UNUSED30		(1<<30)
-#define SU_EXTEND3		(1<<31) // another byte to follow, future expansion
+#define SU_EXTEND1		BIT(15) // another byte to follow
+#define SU_WEAPON2		BIT(16) // 1 byte, this is .weaponmodel & 0xFF00 (second byte)
+#define SU_ARMOR2		BIT(17) // 1 byte, this is .armorvalue & 0xFF00 (second byte)
+#define SU_AMMO2		BIT(18) // 1 byte, this is .currentammo & 0xFF00 (second byte)
+#define SU_SHELLS2		BIT(19) // 1 byte, this is .ammo_shells & 0xFF00 (second byte)
+#define SU_NAILS2		BIT(20) // 1 byte, this is .ammo_nails & 0xFF00 (second byte)
+#define SU_ROCKETS2		BIT(21) // 1 byte, this is .ammo_rockets & 0xFF00 (second byte)
+#define SU_CELLS2		BIT(22) // 1 byte, this is .ammo_cells & 0xFF00 (second byte)
+#define SU_EXTEND2		BIT(23) // another byte to follow
+#define SU_WEAPONFRAME2	BIT(24) // 1 byte, this is .weaponframe & 0xFF00 (second byte)
+#define SU_WEAPONALPHA	BIT(25) // 1 byte, this is alpha for weaponmodel, uses ENTALPHA_ENCODE, not sent if ENTALPHA_DEFAULT
+#define SU_UNUSED26		BIT(26)
+#define SU_UNUSED27		BIT(27)
+#define SU_UNUSED28		BIT(28)
+#define SU_UNUSED29		BIT(29)
+#define SU_UNUSED30		BIT(30)
+#define SU_EXTEND3		BIT(31) // another byte to follow, future expansion
 
 
 // a sound with no channel is a local only sound
-#define	SND_VOLUME		(1<<0)		// a byte
-#define	SND_ATTENUATION	(1<<1)		// a byte
-#define	SND_LOOPING		(1<<2)		// a long
+#define	SND_VOLUME		BIT(0)		// a byte
+#define	SND_ATTENUATION	BIT(1)		// a byte
+#define	SND_LOOPING		BIT(2)		// a long
 
 
 // defaults for clientinfo messages
