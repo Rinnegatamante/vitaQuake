@@ -44,6 +44,7 @@ typedef struct edict_s
 	
 	float		freetime;			// sv.time when the object was freed
 	entvars_t	v;					// C exported fields from progs
+	float		tracetimer;
 // other fields from progs come immediately after
 } edict_t;
 #define	EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l,edict_t,area)

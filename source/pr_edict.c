@@ -77,6 +77,7 @@ void ED_ClearEdict (edict_t *e)
 {
 	memset (&e->v, 0, progs->entityfields * 4);
 	e->free = false;
+	e->tracetimer = -1;
 }
 
 /*

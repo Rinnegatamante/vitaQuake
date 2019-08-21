@@ -27,6 +27,8 @@ server_static_t	svs;
 #define MODSTRLEN (sizeof("*" stringify(MAX_MODELS)) / sizeof(char))
 char localmodels[MAX_MODELS][MODSTRLEN]; // inline model names for precache
 
+#define offsetrandom(MIN,MAX) (((double)(rand() + 0.5) / ((double)RAND_MAX + 1)) * ((MAX)-(MIN)) + (MIN))
+cvar_t sv_cullentities = {"sv_cullentities","1", false, true};
 //============================================================================
 
 /*
@@ -47,7 +49,8 @@ void SV_Init (void)
 	extern	cvar_t	sv_accelerate;
 	extern	cvar_t	sv_idealpitchscale;
 	extern	cvar_t	sv_aim;
-
+	
+	Cvar_RegisterVariable (&sv_cullentities);
 	Cvar_RegisterVariable (&sv_maxvelocity);
 	Cvar_RegisterVariable (&sv_gravity);
 	Cvar_RegisterVariable (&sv_friction);
@@ -101,7 +104,7 @@ void SV_StartParticle (vec3_t org, vec3_t dir, int color, int count)
 	}
 	MSG_WriteByte (&sv.datagram, count);
 	MSG_WriteByte (&sv.datagram, color);
-}           
+}		   
 
 /*  
 ==================
@@ -119,11 +122,11 @@ Larger attenuations will drop off.  (max 4 attenuation)
 ==================
 */  
 void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
-    float attenuation)
-{       
-    int         sound_num;
-    int field_mask;
-    int			i;
+	float attenuation)
+{	   
+	int		 sound_num;
+	int field_mask;
+	int			i;
 	int			ent;
 	
 	if (volume < 0 || volume > 255)
@@ -139,17 +142,17 @@ void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
 		return;	
 
 // find precache number for sound
-    for (sound_num=1 ; sound_num<MAX_SOUNDS
-        && sv.sound_precache[sound_num] ; sound_num++)
-        if (!strcmp(sample, sv.sound_precache[sound_num]))
-            break;
-    
-    if ( sound_num == MAX_SOUNDS || !sv.sound_precache[sound_num] )
-    {
-        Con_Printf ("SV_StartSound: %s not precacheed\n", sample);
-        return;
-    }
-    
+	for (sound_num=1 ; sound_num<MAX_SOUNDS
+		&& sv.sound_precache[sound_num] ; sound_num++)
+		if (!strcmp(sample, sv.sound_precache[sound_num]))
+			break;
+	
+	if ( sound_num == MAX_SOUNDS || !sv.sound_precache[sound_num] )
+	{
+		Con_Printf ("SV_StartSound: %s not precacheed\n", sample);
+		return;
+	}
+	
 	ent = NUM_FOR_EDICT(entity);
 
 	channel = (ent<<3) | channel;
@@ -171,7 +174,7 @@ void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
 	MSG_WriteByte (&sv.datagram, sound_num);
 	for (i=0 ; i<3 ; i++)
 		MSG_WriteCoord (&sv.datagram, entity->v.origin[i]+0.5*(entity->v.mins[i]+entity->v.maxs[i]));
-}           
+}		   
 
 /*
 ==============================================================================
@@ -437,6 +440,60 @@ byte *SV_FatPVS (vec3_t org)
 
 //=============================================================================
 
+extern trace_t SV_ClipMoveToEntity (edict_t *ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
+
+bool SV_InvisibleToClient(edict_t *viewer, edict_t *seen)
+{
+	int	  i;
+	trace_t   tr;
+	vec3_t   start;
+	vec3_t   end;
+
+	if (seen->v.movetype == MOVETYPE_PUSH )//dont cull doors and plats :(
+	{
+		return false;
+	}
+
+	if (sv_cullentities.value == 1)	//1 only check player models, 2 = check all ents
+		if (strcmp(pr_strings + seen->v.classname, "player"))   
+			return false;
+
+	memset (&tr, 0, sizeof(tr));			   
+	tr.fraction = 1;
+
+	start[0] = viewer->v.origin[0];
+	start[1] = viewer->v.origin[1];
+	start[2] = viewer->v.origin[2] + viewer->v.view_ofs[2];
+
+	//aim straight at the center of "seen" from our eyes
+	end[0] = 0.5 * (seen->v.mins[0] + seen->v.maxs[0]);
+	end[1] = 0.5 * (seen->v.mins[1] + seen->v.maxs[1]);
+	end[2] = 0.5 * (seen->v.mins[2] + seen->v.maxs[2]);		   
+
+	tr = SV_ClipMoveToEntity (sv.edicts, start, vec3_origin, vec3_origin, end);
+	if (tr.fraction == 1)// line hit the ent
+		return false;
+
+	//last attempt to eliminate any flaws...
+	if ((!strcmp(pr_strings + seen->v.classname, "player")) || (sv_cullentities.value > 1))
+	{
+		for (i = 0; i < 4; i++)
+		{
+			end[0] = seen->v.origin[0] + offsetrandom(seen->v.mins[0], seen->v.maxs[0]);
+			end[1] = seen->v.origin[1] + offsetrandom(seen->v.mins[1], seen->v.maxs[1]);
+			end[2] = seen->v.origin[2] + offsetrandom(seen->v.mins[2], seen->v.maxs[2]);
+
+			tr = SV_ClipMoveToEntity (sv.edicts, start, vec3_origin, vec3_origin, end);
+			if (tr.fraction == 1)// line hit the ent
+			{
+				seen->tracetimer = sv.time + 0.2f;
+				break;
+			}
+		}
+	}
+
+	return (seen->tracetimer > sv.time);
+}
 
 /*
 =============
@@ -481,6 +538,9 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 				
 			if (i == ent->num_leafs)
 				continue;		// not visible
+			
+			if (sv_cullentities.value && SV_InvisibleToClient(clent,ent))
+				continue; // Baker: bail out and skip to next entity because we are not going to send data on this one
 		}
 
 		if (msg->maxsize - msg->cursize < 16)
