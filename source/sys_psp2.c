@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "errno.h"
 #include <vitasdk.h>
-#include <vita2d.h>
 
 #define BIGSTACK_SIZE 20 * 1024 * 1024
 byte sys_bigstack[BIGSTACK_SIZE];
@@ -467,11 +466,6 @@ int main(int argc, char **argv)
 
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
-
-	parms.memsize = 30 * 1024 * 1024;
-	parms.membase = malloc(parms.memsize);
-	if (is_uma0) parms.basedir = "uma0:/data/Quake";
-	else parms.basedir = "ux0:/data/Quake";
 	
 	// Initializing empty ModList
 	mods = NULL;
@@ -585,6 +579,18 @@ int main(int argc, char **argv)
 			mod_path = mp_path;
 		}
 	} else COM_InitArgv(argc, argv);
+	
+	if (COM_CheckParm("-mem"))
+	{
+		int t = COM_CheckParm("-mem") + 1;
+		if (t < com_argc)
+			parms.memsize = Q_atoi(com_argv[t]) * 1024 * 1024;
+	} else
+		parms.memsize = 30 * 1024 * 1024;
+	
+	parms.membase = malloc(parms.memsize);
+	if (is_uma0) parms.basedir = "uma0:/data/Quake";
+	else parms.basedir = "ux0:/data/Quake";
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
