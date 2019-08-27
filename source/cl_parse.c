@@ -369,9 +369,14 @@ void CL_ParseUpdate (int bits)
 	}
 
 	if (bits & U_MOREBITS)
+		bits |= MSG_ReadByte() << 8;
+	
+	if (bits & U_EXTEND1)
 	{
-		i = MSG_ReadByte ();
-		bits |= (i<<8);
+		bits |= MSG_ReadByte() << 16;
+
+		if (bits & U_EXTEND2)
+			bits |= MSG_ReadByte() << 24;
 	}
 
 	if (bits & U_LONGENTITY)
@@ -381,9 +386,9 @@ void CL_ParseUpdate (int bits)
 
 	ent = CL_EntityNum (num);
 
-for (i=0 ; i<16 ; i++)
-if (bits&(1<<i))
-	bitcounts[i]++;
+	for (i=0 ; i<16 ; i++)
+		if (bits&(1<<i))
+			bitcounts[i]++;
 
 	if (ent->msgtime != cl.mtime[1])
 		forcelink = true;	// no previous frame to lerp from
@@ -440,7 +445,6 @@ if (bits&(1<<i))
 		ent->colormap = cl.scores[i-1].translations;
 	}
 
-#ifdef GLQUAKE
 	if (bits & U_SKIN)
 		skin = MSG_ReadByte();
 	else
@@ -450,14 +454,6 @@ if (bits&(1<<i))
 		if (num > 0 && num <= cl.maxclients)
 			R_TranslatePlayerSkin (num - 1);
 	}
-
-#else
-
-	if (bits & U_SKIN)
-		ent->skinnum = MSG_ReadByte();
-	else
-		ent->skinnum = ent->baseline.skin;
-#endif
 
 	if (bits & U_EFFECTS)
 		ent->effects = MSG_ReadByte();
@@ -494,6 +490,12 @@ if (bits&(1<<i))
 		ent->msg_angles[0][2] = MSG_ReadAngle();
 	else
 		ent->msg_angles[0][2] = ent->baseline.angles[2];
+	
+	if (bits & U_ALPHA)
+		ent->alpha = (float)(MSG_ReadByte()) / 255.0f;
+	
+	if (bits & U_RENDERAMT)
+		ent->alpha = (float)(MSG_ReadByte()) / 255.0f;
 
 	if ( bits & U_NOLERP )
 		ent->forcelink = true;

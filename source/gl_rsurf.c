@@ -710,7 +710,8 @@ void R_DrawBrushModel (entity_t *e)
 	mplane_t	*pplane;
 	model_t		*clmodel;
 	bool	rotated;
-
+	bool	transparent;
+	
 	currententity = e;
 	currenttexture = -1;
 
@@ -734,8 +735,18 @@ void R_DrawBrushModel (entity_t *e)
 
 	if (R_CullBox (mins, maxs))
 		return;
-
-	GL_Color(1,1,1,1);
+	
+	transparent = ISTRANSPARENT(e);
+	if (transparent) {
+		glEnable(GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GL_EnableState(GL_MODULATE);
+		GL_DisableState(GL_ALPHA_TEST);
+		glDepthMask(GL_FALSE);
+		GL_Color(1,1,1,e->alpha);
+	} else
+		GL_Color(1,1,1,1);
+	
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
 
 	VectorSubtract (r_refdef.vieworg, e->origin, modelorg);
@@ -788,13 +799,17 @@ void R_DrawBrushModel (entity_t *e)
 			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 		{
 			R_RenderBrushPoly (psurf);
+			if (transparent) psurf->draw_this_frame = 0;
 		}
 	}
 
-	R_BlendLightmaps ();
-
+	if (transparent) 
+		GL_EnableState(GL_ALPHA_TEST);
+	//else FIXME: Disabling lightmaps (as it should be) causes some glitches related to some depth bug most likely
+		R_BlendLightmaps ();
+	
 	DrawFullBrightTextures (clmodel->surfaces, clmodel->numsurfaces);
-
+	
 	glPopMatrix ();
 }
 

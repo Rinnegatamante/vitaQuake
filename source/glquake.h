@@ -240,3 +240,5 @@ void GL_Bind (int texnum);
 // fenix@io.com: model interpolation
 extern  cvar_t  r_interpolate_model_animation;
 extern  cvar_t  r_interpolate_model_transform;
+
+#define ISTRANSPARENT(ent)   ((ent)->alpha > 0.0f && (ent)->alpha < 1.0f)

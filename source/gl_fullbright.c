@@ -1,6 +1,6 @@
 //gl_fullbright.c
 #include "quakedef.h"
-//extern qboolean mtexenabled;
+
 int FindFullbrightTexture (byte *pixels, int num_pix)
 {
 	int i;
@@ -9,6 +9,7 @@ int FindFullbrightTexture (byte *pixels, int num_pix)
 	return 1;
 	return 0;
 }
+
 void ConvertPixels (byte *pixels, int num_pixels)
 {
 	int i;
@@ -16,17 +17,15 @@ void ConvertPixels (byte *pixels, int num_pixels)
 	if (pixels[i] < 224)
 	pixels[i] = 255;
 }
+
 void DrawFullBrightTextures (msurface_t *first_surf, int num_surfs)
 {
-	// gl_texsort 1 version
 	int i;
 	msurface_t *fa;
 	texture_t *t;
 	if (r_fullbright.value)
-	return;
-	//if (mtexenabled)
-	//return;
-	//GL_DisableMultitexture ();
+		return;
+
 	for (fa = first_surf, i = 0; i < num_surfs; fa++, i++)
 	{
 		// find the correct texture

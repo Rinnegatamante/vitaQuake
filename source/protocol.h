@@ -56,7 +56,7 @@ Here is a short list of known protocol used by other NetQuake ports:
 #define U_MODEL2		BIT(18) // 1 byte, this is .modelindex & 0xFF00 (second byte)
 #define U_LERPFINISH	BIT(19) // 1 byte, 0.0-1.0 maps to 0-255, not sent if exactly 0.1, this is ent->v.nextthink - sv.time, used for lerping
 #define U_SCALE			BIT(20) // 1 byte, for PROTOCOL_RMQ PRFL_EDICTSCALE, currently read but ignored
-#define U_UNUSED21		BIT(21)
+#define U_RENDERAMT		BIT(21)
 #define U_UNUSED22		BIT(22)
 #define U_EXTEND2		BIT(23) // another byte to follow, future expansion
 

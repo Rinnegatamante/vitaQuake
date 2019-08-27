@@ -27,8 +27,6 @@ server_static_t	svs;
 #define MODSTRLEN (sizeof("*" stringify(MAX_MODELS)) / sizeof(char))
 char localmodels[MAX_MODELS][MODSTRLEN]; // inline model names for precache
 
-#define offsetrandom(MIN,MAX) (((double)(rand() + 0.5) / ((double)RAND_MAX + 1)) * ((MAX)-(MIN)) + (MIN))
-cvar_t sv_cullentities = {"sv_cullentities","1", false, true};
 //============================================================================
 
 /*
@@ -50,7 +48,6 @@ void SV_Init (void)
 	extern	cvar_t	sv_idealpitchscale;
 	extern	cvar_t	sv_aim;
 	
-	Cvar_RegisterVariable (&sv_cullentities);
 	Cvar_RegisterVariable (&sv_maxvelocity);
 	Cvar_RegisterVariable (&sv_gravity);
 	Cvar_RegisterVariable (&sv_friction);
@@ -440,61 +437,6 @@ byte *SV_FatPVS (vec3_t org)
 
 //=============================================================================
 
-extern trace_t SV_ClipMoveToEntity (edict_t *ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
-
-bool SV_InvisibleToClient(edict_t *viewer, edict_t *seen)
-{
-	int	  i;
-	trace_t   tr;
-	vec3_t   start;
-	vec3_t   end;
-
-	if (seen->v.movetype == MOVETYPE_PUSH )//dont cull doors and plats :(
-	{
-		return false;
-	}
-
-	if (sv_cullentities.value == 1)	//1 only check player models, 2 = check all ents
-		if (strcmp(pr_strings + seen->v.classname, "player"))   
-			return false;
-
-	memset (&tr, 0, sizeof(tr));			   
-	tr.fraction = 1;
-
-	start[0] = viewer->v.origin[0];
-	start[1] = viewer->v.origin[1];
-	start[2] = viewer->v.origin[2] + viewer->v.view_ofs[2];
-
-	//aim straight at the center of "seen" from our eyes
-	end[0] = 0.5 * (seen->v.mins[0] + seen->v.maxs[0]);
-	end[1] = 0.5 * (seen->v.mins[1] + seen->v.maxs[1]);
-	end[2] = 0.5 * (seen->v.mins[2] + seen->v.maxs[2]);		   
-
-	tr = SV_ClipMoveToEntity (sv.edicts, start, vec3_origin, vec3_origin, end);
-	if (tr.fraction == 1)// line hit the ent
-		return false;
-
-	//last attempt to eliminate any flaws...
-	if ((!strcmp(pr_strings + seen->v.classname, "player")) || (sv_cullentities.value > 1))
-	{
-		for (i = 0; i < 4; i++)
-		{
-			end[0] = seen->v.origin[0] + offsetrandom(seen->v.mins[0], seen->v.maxs[0]);
-			end[1] = seen->v.origin[1] + offsetrandom(seen->v.mins[1], seen->v.maxs[1]);
-			end[2] = seen->v.origin[2] + offsetrandom(seen->v.mins[2], seen->v.maxs[2]);
-
-			tr = SV_ClipMoveToEntity (sv.edicts, start, vec3_origin, vec3_origin, end);
-			if (tr.fraction == 1)// line hit the ent
-			{
-				seen->tracetimer = sv.time + 0.2f;
-				break;
-			}
-		}
-	}
-
-	return (seen->tracetimer > sv.time);
-}
-
 /*
 =============
 SV_WriteEntitiesToClient
@@ -507,7 +449,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 	int		bits;
 	byte	*pvs;
 	vec3_t	org;
-	float	miss;
+	float	miss, alpha;
 	edict_t	*ent;
 	eval_t	*val;
 
@@ -539,8 +481,6 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 			if (i == ent->num_leafs)
 				continue;		// not visible
 			
-			if (sv_cullentities.value && SV_InvisibleToClient(clent,ent))
-				continue; // Baker: bail out and skip to next entity because we are not going to send data on this one
 		}
 
 		if (msg->maxsize - msg->cursize < 16)
@@ -592,12 +532,36 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		
 		if (ent->baseline.modelindex != ent->v.modelindex)
 			bits |= U_MODEL;
-
+		
+		if (val = GETEDICTFIELDVALUE(ent, eval_alpha))
+		{
+			if ((val->_float < 1.0f) && (val->_float > 0.0f))
+			{
+				alpha = val->_float;
+				bits |= U_ALPHA;
+			}
+		}
+		
+		if (val = GETEDICTFIELDVALUE(ent, eval_renderamt))
+		{
+			if ((val->_float < 255.0f) && (val->_float > 0.0f))
+			{
+				alpha = val->_float;
+				bits |= U_RENDERAMT;
+			}
+		}
+		
 		if (e >= 256)
 			bits |= U_LONGENTITY;
 			
-		if (bits >= 256)
+		if (bits >= 0x100)
 			bits |= U_MOREBITS;
+		
+		if (bits >= 0x10000)
+			bits |= U_EXTEND1;
+		
+		if (bits >= 0x1000000)
+			bits |= U_EXTEND2;
 
 	//
 	// write the message
@@ -606,6 +570,10 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		
 		if (bits & U_MOREBITS)
 			MSG_WriteByte (msg, bits>>8);
+		if (bits & U_EXTEND1)
+			MSG_WriteByte (msg, bits>>16);
+        if (bits & U_EXTEND2)
+			MSG_WriteByte (msg, bits>>24);
 		if (bits & U_LONGENTITY)
 			MSG_WriteShort (msg,e);
 		else
@@ -633,6 +601,10 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 			MSG_WriteCoord (msg, ent->v.origin[2]);
 		if (bits & U_ANGLE3)
 			MSG_WriteAngle(msg, ent->v.angles[2]);
+		if (bits & U_ALPHA)
+			MSG_WriteByte(msg, (int)(alpha * 255));
+		if (bits & U_RENDERAMT)
+			MSG_WriteByte(msg, (int)(alpha));
 	}
 }
 

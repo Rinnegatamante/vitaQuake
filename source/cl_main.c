@@ -631,6 +631,9 @@ void CL_RelinkEntities (void)
 			cl_visedicts[cl_numvisedicts] = ent;
 			cl_numvisedicts++;
 		}
+		
+		if (!ent->alpha)
+			ent->alpha = 1.0f;
 	}
 
 }

@@ -66,6 +66,27 @@ typedef struct {
 
 static gefv_cache	gefvCache[GEFV_CACHESIZE] = {{NULL, ""}, {NULL, ""}};
 
+int   eval_alpha;
+int   eval_renderamt;
+
+ddef_t *ED_FindField (char *name);
+
+int FindFieldOffset (char *field)
+{
+	ddef_t   *d;
+
+	if (!(d = ED_FindField(field)))
+		return 0;
+
+	return d->ofs*4;
+}
+
+void FindEdictFieldOffsets (void)
+{
+	eval_alpha = FindFieldOffset ("alpha");
+	eval_renderamt = FindFieldOffset ("renderamt");
+}
+
 /*
 =================
 ED_ClearEdict
@@ -77,7 +98,6 @@ void ED_ClearEdict (edict_t *e)
 {
 	memset (&e->v, 0, progs->entityfields * 4);
 	e->free = false;
-	e->tracetimer = -1;
 }
 
 /*
@@ -816,33 +836,33 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 	init = false;
 
-// clear it
+	// clear it
 	if (ent != sv.edicts)	// hack
 		memset (&ent->v, 0, progs->entityfields * 4);
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		data = COM_Parse (data);
 		if (com_token[0] == '}')
 			break;
 		if (!data)
 			Sys_Error ("ED_ParseEntity: EOF without closing brace");
 		
-// anglehack is to allow QuakeEd to write single scalar angles
-// and allow them to be turned into vectors. (FIXME...)
-if (!strcmp(com_token, "angle"))
-{
-	strcpy (com_token, "angles");
-	anglehack = true;
-}
-else
-	anglehack = false;
+		// anglehack is to allow QuakeEd to write single scalar angles
+		// and allow them to be turned into vectors. (FIXME...)
+		if (!strcmp(com_token, "angle"))
+		{
+			strcpy (com_token, "angles");
+			anglehack = true;
+		}
+		else
+			anglehack = false;
 
-// FIXME: change light to _light to get rid of this hack
-if (!strcmp(com_token, "light"))
-	strcpy (com_token, "light_lev");	// hack for single light def
+		// FIXME: change light to _light to get rid of this hack
+		if (!strcmp(com_token, "light"))
+			strcpy (com_token, "light_lev");	// hack for single light def
 
 		strcpy (keyname, com_token);
 
@@ -854,7 +874,7 @@ if (!strcmp(com_token, "light"))
 			n--;
 		}
 
-	// parse value	
+		// parse value	
 		data = COM_Parse (data);
 		if (!data)
 			Sys_Error ("ED_ParseEntity: EOF without closing brace");
@@ -864,8 +884,8 @@ if (!strcmp(com_token, "light"))
 
 		init = true;	
 
-// keynames with a leading underscore are used for utility comments,
-// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 		
@@ -875,12 +895,12 @@ if (!strcmp(com_token, "light"))
 			continue;
 		}
 
-if (anglehack)
-{
-char	temp[32];
-strcpy (temp, com_token);
-sprintf (com_token, "0 %s 0", temp);
-}
+		if (anglehack)
+		{
+			char	temp[32];
+			strcpy (temp, com_token);
+			sprintf (com_token, "0 %s 0", temp);
+		}
 
 		if (!ED_ParseEpair ((void *)&ent->v, key, com_token))
 			Host_Error ("ED_ParseEdict: parse error");
@@ -1192,6 +1212,8 @@ void PR_LoadProgs (void)
 
 	for (i=0 ; i<progs->numglobals ; i++)
 		((int *)pr_globals)[i] = LittleLong (((int *)pr_globals)[i]);
+	
+	FindEdictFieldOffsets ();
 }
 
 // 2001-10-20 Extension System by LordHavoc  start
