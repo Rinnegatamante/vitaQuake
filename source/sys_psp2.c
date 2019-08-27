@@ -580,6 +580,41 @@ int main(int argc, char **argv)
 		}
 	} else COM_InitArgv(argc, argv);
 	
+	if (is_uma0) parms.basedir = "uma0:/data/Quake";
+	else parms.basedir = "ux0:/data/Quake";
+	
+	// Bat files support
+	if (COM_CheckParm("-bat"))
+	{
+		char *int_argv[16];
+		int_argv[0] = "";
+		int t = COM_CheckParm("-bat") + 1;
+		if (t < com_argc) {
+			char fname[128];
+			sprintf(fname, "%s/%s.bat", parms.basedir, com_argv[t]);
+			SceUID fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+			if (fd >= 0) {
+				int size = sceIoLseek32(fd, 0, SCE_SEEK_END);
+				char bat_args[2048];
+				sceIoLseek32(fd, 0, SCE_SEEK_SET);
+				sceIoRead(fd, bat_args, size);
+				sceIoClose(fd);
+				bat_args[size] = 0;
+				int int_argc = 2;
+				char *ptr = strstr(bat_args, "quake") + 6;
+				int_argv[1] = ptr;
+				for (;;) {
+					char *space = strstr(ptr, " ");
+					if (space == NULL) break;
+					*space = 0;
+					int_argv[int_argc++] = ptr = space + 1;
+				}
+				int_argv[int_argc++] = "";
+				COM_InitArgv(int_argc, int_argv);
+			}
+		}
+	}
+	
 	if (COM_CheckParm("-mem"))
 	{
 		int t = COM_CheckParm("-mem") + 1;
@@ -589,8 +624,6 @@ int main(int argc, char **argv)
 		parms.memsize = 30 * 1024 * 1024;
 	
 	parms.membase = malloc(parms.memsize);
-	if (is_uma0) parms.basedir = "uma0:/data/Quake";
-	else parms.basedir = "ux0:/data/Quake";
 
 	parms.argc = com_argc;
 	parms.argv = com_argv;
