@@ -1,16 +1,36 @@
 # Introduction
-vitaQuake is a port of Quake 1 / ProQuake for PSVITA. It is currently based on winQuake.
+vitaQuake is a Quake engine source port for PSVITA.
+
+An official channel to discuss the development of this source port can be found on [Vita Nuova discord server](https://discord.gg/PyCaBx9).
 
 # Features
 - Hardware accelerated GPU rendering
 - Native 960x544 resolution
+- MSAA 2x and MSAA 4x support
+- Dual analogs support
 - Native IME for inputing commands/text
-- Sound support
-- Analogs support for camera and movement
-- Right analogs sensibility interchangeable in Options menu
-- Savestates support
-- CDAudio (Soundtracks) support
-- Multiplayer support for both online and locale lobbies
+- Sounds and Musics (CDTracks) support in OGG, MP3, WAV formats
+- Gyroscope and touchscreen support for camera movement
+- Custom arguments support and mods support
+- Support for both official missionpacks
+- Support for transparent surfaces (.alpha and .renderamt)
+- Increased Quake Engine limits (max vertices, max entities, max static entities, etc...)
+- LAN Multiplayer support (locale and online)
+- AdHoc Multiplayer support
+- ProQuake net protocol support
+- Savegames fully working
+- Support for colored lights with .lit files support
+- Support for Half-Life BSP
+- Smooth animations thanks to interpolation techniques
+- Crosshair and custom crosshairs support
+- Mirrors support
+- Specular mode support
+- Fog support
+- Cel Shading support
+- Bilinear filtering support
+- Dynamic shadows support
+- Several different improvements in the renderer quality
+- Several different miscellaneous features (eg: transparent statusbar, benchmark feature, working gamma, etc...)
 
 # CDAudio Support
 
@@ -33,18 +53,7 @@ Expansion/Mod | Status/Link | Developer | CD Audio Folder
 dopa | [Free](https://twitter.com/machinegames/status/746363189768650752?lang=en) | machinegames | N/A
 Scourge of Armagon | Official Expansion | Hipnotic Software | `ux0:/data/Quake/hipnotic/cdtracks`
 Dissolution of Eternity | Official Expansion | Rogue Entertainment | `ux0:/data/Quake/rogue/cdtracks`
-
-# TODO List
-
-Priority: HIGH:
-- Increase engine limits (FitzQuake's protocol)
-
-Priority: LOW
-- Enable multiplayer menu only if the user has WiFi on.
-- Add "Performances" submenu.
-- Customize joystick's X/Y sensitivity
-- Improve CVAR system
-- Separate menus according to your hardware (PSVita/PSTV)
+Kurok | [Free](http://www.bladebattles.com/kurok/) | MDave | N/A
 
 # Credits
 - idSoftware for winQuake sourcecode
