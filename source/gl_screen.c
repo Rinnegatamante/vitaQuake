@@ -505,6 +505,11 @@ SCR_SetUpToDrawConsole
 */
 void SCR_SetUpToDrawConsole (void)
 {
+	//johnfitz -- let's hack away the problem of slow console when host_timescale is <0
+	extern cvar_t host_timescale;
+	float timescale;
+	//johnfitz
+	
 	Con_CheckResize ();
 	
 	if (scr_drawloading)
@@ -523,16 +528,18 @@ void SCR_SetUpToDrawConsole (void)
 	else
 		scr_conlines = 0;				// none visible
 	
+	timescale = (host_timescale.value > 0) ? host_timescale.value : 1; //johnfitz -- timescale
+	
 	if (scr_conlines < scr_con_current)
 	{
-		scr_con_current -= scr_conspeed.value*host_frametime;
+		scr_con_current -= scr_conspeed.value*host_frametime/timescale; //johnfitz -- timescale
 		if (scr_conlines > scr_con_current)
 			scr_con_current = scr_conlines;
 
 	}
 	else if (scr_conlines > scr_con_current)
 	{
-		scr_con_current += scr_conspeed.value*host_frametime;
+		scr_con_current += scr_conspeed.value*host_frametime/timescale; //johnfitz -- timescale
 		if (scr_conlines < scr_con_current)
 			scr_con_current = scr_conlines;
 	}

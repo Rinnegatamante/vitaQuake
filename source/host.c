@@ -38,6 +38,7 @@ CVAR(temp1, 0, CVAR_NONE)	// Ch0wW: Honestly never saw that CVAR being used, may
 
 CVAR(host_framerate, 0, CVAR_NONE)
 CVAR(host_speeds, 0, CVAR_NONE)
+CVAR(host_timescale, 0, CVAR_NONE)
 CVAR(sys_ticrate, 0.05, CVAR_NONE)
 CVAR(serverprofile, 0, CVAR_NONE)
 
@@ -213,6 +214,7 @@ void Host_InitLocal (void)
 
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_speeds);
+	Cvar_RegisterVariable (&host_timescale);
 
 	Cvar_RegisterVariable (&sys_ticrate);
 	Cvar_RegisterVariable (&serverprofile);
@@ -526,7 +528,11 @@ bool Host_FilterTime (float time)
 	host_frametime = realtime - oldrealtime;
 	oldrealtime = realtime;
 
-	if (host_framerate.value > 0)
+	//johnfitz -- host_timescale is more intuitive than host_framerate
+	if (host_timescale.value > 0)
+		host_frametime *= host_timescale.value;
+	//johnfitz
+	else if (host_framerate.value > 0)
 		host_frametime = host_framerate.value;
 	else
 	{	// don't allow really long or short frames
