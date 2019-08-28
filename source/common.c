@@ -869,7 +869,7 @@ void COM_CheckRegistered (void)
 #endif
 		Con_Printf ("Playing shareware version.\n");
 		if (com_modified)
-			Sys_Error ("You must have the registered version to use modified games");
+			Con_Printf ("Warning: Modified game with shareware version detected.\n");
 		return;
 	}
 

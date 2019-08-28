@@ -134,10 +134,7 @@ void Host_Game_f (void)
 	{
 
 		if (!registered.value) //disable command for shareware quake
-		{
-			Con_Printf("You must have the registered version to use modified games\n");
-			return;
-		}
+			Con_Printf("Shareware version detected, issues may be encountered\n");
 
 		if (strstr(Cmd_Argv(1), ".."))
 		{
