@@ -156,7 +156,12 @@ typedef struct
 
 // information for local display
 	int			stats[MAX_CL_STATS];	// health, etc
+#ifdef NZP
+	int			perks;			// Perk icons.
+	int			progress_bar;			// Perk icons.
+#else
 	int			items;			// inventory bit flags
+#endif
 	float	item_gettime[32];	// cl.time of aquiring item, for blinking
 	float		faceanimtime;	// use anim frame if cl.time < this
 
@@ -220,7 +225,9 @@ typedef struct
 	struct efrag_s	*free_efrags;
 	int			num_entities;	// held in cl_entities array
 	entity_t	viewent;			// the gun model
-
+#ifdef NZP
+	entity_t	viewent2;			// the second gun model
+#endif
 	int			cdtrack, looptrack;	// cd audio
 
 // frag scoreboard

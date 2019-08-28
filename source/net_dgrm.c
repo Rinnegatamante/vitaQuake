@@ -988,7 +988,11 @@ static qsocket_t *_Datagram_CheckNewConnections (void)
 		MSG_WriteByte(&net_message, playerNumber);
 		MSG_WriteString(&net_message, client->name);
 		MSG_WriteLong(&net_message, client->colors);
+#ifdef NZP
+		MSG_WriteLong(&net_message, (int)client->edict->v.points);
+#else
 		MSG_WriteLong(&net_message, (int)client->edict->v.frags);
+#endif
 		MSG_WriteLong(&net_message, (int)(net_time - client->netconnection->connecttime));
 		MSG_WriteString(&net_message, client->netconnection->address);
 		

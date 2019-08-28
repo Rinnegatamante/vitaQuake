@@ -1400,10 +1400,10 @@ void R_DrawViewModel (void)
 
 	if (!r_drawentities.value)
 		return;
-
+#ifndef NZP
 	if (cl.items & IT_INVISIBILITY)
 		return;
-
+#endif
 	if (cl.stats[STAT_HEALTH] <= 0)
 		return;
 

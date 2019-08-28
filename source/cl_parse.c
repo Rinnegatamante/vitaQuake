@@ -538,9 +538,13 @@ CL_ParseClientdata
 Server information pertaining to this client only
 ==================
 */
+#ifdef NZP
+int perk_order[8];
+int current_perk_order;
+#endif
 void CL_ParseClientdata (int bits)
 {
-	int		i, j;
+	int		i, j, s;
 
 	if (bits & SU_VIEWHEIGHT)
 		cl.viewheight = MSG_ReadChar ();
@@ -551,6 +555,174 @@ void CL_ParseClientdata (int bits)
 		cl.idealpitch = MSG_ReadChar ();
 	else
 		cl.idealpitch = 0;
+#ifdef NZP
+	if (bits & SU_PERKS)
+		i = MSG_ReadLong ();
+	else
+		i = 0;
+	
+	if (cl.perks != i)
+	{
+		if (i & 1 && !(cl.perks & 1))
+		{
+			perk_order[current_perk_order] = 1;
+			current_perk_order++;
+		}
+		if (i & 2 && !(cl.perks & 2))
+		{
+			perk_order[current_perk_order] = 2;
+			current_perk_order++;
+		}
+		if (i & 4 && !(cl.perks & 4))
+		{
+			perk_order[current_perk_order] = 4;
+			current_perk_order++;
+		}
+		if (i & 8 && !(cl.perks & 8))
+		{
+			perk_order[current_perk_order] = 8;
+			current_perk_order++;
+		}
+		if (i & 16 && !(cl.perks & 16))
+		{
+			perk_order[current_perk_order] = 16;
+			current_perk_order++;
+		}
+		if (i & 32 && !(cl.perks & 32))
+		{
+			perk_order[current_perk_order] = 32;
+			current_perk_order++;
+		}
+		if (i & 64 && !(cl.perks & 64))
+		{
+			perk_order[current_perk_order] = 64;
+			current_perk_order++;
+		}
+		if (cl.perks & 1 && !(i & 1))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 1)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 2 && !(i & 2))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 2)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 4 && !(i & 4))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 4)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 8 && !(i & 8))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 8)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 16 && !(i & 16))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 16)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 32 && !(i & 32))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 32)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		if (cl.perks & 64 && !(i & 64))
+		{
+			for (s = 0; s < 8; s++)
+			{
+				if (perk_order[s] == 64)
+				{
+					perk_order[s] = 0;
+					while (perk_order[s+1])
+					{
+						perk_order[s] = perk_order[s+1];
+						perk_order[s+1] = 0;
+					}
+					break;
+				}
+			}
+			current_perk_order--;
+		}
+		cl.perks = i;
+	}
+	
+	cl.onground = (bits & SU_ONGROUND) != 0;
+	cl.inwater = (bits & SU_INWATER) != 0;
+#endif
 
 	VectorCopy (cl.mvelocity[0], cl.mvelocity[1]);
 	for (i=0 ; i<3 ; i++)
@@ -565,6 +737,7 @@ void CL_ParseClientdata (int bits)
 			cl.mvelocity[0][i] = 0;
 	}
 
+#ifndef NZP
 // [always sent]	if (bits & SU_ITEMS)
 		i = MSG_ReadLong ();
 
@@ -579,12 +752,19 @@ void CL_ParseClientdata (int bits)
 
 	cl.onground = (bits & SU_ONGROUND) != 0;
 	cl.inwater = (bits & SU_INWATER) != 0;
+#endif
 
 	if (bits & SU_WEAPONFRAME)
 		cl.stats[STAT_WEAPONFRAME] = MSG_ReadByte ();
 	else
 		cl.stats[STAT_WEAPONFRAME] = 0;
 
+#ifdef NZP
+	if (bits & SU_WEAPONSKIN)
+		cl.stats[STAT_WEAPONSKIN] = MSG_ReadByte ();
+	else
+		cl.stats[STAT_WEAPONSKIN] = 0;
+#else
 	if (bits & SU_ARMOR)
 		i = MSG_ReadByte ();
 	else
@@ -594,6 +774,7 @@ void CL_ParseClientdata (int bits)
 		cl.stats[STAT_ARMOR] = i;
 		Sbar_Changed ();
 	}
+#endif
 
 	if (bits & SU_WEAPON)
 		i = MSG_ReadByte ();
@@ -602,24 +783,115 @@ void CL_ParseClientdata (int bits)
 	if (cl.stats[STAT_WEAPON] != i)
 	{
 		cl.stats[STAT_WEAPON] = i;
+#ifndef NZP
 		Sbar_Changed ();
+#endif
 	}
+
+#ifdef NZP
+	if (bits & SU_GRENADES)
+		i = MSG_ReadLong ();
+	else
+		i = 0;
+
+	if (cl.stats[STAT_GRENADES] != i)
+	{
+		//HUD_Change_time = Sys_FloatTime() + 6;
+		cl.stats[STAT_GRENADES] = i;
+	}
+
+	i = MSG_ReadShort ();
+	if (cl.stats[STAT_PRIGRENADES] != i)
+	{
+		//HUD_Change_time = Sys_FloatTime() + 6;
+		cl.stats[STAT_PRIGRENADES] = i;
+	}
+
+
+	i = MSG_ReadShort ();
+	if (cl.stats[STAT_SECGRENADES] != i)
+	{
+		//HUD_Change_time = Sys_FloatTime() + 6;
+		cl.stats[STAT_SECGRENADES] = i;
+	}
+#endif
 
 	i = MSG_ReadShort ();
 	if (cl.stats[STAT_HEALTH] != i)
 	{
 		if (i < cl.stats[STAT_HEALTH]) IN_StartRumble();
 		cl.stats[STAT_HEALTH] = i;
+#ifndef NZP
 		Sbar_Changed ();
+#endif
 	}
 
 	i = MSG_ReadByte ();
 	if (cl.stats[STAT_AMMO] != i)
 	{
 		cl.stats[STAT_AMMO] = i;
+#ifdef NZP
+		//HUD_Change_time = Sys_FloatTime() + 6;
+#else
 		Sbar_Changed ();
+#endif
 	}
 
+#ifdef NZP
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_CURRENTMAG] != i)
+	{
+		//HUD_Change_time = Sys_FloatTime() + 6;
+		cl.stats[STAT_CURRENTMAG] = i;
+	}
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_ZOOM] != i)
+		cl.stats[STAT_ZOOM] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_ACTIVEWEAPON] != i)
+	{
+		//HUD_Change_time = Sys_FloatTime() + 6;
+		cl.stats[STAT_ACTIVEWEAPON] = i;
+	}
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_ROUNDS] != i)
+		cl.stats[STAT_ROUNDS] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_ROUNDCHANGE] != i)
+		cl.stats[STAT_ROUNDCHANGE] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_X2] != i)
+		cl.stats[STAT_X2] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_INSTA] != i)
+		cl.stats[STAT_INSTA] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.progress_bar != i)
+		cl.progress_bar = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_WEAPON2] != i)
+		cl.stats[STAT_WEAPON2] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_WEAPON2SKIN] != i)
+		cl.stats[STAT_WEAPON2SKIN] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_WEAPON2FRAME] != i)
+		cl.stats[STAT_WEAPON2FRAME] = i;
+
+	i = MSG_ReadByte ();
+	if (cl.stats[STAT_CURRENTMAG2] != i)
+		cl.stats[STAT_CURRENTMAG2] = i;
+#else
 	for (i=0 ; i<4 ; i++)
 	{
 		j = MSG_ReadByte ();
@@ -648,6 +920,7 @@ void CL_ParseClientdata (int bits)
 			Sbar_Changed ();
 		}
 	}
+#endif
 }
 
 /*

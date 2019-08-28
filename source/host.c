@@ -492,6 +492,10 @@ This clears all the memory used by both the client and server, but does
 not reinitialize anything.
 ================
 */
+#ifdef NZP
+extern int perk_order[8];
+extern int current_perk_order;
+#endif
 void Host_ClearMemory (void)
 {
 	Con_DPrintf ("Clearing memory\n");
@@ -503,6 +507,16 @@ void Host_ClearMemory (void)
 	cls.signon = 0;
 	memset (&sv, 0, sizeof(sv));
 	memset (&cl, 0, sizeof(cl));
+#ifdef NZP
+	perk_order[0] = 0;
+	perk_order[1] = 0;
+	perk_order[2] = 0;
+	perk_order[3] = 0;
+	perk_order[4] = 0;
+	perk_order[5] = 0;
+	perk_order[6] = 0;
+	perk_order[7] = 0;
+#endif
 }
 
 

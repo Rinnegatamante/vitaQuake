@@ -489,6 +489,7 @@ V_CalcPowerupCshift
 */
 void V_CalcPowerupCshift (void)
 {
+#ifndef NZP
 	if (cl.items & IT_QUAD)
 	{
 		cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
@@ -519,6 +520,7 @@ void V_CalcPowerupCshift (void)
 	}
 	else
 		cl.cshifts[CSHIFT_POWERUP].percent = 0;
+#endif
 }
 
 /*
@@ -534,9 +536,9 @@ void V_UpdatePalette (void)
 	byte	pal[768];
 	int		r,g,b;
 	bool force;
-
+#ifndef NZP
 	V_CalcPowerupCshift ();
-	
+#endif
 	new = false;
 	
 	for (i=0 ; i<NUM_CSHIFTS ; i++)

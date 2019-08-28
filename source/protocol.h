@@ -76,6 +76,13 @@ Here is a short list of known protocol used by other NetQuake ports:
 #define	SU_ARMOR		BIT(13)
 #define	SU_WEAPON		BIT(14)
 
+// Nazi Zombies Portable -- Protocol
+#define	SU_WEAPONSKIN	BIT(7)
+#define	SU_PERKS		BIT(9)
+#define	SU_GRENADES		BIT(13)
+#define	SU_PRIGRENADES	BIT(15)
+#define	SU_SECGRENADES	BIT(16)
+
 // FitzQuake -- Protocol extender 
 #define SU_EXTEND1		BIT(15) // another byte to follow
 #define SU_WEAPON2		BIT(16) // 1 byte, this is .weaponmodel & 0xFF00 (second byte)

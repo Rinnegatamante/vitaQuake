@@ -81,7 +81,7 @@ CXX      = $(PREFIX)-g++
 CFLAGS  = -fsigned-char -Wl,-q -O3 -g \
 	-ffast-math -mtune=cortex-a9 -mfpu=neon -DDISABLE_TEXTURE_CACHE \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
-	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
+	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\" -DNZP
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 

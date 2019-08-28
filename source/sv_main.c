@@ -639,10 +639,8 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 	int		i;
 	edict_t	*other;
 	int		items;
-#ifndef QUAKE2
 	eval_t	*val;
-#endif
-
+#ifndef NZP
 //
 // send a damage message
 //
@@ -658,7 +656,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 		ent->v.dmg_take = 0;
 		ent->v.dmg_save = 0;
 	}
-
+#endif
 //
 // send the current viewpos offset from the view entity
 //
@@ -680,21 +678,21 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 		
 	if (ent->v.idealpitch)
 		bits |= SU_IDEALPITCH;
-
+#ifdef NZP
+	if (ent->v.perks)
+		bits |= SU_PERKS;
+#else
 // stuff the sigil bits into the high bits of items for sbar, or else
 // mix in items2
-#ifdef QUAKE2
-	items = (int)ent->v.items | ((int)ent->v.items2 << 23);
-#else
 	val = GetEdictFieldValue(ent, "items2");
 
 	if (val)
 		items = (int)ent->v.items | ((int)val->_float << 23);
 	else
 		items = (int)ent->v.items | ((int)pr_global_struct->serverflags << 28);
-#endif
 
 	bits |= SU_ITEMS;
+#endif
 	
 	if ( (int)ent->v.flags & FL_ONGROUND)
 		bits |= SU_ONGROUND;
@@ -712,12 +710,25 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 	
 	if (ent->v.weaponframe)
 		bits |= SU_WEAPONFRAME;
-
+#ifdef NZP
+	if (ent->v.weaponskin)
+		bits |= SU_WEAPONSKIN;
+#else
 	if (ent->v.armorvalue)
 		bits |= SU_ARMOR;
-
-//	if (ent->v.weapon)
+#endif
+#ifdef NZP
+	if (ent->v.weapon)
+#endif
 		bits |= SU_WEAPON;
+		
+#ifdef NZP
+	if (ent->v.primary_grenades)
+		bits |= SU_PRIGRENADES;
+	
+	if (ent->v.grenades)
+		bits |= SU_GRENADES;
+#endif
 
 // send the data
 
@@ -729,6 +740,11 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 
 	if (bits & SU_IDEALPITCH)
 		MSG_WriteChar (msg, ent->v.idealpitch);
+	
+#ifdef NZP
+	if (bits & SU_PERKS)
+		MSG_WriteLong (msg, ent->v.perks);
+#endif
 
 	for (i=0 ; i<3 ; i++)
 	{
@@ -738,18 +754,45 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 			MSG_WriteChar (msg, ent->v.velocity[i]/16);
 	}
 
+#ifndef NZP
 // [always sent]	if (bits & SU_ITEMS)
 	MSG_WriteLong (msg, items);
+#endif
 
 	if (bits & SU_WEAPONFRAME)
 		MSG_WriteByte (msg, ent->v.weaponframe);
+#ifdef NZP
+	if (bits & SU_WEAPONSKIN)
+		MSG_WriteByte (msg, ent->v.weaponskin);
+#else
 	if (bits & SU_ARMOR)
 		MSG_WriteByte (msg, ent->v.armorvalue);
+#endif
 	if (bits & SU_WEAPON)
 		MSG_WriteByte (msg, SV_ModelIndex(pr_strings+ent->v.weaponmodel));
-	
+#ifdef NZP
+	if (bits & SU_GRENADES)
+		MSG_WriteLong (msg, ent->v.grenades);
+	MSG_WriteShort (msg, ent->v.primary_grenades);
+	MSG_WriteShort (msg, ent->v.secondary_grenades);
+#endif
 	MSG_WriteShort (msg, ent->v.health);
 	MSG_WriteByte (msg, ent->v.currentammo);
+#ifdef NZP
+	MSG_WriteByte (msg, ent->v.currentmag);
+	MSG_WriteByte (msg, ent->v.zoom);
+	MSG_WriteByte (msg, ent->v.weapon);
+	MSG_WriteByte (msg, pr_global_struct->rounds);
+	MSG_WriteByte (msg, pr_global_struct->rounds_change);
+	MSG_WriteByte (msg, ent->v.x2_icon);
+	MSG_WriteByte (msg, ent->v.insta_icon);
+	MSG_WriteByte (msg, ent->v.progress_bar);
+	MSG_WriteByte (msg, SV_ModelIndex(pr_strings+ent->v.weapon2model));
+	MSG_WriteByte (msg, ent->v.weapon2skin);
+	MSG_WriteByte (msg, ent->v.weapon2frame);
+	MSG_WriteByte (msg, ent->v.currentmag2);
+#else
+
 	MSG_WriteByte (msg, ent->v.ammo_shells);
 	MSG_WriteByte (msg, ent->v.ammo_nails);
 	MSG_WriteByte (msg, ent->v.ammo_rockets);
@@ -770,6 +813,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 			}
 		}
 	}
+#endif
 }
 
 /*
@@ -821,7 +865,11 @@ void SV_UpdateToReliableMessages (void)
 // check for changes to be sent over the reliable streams
 	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
 	{
+#ifdef NZP
+		if (host_client->old_frags != host_client->edict->v.points)
+#else
 		if (host_client->old_frags != host_client->edict->v.frags)
+#endif
 		{
 			for (j=0, client = svs.clients ; j<svs.maxclients ; j++, client++)
 			{
@@ -829,10 +877,17 @@ void SV_UpdateToReliableMessages (void)
 					continue;
 				MSG_WriteByte (&client->message, svc_updatefrags);
 				MSG_WriteByte (&client->message, i);
+#ifdef NZP
+				MSG_WriteLong (&client->message, host_client->edict->v.points);
+#else
 				MSG_WriteShort (&client->message, host_client->edict->v.frags);
+#endif
 			}
-
+#ifdef NZP
+			host_client->old_frags = host_client->edict->v.points;
+#else
 			host_client->old_frags = host_client->edict->v.frags;
+#endif
 		}
 	}
 	
