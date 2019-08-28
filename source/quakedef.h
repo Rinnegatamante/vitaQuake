@@ -121,7 +121,7 @@ void	VID_UnlockBuffer (void);
 //
 // per-level limits
 //
-#define	MAX_EDICTS		600			// FIXME: ouch! ouch! ouch!
+#define	MAX_EDICTS		32768
 #define	MAX_LIGHTSTYLES	64
 #define	MAX_MODELS		256			// these are sent over the net as bytes
 #define	MAX_SOUNDS		256			// so they cannot be blindly increased
@@ -436,4 +436,4 @@ extern float costablef[17];
 typedef struct ModsList{
 	char name[256];
 	struct ModsList* next;
-}ModsList;
+} ModsList;
