@@ -99,7 +99,9 @@ void Log(const char *format, ...) {
 	va_end(arg);
 	int i;
 	sprintf(msg, "%s\n", msg);
-	FILE* log = fopen("ux0:/data/Quake/log.txt", "a+");
+	FILE* f = NULL;
+	if (is_uma0) f = fopen("uma0:/data/Quake/log.txt", "a+");
+	else f = fopen("ux0:/data/Quake/log.txt", "a+");
 	if (log != NULL) {
 		fwrite(msg, 1, strlen(msg), log);
 		fclose(log);
@@ -467,25 +469,6 @@ int main(int argc, char **argv)
 	const float tickRate = 1.0f / sceRtcGetTickResolution();
 	static quakeparms_t    parms;
 	
-	// Initializing empty ModList
-	mods = NULL;
-	int i = 0;
-	int max_idx = -1;
-	
-	// Scanning main folder in search of mods
-	int dd = sceIoDopen(parms.basedir);
-	SceIoDirent entry;
-	int res;
-	while (sceIoDread(dd, &entry) > 0){
-		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))){
-				mods = addMod(entry.d_name, mods);
-				max_mod_idx++;
-			}
-		}
-	}
-	sceIoDclose(dd);
-	
 	// Loading resolution and MSAA mode from config files, those are not handled via Host cause Host_Init requires vitaGL to be working
 	char res_str[64];
 	if (is_uma0) f = fopen("uma0:data/Quake/resolution.cfg", "rb");
@@ -582,6 +565,25 @@ int main(int argc, char **argv)
 	
 	if (is_uma0) parms.basedir = "uma0:/data/Quake";
 	else parms.basedir = "ux0:/data/Quake";
+	
+	// Initializing empty ModList
+	mods = NULL;
+	int i = 0;
+	int max_idx = -1;
+	
+	// Scanning main folder in search of mods
+	int dd = sceIoDopen(parms.basedir);
+	SceIoDirent entry;
+	int res;
+	while (sceIoDread(dd, &entry) > 0){
+		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
+			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))){
+				mods = addMod(entry.d_name, mods);
+				max_mod_idx++;
+			}
+		}
+	}
+	sceIoDclose(dd);
 	
 	// Bat files support
 	if (COM_CheckParm("-bat"))
