@@ -48,7 +48,7 @@ extern int m_state;
 //#define	DEBUG
 
 #define ENGINE_NAME			"vitaQuake"
-#define	VERSION				3.50
+#define	VERSION				3.60
 #define VERSION_PROQUAKE	3.50
 #define	GLQUAKE_VERSION	    1.00
 
@@ -212,11 +212,11 @@ void	VID_UnlockBuffer (void);
 #define HIT_PROXIMITY_GUN_BIT 16
 #define HIT_MJOLNIR_BIT       7
 #define HIT_LASER_CANNON_BIT  23
-#define HIT_PROXIMITY_GUN   (1<<HIT_PROXIMITY_GUN_BIT)
-#define HIT_MJOLNIR         (1<<HIT_MJOLNIR_BIT)
-#define HIT_LASER_CANNON    (1<<HIT_LASER_CANNON_BIT)
-#define HIT_WETSUIT         (1<<(23+2))
-#define HIT_EMPATHY_SHIELDS (1<<(23+3))
+#define HIT_PROXIMITY_GUN   BIT(HIT_PROXIMITY_GUN_BIT)
+#define HIT_MJOLNIR         BIT(HIT_MJOLNIR_BIT)
+#define HIT_LASER_CANNON    BIT(HIT_LASER_CANNON_BIT)
+#define HIT_WETSUIT         BIT(25)
+#define HIT_EMPATHY_SHIELDS BIT(26)
 
 //===========================================
 
@@ -245,6 +245,8 @@ typedef struct
 	int		colormap;
 	int		skin;
 	int		effects;
+	unsigned short nodrawtoclient;
+	unsigned short drawonlytoclient;
 } entity_state_t;
 
 

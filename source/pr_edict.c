@@ -87,6 +87,8 @@ void FindEdictFieldOffsets (void)
 {
 	eval_alpha = FindFieldOffset ("alpha");
 	eval_renderamt = FindFieldOffset ("renderamt");
+	eval_nodrawtoclient = FindFieldOffset("nodrawtoclient");
+	eval_drawonlytoclient = FindFieldOffset("drawonlytoclient");
 	
 	EndFrameQC = ED_FindFunction ("EndFrame");
 }

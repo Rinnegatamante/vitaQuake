@@ -452,11 +452,14 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 	float	miss, alpha;
 	edict_t	*ent;
 	eval_t	*val;
-
+	int clentnum;
+	
 // find the client's PVS
 	VectorAdd (clent->v.origin, clent->v.view_ofs, org);
 	pvs = SV_FatPVS (org);
-
+	
+	clentnum = EDICT_TO_PROG(clent); // LordHavoc: for comparison purposes
+	
 // send over all entities (excpet the client) that touch the pvs
 	ent = NEXT_EDICT(sv.edicts);
 	for (e=1 ; e<sv.num_edicts ; e++, ent = NEXT_EDICT(ent))
@@ -472,6 +475,12 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		{
 // ignore ents without visible models
 			if (!ent->v.modelindex || !pr_strings[ent->v.model])
+				continue;
+			
+			if ((val = GETEDICTFIELDVALUE(ent, eval_drawonlytoclient)) && val->edict && val->edict != clentnum)
+				continue;
+			
+			if ((val = GETEDICTFIELDVALUE(ent, eval_nodrawtoclient)) && val->edict == clentnum)
 				continue;
 
 			for (i=0 ; i < ent->num_leafs ; i++)

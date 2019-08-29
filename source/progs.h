@@ -159,6 +159,7 @@ eval_t *GetEdictFieldValue(edict_t *ed, char *field);
 
 #define   GETEDICTFIELDVALUE(ed, fieldoffset) (fieldoffset ? (eval_t *)((byte *)&ed->v + fieldoffset) : NULL)
 
-extern   int   eval_alpha;
-extern   int   eval_renderamt;
-
+extern int eval_alpha;
+extern int eval_renderamt;
+extern int eval_drawonlytoclient;
+extern int eval_nodrawtoclient;

@@ -28,6 +28,7 @@ char	pr_varstring_temp[PR_MAX_TEMPSTRING];	// 2001-10-25 Enhanced temp string ha
 // 2001-10-20 Extension System by LordHavoc  start
 char *pr_extensions[] =
 {
+	"DP_ENT_ALPHA",
 	"DP_HALFLIFE_MAP",
 	"DP_LITSUPPORT",
 	"DP_QC_ASINACOSATANATAN2TAN",
@@ -38,6 +39,8 @@ char *pr_extensions[] =
 	"DP_QC_RANDOMVEC",
 	"DP_QC_SINCOSSQRTPOW",
 	"DP_SV_MODELFLAGS_AS_EFFECTS",
+	"DP_SV_NODRAWTOCLIENT",
+	"DP_SV_DRAWONLYTOCLIENT",
 	"EXT_BITSHIFT",
 	"FRIK_FILE"
 };
@@ -2354,16 +2357,13 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  30, "traceoff", PF_traceoff },
 	{  31, "eprint", PF_eprint },			// void(entity e) debug print an entire entity
 	{  32, "walkmove", PF_walkmove },		// float(float yaw, float dist) walkmove
-//	{  33, "fixme", PF_Fixme },				// float(float yaw, float dist) walkmove
 	{  34, "droptofloor", PF_droptofloor },
 	{  35, "lightstyle", PF_lightstyle },
 	{  36, "rint", PF_rint },
 	{  37, "floor", PF_floor },
 	{  38, "ceil", PF_ceil },
-//	{  39, "fixme", PF_Fixme },
 	{  40, "checkbottom", PF_checkbottom },
 	{  41, "pointcontents", PF_pointcontents },
-//	{  42, "fixme", PF_Fixme },
 	{  43, "fabs", PF_fabs },
 	{  44, "aim", PF_aim },
 	{  45, "cvar", PF_cvar },
@@ -2371,7 +2371,6 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  47, "nextent", PF_nextent },
 	{  48, "particle", PF_particle },
 	{  49, "ChangeYaw", PF_changeyaw },
-//	{  50, "fixme", PF_Fixme },
 	{  51, "vectoangles", PF_vectoangles },
 	{  52, "WriteByte", PF_WriteByte },
 	{  53, "WriteChar", PF_WriteChar },
@@ -2396,7 +2395,6 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  68, "precache_file", PF_precache_file },
 	{  69, "makestatic", PF_makestatic },
 	{  70, "changelevel", PF_changelevel },
-//	{  71, "fixme", PF_Fixme },
 	{  72, "cvar_set", PF_cvar_set },
 	{  73, "centerprint", PF_centerprint },
 	{  74, "ambientsound", PF_ambientsound },
