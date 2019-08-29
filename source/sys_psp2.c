@@ -621,7 +621,7 @@ int quake_main (unsigned int argc, void* argv){
 		if (t < com_argc)
 			parms.memsize = Q_atoi(com_argv[t]) * 1024 * 1024;
 	} else
-		parms.memsize = 30 * 1024 * 1024;
+		parms.memsize = 64 * 1024 * 1024;
 	
 	parms.membase = malloc(parms.memsize);
 
@@ -772,7 +772,7 @@ int quake_main (unsigned int argc, void* argv){
 
 int main(int argc, char **argv)
 {
-	// We need a bigger stack to run Quake 2, so we create a new thread with a proper stack size
+	// We need a bigger stack to run Quake, so we create a new thread with a proper stack size
 	SceUID main_thread = sceKernelCreateThread("Quake", quake_main, 0x40, 0x800000, 0, 0, NULL);
 	if (main_thread >= 0){
 		sceKernelStartThread(main_thread, 0, NULL);
