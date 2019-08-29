@@ -29,7 +29,14 @@ char	pr_varstring_temp[PR_MAX_TEMPSTRING];	// 2001-10-25 Enhanced temp string ha
 char *pr_extensions[] =
 {
 // add the extension names here, syntax: "extensionname",
-	"DP_SV_MODELFLAGS_AS_EFFECTS  "
+	"DP_HALFLIFE_MAP",
+	"DP_LITSUPPORT",
+	"DP_QC_CVAR_STRING",
+	"DP_QC_EDICT_NUM",
+	"DP_QC_NUM_FOR_EDICT",
+	"DP_QC_SINCOSSQRTPOW",
+	"DP_SV_MODELFLAGS_AS_EFFECTS",
+	"FRIK_FILE"
 };
 
 int pr_numextensions = sizeof(pr_extensions)/sizeof(pr_extensions[0]);
@@ -1822,6 +1829,11 @@ void PF_sqrt(void)
 	G_FLOAT(OFS_RETURN) = sqrt(G_FLOAT(OFS_PARM0));
 }
 
+void PF_pow(void)
+{
+	G_FLOAT(OFS_RETURN) = pow(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
+}
+
 void PF_Fixme(void)
 {
 	PR_RunError("unimplemented bulitin");
@@ -2340,84 +2352,25 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  77, "precache_file2", PF_precache_file },
 	{  78, "setspawnparms", PF_setspawnparms },
 	{  81, "stof", PF_stof },	// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes
-// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  start
-//	{  90, "tracebox", PF_tracebox },
-//	{  91, "randomvec", PF_randomvec },
-//	{  92, "getlight", PF_GetLight },	// not implemented yet
-//	{  93, "cvar_create", PF_cvar_create },		// 2001-09-18 New BuiltIn Function: cvar_create() by Maddes
-//	{  94, "fmin", PF_fmin },
-//	{  95, "fmax", PF_fmax },
-//	{  96, "fbound", PF_fbound },
-//	{  97, "fpow", PF_fpow },
-//	{  98, "findfloat", PF_FindFloat },
+	{  97, "pow", PF_pow },
 	{ PR_DEFAULT_FUNCNO_EXTENSION_FIND, "extension_find", PF_extension_find },	// 2001-10-20 Extension System by Lord Havoc/Maddes
-//	{   0, "registercvar", PF_cvar_create },	// 0 indicates that this entry is just for remapping (because of name change)
-//	{   0, "checkextension", PF_extension_find },
-// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  end
 	{ PR_DEFAULT_FUNCNO_BUILTIN_FIND, "builtin_find", PF_builtin_find },	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
 	{ 101, "cmd_find", PF_cmd_find },		// 2001-09-16 New BuiltIn Function: cmd_find() by Maddes
 	{ 102, "cvar_find", PF_cvar_find },		// 2001-09-16 New BuiltIn Function: cvar_find() by Maddes
-	{ 103, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
-//	{ 105, "cvar_free", PF_cvar_free },		// 2001-09-18 New BuiltIn Function: cvar_free() by Maddes
-//	{ 106, "NVS_InitSVCMsg", PF_NVS_InitSVCMsg },	// 2000-05-02 NVS SVC by Maddes
 	{ 107, "WriteFloat", PF_WriteFloat },	// 2001-09-16 New BuiltIn Function: WriteFloat() by Maddes
-	{ 108, "etof", PF_etof },	// 2001-09-25 New BuiltIn Function: etof() by Maddes
-	{ 109, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
-// 2001-09-20 QuakeC file access by FrikaC/Maddes  start
 	{ 110, "fopen", PF_fopen },
 	{ 111, "fclose", PF_fclose },
 	{ 112, "fgets", PF_fgets },
 	{ 113, "fputs", PF_fputs },
-	{   0, "open", PF_fopen },		// 0 indicates that this entry is just for remapping (because of name and number change)
-	{   0, "close", PF_fclose },
-	{   0, "read", PF_fgets },
-	{   0, "write", PF_fputs },
-// 2001-09-20 QuakeC file access by FrikaC/Maddes  end
-// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes  start
 	{ 114, "strlen", PF_strlen },
 	{ 115, "strcat", PF_strcat },
 	{ 116, "substring", PF_substring },
 	{ 117, "stov", PF_stov },
 	{ 118, "strzone", PF_strzone },
 	{ 119, "strunzone", PF_strunzone },
-	{   0, "zone", PF_strzone },		// 0 indicates that this entry is just for remapping (because of name and number change)
-	{   0, "unzone", PF_strunzone },
-// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes  end
-// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  start
-//	{ 400, "copyentity", PF_... },
-//	{ 401, "setcolor", PF_... },
-//	{ 402, "findchain", PF_... },
-//	{ 403, "findchainfloat", PF_... },
-//	{ 404, "effect", PF_... },
-//	{ 405, "te_blood", PF_... },
-//	{ 406, "te_bloodshower", PF_... },
-//	{ 407, "te_explosionrgb", PF_... },
-//	{ 408, "te_particlecube", PF_... },
-//	{ 409, "te_particlerain", PF_... },
-//	{ 410, "te_particlesnow", PF_... },
-//	{ 411, "te_spark", PF_... },
-//	{ 412, "te_gunshotquad", PF_... },
-//	{ 413, "te_spikequad", PF_... },
-//	{ 414, "te_superspikequad", PF_... },
-//	{ 415, "te_explosionquad", PF_... },
-//	{ 416, "te_smallflash", PF_... },
-//	{ 417, "te_customflash", PF_... },
-//	{ 418, "te_gunshot", PF_... },
-//	{ 419, "te_spike", PF_... },
-//	{ 420, "te_superspike", PF_... },
-//	{ 421, "te_explosion", PF_... },
-//	{ 422, "te_tarexplosion", PF_... },
-//	{ 423, "te_wizspike", PF_... },
-//	{ 424, "te_knightspike", PF_... },
-//	{ 425, "te_lavasplash", PF_... },
-//	{ 426, "te_teleport", PF_... },
-//	{ 427, "te_explosion2", PF_... },
-//	{ 428, "te_lightning1", PF_... },
-//	{ 429, "te_lightning2", PF_... },
-//	{ 430, "te_lightning3", PF_... },
-//	{ 431, "te_beam", PF_... },
-//	{ 432, "vectorvectors", PF_... },
-// 2001-11-15 DarkPlaces general builtin functions by Lord Havoc  end
+	{ 448, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
+	{ 459, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
+	{ 512, "etof", PF_etof },	// 2001-09-25 New BuiltIn Function: etof() by Maddes
 };
 
 int pr_ebfs_numbuiltins = sizeof(pr_ebfs_builtins)/sizeof(pr_ebfs_builtins[0]);
