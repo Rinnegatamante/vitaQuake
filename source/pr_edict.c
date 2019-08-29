@@ -70,6 +70,7 @@ int   eval_alpha;
 int   eval_renderamt;
 
 ddef_t *ED_FindField (char *name);
+dfunction_t *ED_FindFunction (char *name);
 
 int FindFieldOffset (char *field)
 {
@@ -81,10 +82,13 @@ int FindFieldOffset (char *field)
 	return d->ofs*4;
 }
 
+dfunction_t *EndFrameQC;
 void FindEdictFieldOffsets (void)
 {
 	eval_alpha = FindFieldOffset ("alpha");
 	eval_renderamt = FindFieldOffset ("renderamt");
+	
+	EndFrameQC = ED_FindFunction ("EndFrame");
 }
 
 /*

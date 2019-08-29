@@ -1510,6 +1510,7 @@ void SV_Physics (void)
 {
 	int		i;
 	edict_t	*ent;
+	extern dfunction_t *EndFrameQC;
 
 // let the progs know that a new frame has started
 	pr_global_struct->self = EDICT_TO_PROG(sv.edicts);
@@ -1561,6 +1562,15 @@ void SV_Physics (void)
 
 	if (pr_global_struct->force_retouch)
 		pr_global_struct->force_retouch--;
+	
+	// LordHavoc: endframe support
+	if (EndFrameQC)
+	{
+		pr_global_struct->self = EDICT_TO_PROG(sv.edicts);
+		pr_global_struct->other = EDICT_TO_PROG(sv.edicts);
+		pr_global_struct->time = sv.time;
+		PR_ExecuteProgram ((func_t)(EndFrameQC - pr_functions));
+	}
 
 	sv.time += host_frametime;
 }
