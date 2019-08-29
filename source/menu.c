@@ -1130,7 +1130,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* OPTIONS MENU */
 
-#define	OPTIONS_ITEMS 31
+#define	OPTIONS_ITEMS 32
 
 #define	SLIDER_RANGE 10
 
@@ -1278,16 +1278,24 @@ void M_AdjustSliders (int dir)
 			r_mirroralpha.value = 1;
 		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 		break;
-	case 27:	// specular mode
+	case 27: // water opacity
+		r_wateralpha.value += dir * 0.1;
+		if (r_wateralpha.value < 0)
+			r_wateralpha.value = 0;
+		if (r_wateralpha.value > 1)
+			r_wateralpha.value = 1;
+		Cvar_SetValue ("r_wateralpha", r_wateralpha.value);
+		break;
+	case 28:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 28:
+	case 29:
 		msaa += dir;
 		if (msaa < 0) msaa = 2;
 		else if (msaa > 2) msaa = 0;
 		SetAntiAliasing(msaa);
 		break;
-	case 29:	// resolution
+	case 30:	// resolution
 		if (r_idx == -1) {
 			for (r_idx = 0; r_idx < 4; r_idx++) {
 				if (cfg_width == w_res[r_idx]) break;
@@ -1298,10 +1306,10 @@ void M_AdjustSliders (int dir)
 		else if (r_idx < 0) r_idx = 3;
 		SetResolution(w_res[r_idx], h_res[r_idx]);
 		break;
-	case 30:
+	case 31:
 		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
 		break;
-	case 31:	// performance test
+	case 32:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1425,27 +1433,31 @@ void M_Options_Draw (void)
 	M_Print (16, 240, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
 	M_DrawSlider (220, 240, r);
-
-	M_Print (16, 248, "         Specular Mode");
-	M_DrawCheckbox (220, 248, gl_xflip.value);
 	
-	M_Print (16, 256, "         Anti-Aliasing");
-	if (msaa == 0) M_Print (220, 256, "Disabled");
-	else if (msaa == 1) M_Print (220, 256, "MSAA 2x");
-	else M_Print (220, 256, "MSAA 4x");
+	M_Print (16, 248, "         Water Opacity");
+	r = r_wateralpha.value;
+	M_DrawSlider (220, 248, r);
+
+	M_Print (16, 256, "         Specular Mode");
+	M_DrawCheckbox (220, 256, gl_xflip.value);
+	
+	M_Print (16, 264, "         Anti-Aliasing");
+	if (msaa == 0) M_Print (220, 264, "Disabled");
+	else if (msaa == 1) M_Print (220, 264, "MSAA 2x");
+	else M_Print (220, 264, "MSAA 4x");
 	
 	char res_str[64];
 	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 264, "            Resolution");
-	M_Print (220, 264, res_str);
+	M_Print (16, 272, "            Resolution");
+	M_Print (220, 272, res_str);
 
-	M_Print (16, 272, "                V-Sync");
-	M_DrawCheckbox (220, 272, vid_vsync.value);
+	M_Print (16, 280, "                V-Sync");
+	M_DrawCheckbox (220, 280, vid_vsync.value);
 	
-	M_Print (16, 284, "      Test Performance");
+	M_Print (16, 292, "      Test Performance");
 
 // cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 284, 12+((int)(realtime*4)&1));
+	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 292, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 

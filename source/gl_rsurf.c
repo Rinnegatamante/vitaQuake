@@ -622,6 +622,11 @@ void R_DrawWaterSurfaces (void)
     glLoadMatrixf (r_world_matrix);
 
 	if (r_wateralpha.value < 1.0) {
+		glEnable(GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GL_EnableState(GL_MODULATE);
+		GL_DisableState(GL_ALPHA_TEST);
+		glDepthMask(GL_FALSE);
 		glEnable (GL_BLEND);
 		GL_Color(1,1,1,r_wateralpha.value);
 		GL_EnableState(GL_MODULATE);
@@ -650,9 +655,10 @@ void R_DrawWaterSurfaces (void)
 
 	if (r_wateralpha.value < 1.0) {
 		GL_EnableState(GL_REPLACE);
-
+		GL_EnableState(GL_ALPHA_TEST);
 		GL_Color(1,1,1,1);
 		glDisable (GL_BLEND);
+		glDepthMask(GL_TRUE);
 	}
 
 }
