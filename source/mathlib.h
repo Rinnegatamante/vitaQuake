@@ -36,13 +36,23 @@ struct mplane_s;
 
 extern vec3_t vec3_origin;
 
+/// LordHavoc: this function never returns exactly MIN or exactly MAX, because
+/// of a QuakeC bug in id1 where the line
+/// self.nextthink = self.nexthink + random() * 0.5;
+/// can result in 0 (self.nextthink is 0 at this point in the code to begin
+/// with), causing "stone monsters" that never spawned properly, also MAX is
+/// avoided because some people use random() as an index into arrays or for
+/// loop conditions, where hitting exactly MAX may be a fatal error
+#define lhrandom(MIN,MAX) (((double)(rand() + 0.5) / ((double)RAND_MAX + 1)) * ((MAX)-(MIN)) + (MIN))
+
 #define DotProduct(x,y) (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
 #define VectorSubtract(a,b,out) {out[0]=a[0]-b[0];out[1]=a[1]-b[1];out[2]=a[2]-b[2];}
 #define VectorAdd(a,b,out) {out[0]=a[0]+b[0];out[1]=a[1]+b[1];out[2]=a[2]+b[2];}
 #define VectorCopy(a,out) {out[0]=a[0];out[1]=a[1];out[2]=a[2];}
 #define VectorClear(a) ((a)[0] = (a)[1] = (a)[2] = 0)
 #define VectorNegate(a, out) ((out)[0] = -(a)[0], (out)[1] = -(a)[1], (out)[2] = -(a)[2])
-
+#define VectorRandom(v) do{(v)[0] = lhrandom(-1, 1);(v)[1] = lhrandom(-1, 1);(v)[2] = lhrandom(-1, 1);}while(DotProduct(v, v) > 1)
+	
 void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
 
 vec_t _DotProduct (vec3_t v1, vec3_t v2);

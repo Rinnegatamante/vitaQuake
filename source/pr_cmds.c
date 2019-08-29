@@ -28,14 +28,17 @@ char	pr_varstring_temp[PR_MAX_TEMPSTRING];	// 2001-10-25 Enhanced temp string ha
 // 2001-10-20 Extension System by LordHavoc  start
 char *pr_extensions[] =
 {
-// add the extension names here, syntax: "extensionname",
 	"DP_HALFLIFE_MAP",
 	"DP_LITSUPPORT",
+	"DP_QC_ASINACOSATANATAN2TAN",
 	"DP_QC_CVAR_STRING",
 	"DP_QC_EDICT_NUM",
+	"DP_QC_ETOS",
 	"DP_QC_NUM_FOR_EDICT",
+	"DP_QC_RANDOMVEC",
 	"DP_QC_SINCOSSQRTPOW",
 	"DP_SV_MODELFLAGS_AS_EFFECTS",
+	"EXT_BITSHIFT",
 	"FRIK_FILE"
 };
 
@@ -1829,9 +1832,59 @@ void PF_sqrt(void)
 	G_FLOAT(OFS_RETURN) = sqrt(G_FLOAT(OFS_PARM0));
 }
 
+void PF_asin(void)
+{
+	G_FLOAT(OFS_RETURN) = asin(G_FLOAT(OFS_PARM0));
+}
+
+void PF_acos(void)
+{
+	G_FLOAT(OFS_RETURN) = acos(G_FLOAT(OFS_PARM0));
+}
+
+void PF_atan(void)
+{
+	G_FLOAT(OFS_RETURN) = atan(G_FLOAT(OFS_PARM0));
+}
+
+void PF_atan2(void)
+{
+	G_FLOAT(OFS_RETURN) = atan2(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
+}
+
+void PF_tan(void)
+{
+	G_FLOAT(OFS_RETURN) = tan(G_FLOAT(OFS_PARM0));
+}
+
+void PF_randomvec(void)
+{
+	vec3_t temp;
+	VectorRandom(temp);
+	VectorCopy(temp, G_VECTOR(OFS_RETURN));
+}
+
 void PF_pow(void)
 {
 	G_FLOAT(OFS_RETURN) = pow(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
+}
+
+void PF_log(void)
+{
+	G_FLOAT(OFS_RETURN) = log(G_FLOAT(OFS_PARM0));
+}
+
+void PF_bitshift(void)
+{
+	int n1 = (int)fabs(G_FLOAT(OFS_PARM0));
+	int n2 = (int)G_FLOAT(OFS_PARM1);
+	if (!n1)
+		G_FLOAT(OFS_RETURN) = n1;
+	else
+		if (n2 < 0)
+			G_FLOAT(OFS_RETURN) = (n1 >> -n2);
+		else
+			G_FLOAT(OFS_RETURN) = (n1 << n2);
 }
 
 void PF_Fixme(void)
@@ -2352,6 +2405,7 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  77, "precache_file2", PF_precache_file },
 	{  78, "setspawnparms", PF_setspawnparms },
 	{  81, "stof", PF_stof },	// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes
+	{  91, "randomvec", PF_randomvec},
 	{  97, "pow", PF_pow },
 	{ PR_DEFAULT_FUNCNO_EXTENSION_FIND, "extension_find", PF_extension_find },	// 2001-10-20 Extension System by Lord Havoc/Maddes
 	{ PR_DEFAULT_FUNCNO_BUILTIN_FIND, "builtin_find", PF_builtin_find },	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
@@ -2368,9 +2422,16 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{ 117, "stov", PF_stov },
 	{ 118, "strzone", PF_strzone },
 	{ 119, "strunzone", PF_strunzone },
+	{ 218, "bitshift", PF_bitshift },
 	{ 448, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
 	{ 459, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
+	{ 471, "asin", PF_asin },
+	{ 472, "acos", PF_acos },
+	{ 473, "atan", PF_atan },
+	{ 474, "atan2", PF_atan2 },
+	{ 475, "tan", PF_tan },
 	{ 512, "etof", PF_etof },	// 2001-09-25 New BuiltIn Function: etof() by Maddes
+	{ 532, "log", PF_log }
 };
 
 int pr_ebfs_numbuiltins = sizeof(pr_ebfs_builtins)/sizeof(pr_ebfs_builtins[0]);
