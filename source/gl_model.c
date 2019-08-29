@@ -174,6 +174,18 @@ void Mod_ClearAll (void)
 			mod->needload = true;
 }
 
+void Mod_ResetAll (void)
+{
+	int		i;
+	model_t	*mod;
+	
+	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
+	{
+		memset(mod, 0, sizeof(model_t));
+	}
+	mod_numknown = 0;
+}
+
 /*
 ==================
 Mod_FindName
@@ -379,7 +391,7 @@ void Mod_LoadTextures (lump_t *l)
 		for (j=0 ; j<MIPLEVELS ; j++)
 			tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
 
-		if (!Q_strncmp(mt->name,"sky",3)) {
+		if (loadmodel->bspversion != HL_BSPVERSION && (!Q_strncmp(mt->name,"sky",3))) {
 			R_InitSky (mt);
 			continue;
 		}
@@ -514,10 +526,8 @@ void Mod_LoadLighting (lump_t *l)
 	// Half-Life models support
 	if (loadmodel->bspversion == HL_BSPVERSION) {
 		if (!l->filelen) return;
-		// FIXME: For some reason, lightmaps for HL BSP are broken
-		// Rinnegatamante 20/08/19
-		//loadmodel->lightdata = Hunk_AllocName(l->filelen, loadname);
-		//memcpy (loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
+		loadmodel->lightdata = Hunk_AllocName(l->filelen, loadname);
+		memcpy (loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 		return;
 	}
 	
@@ -854,7 +864,7 @@ void Mod_LoadFaces (lump_t *l)
 		if (i == -1)
 			out->samples = NULL;
 		else
-			out->samples = loadmodel->lightdata + (i * 3); // LordHavoc
+			out->samples = loadmodel->lightdata + (loadmodel->bspversion == HL_BSPVERSION ? i : i * 3); // LordHavoc
 		
 	// set the drawing flags flag
 		
@@ -1017,31 +1027,72 @@ void Mod_LoadClipnodes (lump_t *l)
 
 	loadmodel->clipnodes = out;
 	loadmodel->numclipnodes = count;
+	
+	if (loadmodel->bspversion == HL_BSPVERSION)
+	{
+		hull = &loadmodel->hulls[1];
+		hull->clipnodes = out;
+		hull->firstclipnode = 0;
+		hull->lastclipnode = count-1;
+		hull->planes = loadmodel->planes;
+		hull->clip_mins[0] = -16;
+		hull->clip_mins[1] = -16;
+		hull->clip_mins[2] = -36;
+		hull->clip_maxs[0] = 16;
+		hull->clip_maxs[1] = 16;
+		hull->clip_maxs[2] = 36;
 
-	hull = &loadmodel->hulls[1];
-	hull->clipnodes = out;
-	hull->firstclipnode = 0;
-	hull->lastclipnode = count-1;
-	hull->planes = loadmodel->planes;
-	hull->clip_mins[0] = -16;
-	hull->clip_mins[1] = -16;
-	hull->clip_mins[2] = -24;
-	hull->clip_maxs[0] = 16;
-	hull->clip_maxs[1] = 16;
-	hull->clip_maxs[2] = 32;
+		hull = &loadmodel->hulls[2];
+		hull->clipnodes = out;
+		hull->firstclipnode = 0;
+		hull->lastclipnode = count-1;
+		hull->planes = loadmodel->planes;
+		hull->clip_mins[0] = -32;
+		hull->clip_mins[1] = -32;
+		hull->clip_mins[2] = -32;
+		hull->clip_maxs[0] = 32;
+		hull->clip_maxs[1] = 32;
+		hull->clip_maxs[2] = 32;
 
-	hull = &loadmodel->hulls[2];
-	hull->clipnodes = out;
-	hull->firstclipnode = 0;
-	hull->lastclipnode = count-1;
-	hull->planes = loadmodel->planes;
-	hull->clip_mins[0] = -32;
-	hull->clip_mins[1] = -32;
-	hull->clip_mins[2] = -24;
-	hull->clip_maxs[0] = 32;
-	hull->clip_maxs[1] = 32;
-	hull->clip_maxs[2] = 64;
+	    hull = &loadmodel->hulls[3];
+		hull->clipnodes = out;
+		hull->firstclipnode = 0;
+		hull->lastclipnode = count-1;
+		hull->planes = loadmodel->planes;
+		hull->clip_mins[0] = -16;
+		hull->clip_mins[1] = -16;
+		hull->clip_mins[2] = -18;
+		hull->clip_maxs[0] = 16;
+		hull->clip_maxs[1] = 16;
+		hull->clip_maxs[2] = 18;
+	}
+	else
+	{
+		hull = &loadmodel->hulls[1];
+		hull->clipnodes = out;
+		hull->firstclipnode = 0;
+		hull->lastclipnode = count-1;
+		hull->planes = loadmodel->planes;
+		hull->clip_mins[0] = -16;
+		hull->clip_mins[1] = -16;
+		hull->clip_mins[2] = -24;
+		hull->clip_maxs[0] = 16;
+		hull->clip_maxs[1] = 16;
+		hull->clip_maxs[2] = 32;
 
+		hull = &loadmodel->hulls[2];
+		hull->clipnodes = out;
+		hull->firstclipnode = 0;
+		hull->lastclipnode = count-1;
+		hull->planes = loadmodel->planes;
+		hull->clip_mins[0] = -32;
+		hull->clip_mins[1] = -32;
+		hull->clip_mins[2] = -24;
+		hull->clip_maxs[0] = 32;
+		hull->clip_maxs[1] = 32;
+		hull->clip_maxs[2] = 64;
+	}
+	
 	for (i=0 ; i<count ; i++, out++, in++)
 	{
 		out->planenum = LittleLong(in->planenum);
