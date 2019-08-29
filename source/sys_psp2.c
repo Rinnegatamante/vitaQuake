@@ -435,9 +435,7 @@ bool CheckForMod(char* dir)
 	return ret;
 }
 
-int main(int argc, char **argv)
-{
-	
+int quake_main (unsigned int argc, void* argv){
 	cl_entities = malloc(sizeof(entity_t) * MAX_EDICTS);
 	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
 	cl_efrags = malloc(sizeof(efrag_t) * MAX_EFRAGS);
@@ -769,6 +767,16 @@ int main(int argc, char **argv)
 	}
 
 	vglEnd();
-	sceKernelExitProcess(0);
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	// We need a bigger stack to run Quake 2, so we create a new thread with a proper stack size
+	SceUID main_thread = sceKernelCreateThread("Quake", quake_main, 0x40, 0x800000, 0, 0, NULL);
+	if (main_thread >= 0){
+		sceKernelStartThread(main_thread, 0, NULL);
+		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
+	}
 	return 0;
 }
