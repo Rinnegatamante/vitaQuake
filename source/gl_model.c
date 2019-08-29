@@ -164,6 +164,7 @@ byte *Mod_LeafPVS (mleaf_t *leaf, model_t *model)
 Mod_ClearAll
 ===================
 */
+static byte *ent_file = NULL;
 void Mod_ClearAll (void)
 {
 	int		i;
@@ -172,6 +173,8 @@ void Mod_ClearAll (void)
 	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
 		if (mod->type != mod_alias)
 			mod->needload = true;
+		
+	ent_file = NULL;
 }
 
 void Mod_ResetAll (void)
@@ -595,6 +598,76 @@ void Mod_LoadVisibility (lump_t *l)
 	memcpy (loadmodel->visdata, mod_base + l->fileofs, l->filelen);
 }
 
+/*
+=================
+Mod_ParseWadsFromEntityLump
+For Half-life maps
+=================
+*/
+static void Mod_ParseWadsFromEntityLump(char *data)
+{
+	char *s, key[1024], value[1024];
+	int i, j, k;
+
+	if (!data || !(data = COM_Parse(data)))
+		return;
+
+	if (com_token[0] != '{')
+		return; // error
+
+	while (1)
+	{
+		if (!(data = COM_Parse(data)))
+			return; // error
+
+		if (com_token[0] == '}')
+			break; // end of worldspawn
+
+		Q_strncpyz(key, (com_token[0] == '_') ? com_token + 1 : com_token, sizeof(key));
+
+		for (s = key + strlen(key) - 1; s >= key && *s == ' '; s--)		// remove trailing spaces
+			*s = 0;
+
+		if (!(data = COM_Parse(data)))
+			return; // error
+
+		Q_strncpyz(value, com_token, sizeof(value));
+
+		if (!strcmp("MaxRange", key))
+            Cvar_Set("r_maxrange", value);
+
+		if (!strcmp("wad", key))
+		{
+			j = 0;
+			for (i = 0; i < strlen(value); i++)
+			{
+				if (value[i] != ';' && value[i] != '\\' && value[i] != '/' && value[i] != ':')
+					break;
+			}
+			if (!value[i])
+				continue;
+			for ( ; i < sizeof(value); i++)
+			{
+				// ignore path - the \\ check is for HalfLife... stupid windoze 'programmers'...
+				if (value[i] == '\\' || value[i] == '/' || value[i] == ':')
+				{
+					j = i + 1;
+				}
+                else if (value[i] == ';' || value[i] == 0)
+				{
+					k = value[i];
+					value[i] = 0;
+					if (value[j])
+						WAD3_LoadTextureWadFile (value + j);
+					j = i + 1;
+					if (!k)
+						break;
+				}
+			}
+		}
+    }
+}
+
 
 /*
 =================
@@ -603,6 +676,27 @@ Mod_LoadEntities
 */
 void Mod_LoadEntities (lump_t *l)
 {
+	char entfilename[128];
+	
+	loadmodel->entities = NULL;
+	
+	strcpy(entfilename, loadmodel->name);
+	COM_StripExtension(entfilename, entfilename);
+	strcat(entfilename, ".ent");
+	ent_file = (byte*) COM_LoadHunkFile (entfilename);
+	
+	if (ent_file)
+	{
+		if (ent_file[0] == '{')
+		{
+			Con_DPrintf("%s loaded", entfilename);
+			loadmodel->entities = (char*)ent_file;
+			return;
+		}
+		else
+			Con_Printf("Corrupt .ent file, ignoring\n");
+	}
+	
 	if (!l->filelen)
 	{
 		loadmodel->entities = NULL;
@@ -610,6 +704,9 @@ void Mod_LoadEntities (lump_t *l)
 	}
 	loadmodel->entities = (signed char*)Hunk_AllocName ( l->filelen, loadname);	
 	memcpy (loadmodel->entities, mod_base + l->fileofs, l->filelen);
+	
+	if (loadmodel->bspversion == HL_BSPVERSION)
+		Mod_ParseWadsFromEntityLump(loadmodel->entities);
 }
 
 
