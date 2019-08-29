@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
 static int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
-static int ramp3[8] = {0x6d, 0x6b, 0x06, 0x05, 0x04, 0x03};
+static int ramp3[6] = {0x6d, 0x6b, 0x06, 0x05, 0x04, 0x03};
 
 particle_t	*active_particles, *free_particles;
 
@@ -272,27 +272,23 @@ void R_ParticleExplosion (vec3_t org)
 		free_particles = p->next;
 		p->next = active_particles;
 		active_particles = p;
-
-		p->die = cl.time + 5;
+		
 		p->color = ramp1[0];
 		p->ramp = rand()&3;
 		if (i & 1)
 		{
 			p->type = pt_explode;
-			for (j=0 ; j<3 ; j++)
-			{
-				p->org[j] = org[j] + ((rand()%32)-16);
-				p->vel[j] = (rand()%512)-256;
-			}
+			p->die = cl.time + (8 - p->ramp) / 10.0f;
 		}
 		else
 		{
 			p->type = pt_explode2;
-			for (j=0 ; j<3 ; j++)
-			{
-				p->org[j] = org[j] + ((rand()%32)-16);
-				p->vel[j] = (rand()%512)-256;
-			}
+			p->die = cl.time + (8 - p->ramp) / 15.0f;
+		}
+		for (j=0 ; j<3 ; j++)
+		{
+			p->org[j] = org[j] + ((rand()%32)-16);
+			p->vel[j] = (rand()%512)-256;
 		}
 	}
 }
@@ -398,26 +394,22 @@ void R_RunParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 
 		if (count == 1024)
 		{	// rocket explosion
-			p->die = cl.time + 5;
 			p->color = ramp1[0];
 			p->ramp = rand()&3;
 			if (i & 1)
 			{
 				p->type = pt_explode;
-				for (j=0 ; j<3 ; j++)
-				{
-					p->org[j] = org[j] + ((rand()%32)-16);
-					p->vel[j] = (rand()%512)-256;
-				}
+				p->die = cl.time + (8 - p->ramp) / 10.0f;
 			}
 			else
 			{
 				p->type = pt_explode2;
-				for (j=0 ; j<3 ; j++)
-				{
-					p->org[j] = org[j] + ((rand()%32)-16);
-					p->vel[j] = (rand()%512)-256;
-				}
+				p->die = cl.time + (8 - p->ramp) / 15.0f;
+			}
+			for (j=0 ; j<3 ; j++)
+			{
+				p->org[j] = org[j] + ((rand()%32)-16);
+				p->vel[j] = (rand()%512)-256;
 			}
 		}
 		else
@@ -558,19 +550,22 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type)
 		
 		VectorCopy (vec3_origin, p->vel);
 		p->die = cl.time + 2;
-
+		
 		switch (type)
 		{
 			case 0:	// rocket trail
 				p->ramp = (rand()&3);
+				if (p->ramp >= 6) p->ramp -= 6;
+				p->die = cl.time + (6 - p->ramp) / 5.0f;
 				p->color = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				for (j=0 ; j<3 ; j++)
 					p->org[j] = start[j] + ((rand()%6)-3);
 				break;
 
-			case 1:	// smoke smoke
-				p->ramp = (rand()&3) + 2;
+			case 1:	// smoke trail
+				p->ramp = (rand()&2) + 2;
+				p->die = cl.time + (6 - p->ramp) / 5.0f;
 				p->color = ramp3[(int)p->ramp];
 				p->type = pt_fire;
 				for (j=0 ; j<3 ; j++)
@@ -688,7 +683,7 @@ void CL_RunParticles (void)
 		case pt_fire:
 			p->ramp += time1;
 			if (p->ramp >= 6)
-				p->die = -1;
+				p->die = cl.time - 0.01f;
 			else
 				p->color = ramp3[(int)p->ramp];
 			p->vel[2] += grav;
@@ -697,7 +692,7 @@ void CL_RunParticles (void)
 		case pt_explode:
 			p->ramp += time2;
 			if (p->ramp >=8)
-				p->die = -1;
+				p->die = cl.time - 0.01f;
 			else
 				p->color = ramp1[(int)p->ramp];
 			for (i=0 ; i<3 ; i++)
@@ -708,7 +703,7 @@ void CL_RunParticles (void)
 		case pt_explode2:
 			p->ramp += time3;
 			if (p->ramp >=8)
-				p->die = -1;
+				p->die = cl.time - 0.01f;
 			else
 				p->color = ramp2[(int)p->ramp];
 			for (i=0 ; i<3 ; i++)
@@ -760,7 +755,6 @@ void R_DrawParticles (void)
 	float*			pUV = gTexCoordBuffer;
 	float			colors[3];
 	
-#ifdef GLQUAKE
 	float			scale;
 	
     GL_Bind(particletexture);
@@ -776,19 +770,10 @@ void R_DrawParticles (void)
 
 	VectorScale (vup, 1.50, up);
 	VectorScale (vright, 1.50, right);
-#else
-	D_StartParticles ();
-
-	VectorScale (vright, xscaleshrink, r_pright);
-	VectorScale (vup, yscaleshrink, r_pup);
-	VectorCopy (vpn, r_ppn);
-#endif
 	
 	int num_vertices = 0;
 	for (p=active_particles ; p ; p=p->next)
 	{
-
-#ifdef GLQUAKE
 		num_vertices += 3;
 
 		// hack a scale up to keep particles from disapearing
@@ -836,13 +821,8 @@ void R_DrawParticles (void)
 		*gVertexBuffer++ = (p_right[0]);
 		*gVertexBuffer++ = (p_right[1]);
 		*gVertexBuffer++ = (p_right[2]);
-
-#else
-		D_DrawParticle (p);
-#endif
 	}
 
-#ifdef GLQUAKE
 	vglVertexAttribPointerMapped(0, pPos);
 	vglVertexAttribPointerMapped(1, pUV);
 	vglVertexAttribPointerMapped(2, pColor);
@@ -853,8 +833,5 @@ void R_DrawParticles (void)
 	glDisable (GL_BLEND);
 	GL_EnableState(GL_REPLACE);
 	GL_Color(1,1,1,1);
-#else
-	D_EndParticles ();
-#endif
 }
 
