@@ -495,7 +495,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 			
 		}
 
-		if (msg->maxsize - msg->cursize < 16)
+		if (msg->cursize + 24 > msg->maxsize)
 		{
 			Con_Printf ("packet overflow\n");
 			return;
