@@ -30,6 +30,9 @@ char *pr_extensions[] =
 {
 	"DP_CON_SET",
 	"DP_CON_SETA",
+	"DP_EF_BLUE",
+	"DP_EF_NODRAW",
+	"DP_EF_RED",
 	"DP_ENT_ALPHA",
 	"DP_HALFLIFE_MAP",
 	"DP_LITSUPPORT",

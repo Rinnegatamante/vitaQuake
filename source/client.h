@@ -81,6 +81,7 @@ typedef struct
 	bool	dark;			// subtracts light instead of adding
 #endif
 	vec3_t color; //LordHavoc Lit. Support
+	float alpha;
 } dlight_t;
 
 

@@ -572,7 +572,11 @@ void CL_RelinkEntities (void)
 			VectorMA (dl->origin, 18, fv, dl->origin);
 			dl->radius = 200 + (rand()&31);
 			dl->minlight = 32;
-			dl->die = cl.time + 0.1;
+			dl->die = cl.time + 0.1f;
+			dl->color[0] = 0.2f;
+			dl->color[1] = 0.1f;
+			dl->color[2] = 0.05f;
+			dl->alpha = 0.7f;
 		}
 		if (ent->effects & EF_BRIGHTLIGHT)
 		{
@@ -580,14 +584,56 @@ void CL_RelinkEntities (void)
 			VectorCopy (ent->origin,  dl->origin);
 			dl->origin[2] += 16;
 			dl->radius = 400 + (rand()&31);
-			dl->die = cl.time + 0.001;
+			dl->die = cl.time + 0.001f;
+			dl->color[0] = 0.2f;
+			dl->color[1] = 0.1f;
+			dl->color[2] = 0.05f;
+			dl->alpha = 0.7f;
 		}
 		if (ent->effects & EF_DIMLIGHT)
 		{
 			dl = CL_AllocDlight (i);
 			VectorCopy (ent->origin,  dl->origin);
 			dl->radius = 200 + (rand()&31);
-			dl->die = cl.time + 0.001;
+			dl->die = cl.time + 0.001f;
+			dl->color[0] = 0.2f;
+			dl->color[1] = 0.1f;
+			dl->color[2] = 0.05f;
+			dl->alpha = 0.7f;
+		}
+		if (ent->effects & EF_BLUE)
+		{
+			dl = CL_AllocDlight (i);
+			VectorCopy (ent->origin,  dl->origin);
+			dl->radius = 200 + (rand()&31);
+			dl->die = cl.time + 0.001f;
+			dl->color[0] = 0.05f;
+			dl->color[1] = 0.05f;
+			dl->color[2] = 0.3f;
+			dl->alpha = 0.7f;
+		}
+		if (ent->effects & EF_RED)
+		{
+			dl = CL_AllocDlight (i);
+			VectorCopy (ent->origin,  dl->origin);
+			dl->radius = 200 + (rand()&31);
+			dl->die = cl.time + 0.001f;
+			dl->color[0] = 0.5f;
+			dl->color[1] = 0.05f;
+			dl->color[2] = 0.05f;
+			dl->alpha = 0.7f;
+		}
+		if ((ent->effects & (EF_BLUE | EF_RED)) == (EF_BLUE | EF_RED))
+		{
+			dl = CL_AllocDlight (i);
+			VectorCopy (ent->origin,  dl->origin);
+			dl->radius = 200 + (rand()&31);
+			dl->die = cl.time + 0.001f;
+			dl->color[0] = 0.5f;
+			dl->color[1] = 0.05f;
+			dl->color[2] = 0.4f;
+			dl->alpha = 0.7f;
+
 		}
 #ifdef QUAKE2
 		if (ent->effects & EF_DARKLIGHT)
@@ -595,7 +641,7 @@ void CL_RelinkEntities (void)
 			dl = CL_AllocDlight (i);
 			VectorCopy (ent->origin,  dl->origin);
 			dl->radius = 200.0 + (rand()&31);
-			dl->die = cl.time + 0.001;
+			dl->die = cl.time + 0.001f;
 			dl->dark = true;
 		}
 		if (ent->effects & EF_LIGHT)
@@ -603,7 +649,7 @@ void CL_RelinkEntities (void)
 			dl = CL_AllocDlight (i);
 			VectorCopy (ent->origin,  dl->origin);
 			dl->radius = 200;
-			dl->die = cl.time + 0.001;
+			dl->die = cl.time + 0.001f;
 		}
 #endif
 
@@ -622,6 +668,10 @@ void CL_RelinkEntities (void)
 			VectorCopy (ent->origin, dl->origin);
 			dl->radius = 200;
 			dl->die = cl.time + 0.01;
+			dl->color[0] = 0.2f;
+			dl->color[1] = 0.1f;
+			dl->color[2] = 0.05f;
+			dl->color[3] = 0.7f;
 		}
 		else if (ent->effects & EF_GRENADE)
 			R_RocketTrail (oldorg, ent->origin, 1);
@@ -633,10 +683,9 @@ void CL_RelinkEntities (void)
 		if (i == cl.viewentity && !chase_active.value)
 			continue;
 
-#ifdef QUAKE2
 		if ( ent->effects & EF_NODRAW )
 			continue;
-#endif
+
 		if (cl_numvisedicts < MAX_VISEDICTS)
 		{
 			cl_visedicts[cl_numvisedicts] = ent;

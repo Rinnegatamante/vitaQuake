@@ -170,11 +170,11 @@ typedef struct client_s
 #define	EF_MUZZLEFLASH 			2
 #define	EF_BRIGHTLIGHT 			4
 #define	EF_DIMLIGHT 			8
+#define EF_NODRAW				16
 #ifdef QUAKE2
 #define EF_DARKLIGHT			16
 #define EF_DARKFIELD			32
 #define EF_LIGHT				64
-#define EF_NODRAW				128
 #endif
 
 #define EF_NOMODELFLAGS  0x800000   // indicates the model's .effects should be ignored (allows overriding them)

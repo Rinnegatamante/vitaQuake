@@ -91,10 +91,10 @@ void R_RenderDlight (dlight_t *light)
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
 	float* pPos = gVertexBuffer;
 	float* pColor = gColorBuffer;
-	*gColorBuffer++ = 0.8f;
-	*gColorBuffer++ = 0.1f;
-	*gColorBuffer++ = 0.0f;
-	*gColorBuffer++ = 0.1f;
+	*gColorBuffer++ = light->color[0];
+	*gColorBuffer++ = light->color[1];
+	*gColorBuffer++ = light->color[2];
+	*gColorBuffer++ = light->alpha;
 	for (i=0 ; i<3 ; i++)
 		*gVertexBuffer++ = light->origin[i] - vpn[i]*rad;
 	for (i=16 ; i>=0 ; i--)
@@ -103,9 +103,11 @@ void R_RenderDlight (dlight_t *light)
 		*gColorBuffer++ = 0.4f;
 		*gColorBuffer++ = 0.0f;
 		*gColorBuffer++ = 0.0f;
+		float cos_rad = costablef[i]*rad;
+		float sin_rad = sintablef[i]*rad;
 		for (j=0 ; j<3 ; j++)
-			*gVertexBuffer++ = light->origin[j] + vright[j]*costablef[i]*rad
-				+ vup[j]*sintablef[i]*rad;
+			*gVertexBuffer++ = light->origin[j] + vright[j]*cos_rad
+				+ vup[j]*sin_rad;
 	}
 	vglVertexAttribPointerMapped(0, pPos);
 	vglVertexAttribPointerMapped(1, pColor);
