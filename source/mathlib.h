@@ -97,3 +97,5 @@ float	anglemod(float a);
 	)										\
 	:										\
 		BoxOnPlaneSide( (emins), (emaxs), (p)))
+		
+int ParseFloats(char *s, float *f, int *f_size);

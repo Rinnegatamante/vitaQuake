@@ -71,6 +71,8 @@ CVAR(v_centermove, 0.15, CVAR_NONE)
 CVAR(v_centerspeed, 500, CVAR_NONE)
 
 CVAR(r_viewmodel_quake, 1, CVAR_ARCHIVE)
+CVAR(r_viewmodeloffset, 0, CVAR_ARCHIVE)
+
 
 //----------------------------------------------
 
@@ -860,13 +862,18 @@ void V_CalcRefdef (void)
 	VectorCopy (ent->origin, view->origin);
 	view->origin[2] += cl.viewheight;
 
-	for (i=0 ; i<3 ; i++)
-	{
-		view->origin[i] += forward[i]*bob*0.4;
-//		view->origin[i] += right[i]*bob*0.4;
-//		view->origin[i] += up[i]*bob*0.8;
+	VectorCopy (r_refdef.vieworg, view->origin);
+	VectorMA (view->origin, bob * 0.4, forward, view->origin);
+
+	if (r_viewmodeloffset.string[0]) {
+		float offset[3];
+		int size = sizeof(offset)/sizeof(offset[0]);
+
+		ParseFloats(r_viewmodeloffset.string, offset, &size);
+		VectorMA (view->origin,  offset[0], right,   view->origin);
+		VectorMA (view->origin, -offset[1], up,      view->origin);
+		VectorMA (view->origin,  offset[2], forward, view->origin);
 	}
-	view->origin[2] += bob;
 
 // fudge position around to keep amount of weapon visible
 // roughly equal with different FOV
@@ -1044,6 +1051,7 @@ void V_Init (void)
 	Cvar_RegisterVariable (&v_gamma);
 
 	Cvar_RegisterVariable (&r_viewmodel_quake);
+	Cvar_RegisterVariable (&r_viewmodeloffset);
 }
 
 

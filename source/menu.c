@@ -34,6 +34,7 @@ extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
 extern cvar_t gl_fog;
 extern cvar_t gl_outline;
+extern cvar_t r_viewmodeloffset;
 extern int scr_width;
 extern int scr_height;
 extern uint8_t is_uma0;
@@ -1147,6 +1148,9 @@ int w_res[] = {480, 640, 720, 960};
 int h_res[] = {272, 368, 408, 544};
 int r_idx = -1;
 
+char *w_pos[] = {"Center", "Right", "Left", "Hidden"};
+int w_pos_idx = -1;
+
 void M_AdjustSliders (int dir)
 {
 	S_LocalSound ("misc/menu3.wav");
@@ -1233,11 +1237,31 @@ void M_AdjustSliders (int dir)
 		Cvar_SetValue ("show_fps", !show_fps.value);
 		break;
 	case 17:	// show weapon
-		Cvar_SetValue ("r_drawviewmodel", !r_drawviewmodel.value);
+		w_pos_idx += dir;
+		if (w_pos_idx > 3) w_pos_idx = 0;
+		if (w_pos_idx < 0) w_pos_idx = 3;
+		switch (w_pos_idx) {
+			case 1:
+				Cvar_SetValue ("r_drawviewmodel", 1);
+				Cvar_SetValue ("r_viewmodeloffset", 8);
+				break;
+			case 2:
+				Cvar_SetValue ("r_drawviewmodel", 1);
+				Cvar_SetValue ("r_viewmodeloffset", -8);
+				break;
+			case 3:
+				Cvar_SetValue ("r_drawviewmodel", 0);
+				break;
+			default:
+				Cvar_SetValue ("r_drawviewmodel", 1);
+				Cvar_SetValue ("r_viewmodeloffset", 0);
+				break;
+		}
 		break;
 	case 18:	// crosshair
-		crosshair.value = crosshair.value + 1;
+		crosshair.value += dir;
 		if (crosshair.value > 2) crosshair.value = 0;
+		else if (crosshair.value < 0) crosshair.value = 2;
 		Cvar_SetValue ("crosshair", crosshair.value);
 		break;
 	case 19:	// field of view
@@ -1399,8 +1423,14 @@ void M_Options_Draw (void)
 	M_Print (16, 160, "        Show Framerate");
 	M_DrawCheckbox (220, 160, show_fps.value);
 
-	M_Print (16, 168, "           Show Weapon");
-	M_DrawCheckbox (220, 168, r_drawviewmodel.value);
+	M_Print (16, 168, "       Weapon Position");
+	if (w_pos_idx == -1) {
+		if (!r_drawviewmodel.value) w_pos_idx = 3;
+		else if (r_viewmodeloffset.value < 0) w_pos_idx = 2;
+		else if (r_viewmodeloffset.value > 0) w_pos_idx = 1;
+		else w_pos_idx = 0;
+	}
+	M_Print (220, 168, w_pos[w_pos_idx]);
 
 	M_Print (16, 176, "        Show Crosshair");
 	if (crosshair.value == 0) M_Print (220, 176, "Off");
@@ -1516,6 +1546,8 @@ void M_Options_Key (int k)
 			motion_vertical_sensitivity.value = 3;
 			scr_sbaralpha.value = 0.5f;
 			gl_outline.value = 0;
+			w_pos_idx = 0;
+			r_viewmodeloffset.value = 0;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
@@ -1542,6 +1574,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
 			Cvar_SetValue ("vid_vsync", vid_vsync.value);
 			Cvar_SetValue ("gl_outline", gl_outline.value);
+			Cvar_SetValue ("r_viewmodeloffset", r_viewmodeloffset.value);
 			SetResolution(960, 544);
 			msaa = 0;
 			r_idx = -1;
