@@ -22,17 +22,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vitasdk.h>
 
 CVAR (m_filter,		0, CVAR_ARCHIVE)
-CVAR (pstv_rumble,	1, CVAR_ARCHIVE | CVAR_PSTV)
-
-CVAR (retrotouch,					0, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (psvita_touchmode,				0, CVAR_ARCHIVE | CVAR_PSVITA)	// 0: as a button / 1: as a joystick
-CVAR (psvita_front_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (psvita_front_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (psvita_back_sensitivity_x,	1, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (psvita_back_sensitivity_y,	0.5, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (motioncam,					 0, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (motion_horizontal_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
-CVAR (motion_vertical_sensitivity,	 0, CVAR_ARCHIVE | CVAR_PSVITA)
+CVAR (pstv_rumble,	1, CVAR_ARCHIVE)
+CVAR (retrotouch,					0, CVAR_ARCHIVE)
+CVAR (psvita_touchmode,				0, CVAR_ARCHIVE)	// 0: as a button / 1: as a joystick
+CVAR (psvita_front_sensitivity_x,	1, CVAR_ARCHIVE)
+CVAR (psvita_front_sensitivity_y,	0.5, CVAR_ARCHIVE)
+CVAR (psvita_back_sensitivity_x,	1, CVAR_ARCHIVE)
+CVAR (psvita_back_sensitivity_y,	0.5, CVAR_ARCHIVE)
+CVAR (motioncam,					 0, CVAR_ARCHIVE)
+CVAR (motion_horizontal_sensitivity,	 0, CVAR_ARCHIVE)
+CVAR (motion_vertical_sensitivity,	 0, CVAR_ARCHIVE)
 
 extern cvar_t always_run, invert_camera;
 extern void Log (const char *format, ...);

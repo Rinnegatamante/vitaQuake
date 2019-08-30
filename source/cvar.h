@@ -60,10 +60,6 @@ interface from being ambiguous.
 #define CVAR_DEBUG		BIT(4)	// CVARs only enabled if the DEBUG flag is set.
 #define	CVAR_CALLBACK	BIT(5)	// CVAR has a callback
 
-// Specific platform CVARs. (ToDo)
-#define CVAR_PSVITA		BIT(6)
-#define CVAR_PSTV		BIT(7)
-
 typedef void(*cvarcallback_t) (struct cvar_s *);
 
 typedef struct cvar_s
@@ -116,5 +112,8 @@ void 	Cvar_WriteVariables (FILE *f);
 // with the archive flag set to true.
 
 cvar_t *Cvar_FindVar (char *var_name);
+
+void Cvar_Set_f(void);
+void Cvar_Seta_f(void);
 
 extern cvar_t	*cvar_vars;

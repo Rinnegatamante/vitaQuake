@@ -274,3 +274,62 @@ void Cvar_WriteVariables (FILE *f)
 			fprintf (f, "%s \"%s\"\n", var->name, var->string);
 }
 
+
+void Cvar_Set_f(void)
+{
+	char *cvarname;
+	char *cvarvalue;
+	cvar_t *var;
+
+	cvarname = Cmd_Argv(1);
+	cvarvalue = Cmd_Argv(2);
+
+	var = Cvar_FindVar(cvarname);
+	if (!var)
+	{
+		if (Cmd_Exists(cvarname))
+		{
+			Con_Printf("%s exists as a command\n", cvarname);
+			return;
+		}
+		var = malloc(sizeof(*var));
+		if (!var)
+			return;
+		memset(var, 0, sizeof(*var));
+		var->name = strdup(cvarname);
+		var->string = "";
+		Cvar_RegisterVariable(var);
+	}
+
+	Cvar_Set(cvarname, cvarvalue);
+}
+
+void Cvar_Seta_f(void)
+{
+	char *cvarname;
+	char *cvarvalue;
+	cvar_t *var;
+
+	cvarname = Cmd_Argv(1);
+	cvarvalue = Cmd_Argv(2);
+
+	var = Cvar_FindVar(cvarname);
+	if (!var)
+	{
+		if (Cmd_Exists(cvarname))
+		{
+			Con_Printf("%s exists as a command\n", cvarname);
+			return;
+		}
+		var = malloc(sizeof(*var));
+		if (!var)
+			return;
+		memset(var, 0, sizeof(*var));
+		var->name = strdup(cvarname);
+		var->string = "";
+		var->flags = CVAR_ARCHIVE;
+		Cvar_RegisterVariable(var);
+	}
+
+	Cvar_Set(cvarname, cvarvalue);
+}

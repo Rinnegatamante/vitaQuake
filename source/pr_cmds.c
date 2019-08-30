@@ -28,6 +28,8 @@ char	pr_varstring_temp[PR_MAX_TEMPSTRING];	// 2001-10-25 Enhanced temp string ha
 // 2001-10-20 Extension System by LordHavoc  start
 char *pr_extensions[] =
 {
+	"DP_CON_SET",
+	"DP_CON_SETA",
 	"DP_ENT_ALPHA",
 	"DP_HALFLIFE_MAP",
 	"DP_LITSUPPORT",

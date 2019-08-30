@@ -434,6 +434,8 @@ void Cmd_Init (void)
 	Cmd_AddCommand ("alias",Cmd_Alias_f);
 	Cmd_AddCommand ("cmd", Cmd_ForwardToServer);
 	Cmd_AddCommand ("wait", Cmd_Wait_f);
+	Cmd_AddCommand ("set", Cvar_Set_f);
+	Cmd_AddCommand ("seta", Cvar_Seta_f);
 }
 
 /*
