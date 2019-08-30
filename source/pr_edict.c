@@ -66,8 +66,10 @@ typedef struct {
 
 static gefv_cache	gefvCache[GEFV_CACHESIZE] = {{NULL, ""}, {NULL, ""}};
 
-int   eval_alpha;
-int   eval_renderamt;
+int eval_alpha;
+int eval_renderamt;
+int eval_nodrawtoclient;
+int eval_drawonlytoclient;
 
 ddef_t *ED_FindField (char *name);
 dfunction_t *ED_FindFunction (char *name);
