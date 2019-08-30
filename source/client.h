@@ -100,10 +100,18 @@ typedef struct
 #define	MAX_DEMONAME	16
 
 typedef enum {
-ca_dedicated, 		// a dedicated server with no ability to start a client
-ca_disconnected, 	// full screen console with no connection
-ca_connected		// valid netcon, talking to a server
+	ca_dedicated, 		// a dedicated server with no ability to start a client
+	ca_disconnected, 	// full screen console with no connection
+	ca_connected		// valid netcon, talking to a server
 } cactive_t;
+
+typedef struct
+{
+	bool web;
+	char *name;
+	double percent;
+	bool disconnect; // set when user tries to disconnect, to allow cleaning up webdownload
+} download_t;
 
 //
 // the client_static_t structure is persistant through an arbitrary number
@@ -137,7 +145,7 @@ typedef struct
 	int			signon;			// 0 to SIGNONS
 	struct qsocket_s	*netcon;
 	sizebuf_t	message;		// writing buffer to send to server
-	
+	download_t	download;
 } client_static_t;
 
 extern client_static_t	cls;

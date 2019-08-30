@@ -27,6 +27,7 @@ CVAR (hostname, "UNNAMED", CVAR_ARCHIVE)
 
 CVAR (pq_password, "", CVAR_NONE)	// ProQuake 3 behaviour
 
+char	server_name[MAX_QPATH];
 //----------------------------------------------
 
 qsocket_t	*net_activeSockets = NULL;

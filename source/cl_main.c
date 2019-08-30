@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // cl_main.c  -- client main loop
 
 #include "quakedef.h"
+#include <curl/curl.h>
 
 // we need to declare some mouse variables here, because the menu system
 // references them even when on a unix system.
@@ -41,6 +42,9 @@ CVAR (m_pitch,	0.022,	CVAR_ARCHIVE)
 CVAR (m_yaw,	0.022,	CVAR_ARCHIVE)
 CVAR (m_forward, 1,		CVAR_ARCHIVE)
 CVAR (m_side,	0.8,	CVAR_ARCHIVE)
+
+cvar_t cl_web_download = {"cl_web_download", "1", CVAR_ARCHIVE};
+cvar_t cl_web_download_url = {"cl_web_download_url", "http://bigfoot.servequake.com/", CVAR_ARCHIVE};
 
 // PSVITA extra Cvars (ToDo: redirect them to in_psp2.c, since it has nothing to do here)
 CVAR (invert_camera, 0, CVAR_ARCHIVE)
@@ -109,6 +113,13 @@ void CL_Disconnect (void)
 
 // bring the console down and fade the colors back to normal
 //	SCR_BringDownConsole ();
+
+// We have to shut down webdownloading first
+	if( cls.download.web )
+	{
+		cls.download.disconnect = true;
+		return;
+	}
 
 // if running a local server, shut it down
 	if (cls.demoplayback)
@@ -753,6 +764,9 @@ void CL_Init (void)
 	Cvar_RegisterVariable (&lookspring);
 	Cvar_RegisterVariable (&lookstrafe);
 	Cvar_RegisterVariable (&sensitivity);
+	
+	Cvar_RegisterVariable (&cl_web_download);
+	Cvar_RegisterVariable (&cl_web_download_url);
 
 	Cvar_RegisterVariable (&m_pitch);
 	Cvar_RegisterVariable (&m_yaw);

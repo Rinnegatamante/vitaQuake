@@ -7,7 +7,7 @@ LIBS = -lvitaGL -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 -lScePspnetAdho
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub -lmathneon \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lz -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
-	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl -lssl -lcrypto
 
 COMMON_OBJS =	source/chase.o \
 	source/cl_demo.o \
@@ -65,8 +65,9 @@ COMMON_OBJS =	source/chase.o \
 	source/net_udp_psp2.o \
 	source/in_psp2.o \
 	source/gl_vidpsp2.o \
-	source/neon_mathfun.o
-
+	source/neon_mathfun.o \
+	source/webdownload.o
+	
 CPPSOURCES	:= source/audiodec
 
 CFILES	:= $(COMMON_OBJS)

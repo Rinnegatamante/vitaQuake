@@ -800,6 +800,8 @@ void Host_Reconnect_f (void)
 	cls.signon = 0;		// need new connection messages
 }
 
+extern char server_name[MAX_QPATH];	// JPG 3.50
+
 /*
 =====================
 Host_Connect_f
@@ -820,6 +822,8 @@ void Host_Connect_f (void)
 	strcpy (name, Cmd_Argv(1));
 	CL_EstablishConnection (name);
 	Host_Reconnect_f ();
+	
+	strcpy(server_name, name);	// JPG 3.50
 }
 
 

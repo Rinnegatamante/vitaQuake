@@ -19,7 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // cl_parse.c  -- parse a message received from the server
 
+#include <vitasdk.h>
+
 #include "quakedef.h"
+#include "webdownload.h"
 
 char *svc_strings[] =
 {
@@ -203,6 +206,31 @@ void CL_KeepaliveMessage (void)
 }
 
 /*
+=====================
+CL_WebDownloadProgress
+Callback function for webdownloads.
+Since Web_Get only returns once it's done, we have to do various things here:
+Update download percent, handle input, redraw UI and send net packets.
+=====================
+*/
+static int CL_WebDownloadProgress( double percent )
+{
+	static double time, oldtime, newtime;
+
+	cls.download.percent = percent;
+	CL_KeepaliveMessage();
+
+	newtime = Sys_FloatTime ();
+	time = newtime - oldtime;
+
+	Host_Frame (time);
+
+	oldtime = newtime;
+
+	return cls.download.disconnect; // abort if disconnect received
+}
+
+/*
 ==================
 CL_ParseServerInfo
 ==================
@@ -216,6 +244,10 @@ void CL_ParseServerInfo (void)
 	char**	model_precache;
 	char	tempname[MAX_QPATH];
 	Con_DPrintf ("Serverinfo packet received.\n");
+	
+	extern cvar_t cl_web_download;
+	extern cvar_t cl_web_download_url;
+	
 //
 // wipe the client_state_t struct
 //
@@ -314,9 +346,66 @@ void CL_ParseServerInfo (void)
 		cl.model_precache[i] = Mod_ForName (model_precache[i], false);
 		if (cl.model_precache[i] == NULL)
 		{
-			Con_Printf("Model %s not found\n", model_precache[i]);
-			Sys_BigStackFree(MAX_MODELS * sizeof(char*) + MAX_MODELS * MAX_QPATH + MAX_SOUNDS * sizeof(char*) + MAX_SOUNDS * MAX_QPATH, "CL_ParseServerInfo");
-			return;
+			if (cl_web_download.value && cl_web_download_url.string)
+			{
+				char url[1024];
+				bool success = false;
+				char download_tempname[MAX_QPATH], download_finalname[MAX_QPATH];
+				char folder[MAX_QPATH];
+				char name[MAX_QPATH];
+				extern char server_name[MAX_QPATH];
+				extern int net_hostport;
+
+				//Create the FULL path where the file should be written
+				snprintf (download_tempname, MAX_OSPATH, "%s/%s.tmp", com_gamedir, model_precache[i]);
+
+				//determine the proper folder and create it, the OS will ignore if already exsists
+				COM_GetFolder(model_precache[i],folder);// "progs/","maps/"
+				snprintf (name, sizeof(name), "%s/%s", com_gamedir, folder);
+				Sys_mkdir (name);
+
+				Con_Printf( "Web downloading: %s from %s%s\n", model_precache[i], cl_web_download_url.string, model_precache[i]);
+
+				//assign the url + path + file + extension we want
+				snprintf( url, sizeof( url ), "%s%s", cl_web_download_url.string, model_precache[i]);
+
+				cls.download.web = true;
+				cls.download.disconnect = false;
+				cls.download.percent = 0.0;
+
+				//let libCURL do it's magic!!
+				success = Web_Get(url, NULL, download_tempname, false, 600, 30, CL_WebDownloadProgress);
+
+				cls.download.web = false;
+
+				if (success)
+				{
+					Con_Printf("Web download successfull: %s\n", download_tempname);
+					//Rename the .tmp file to the final precache filename
+					snprintf (download_finalname, MAX_OSPATH, "%s/%s", com_gamedir, model_precache[i]);
+					sceIoRename(download_tempname, download_finalname);
+
+					Cbuf_AddText (va("connect %s:%u\n", server_name, net_hostport));//reconnect after each success
+					return;
+				}
+				else
+				{
+					sceIoRemove(download_tempname);
+					Con_Printf( "Web download of %s failed\n", download_tempname );
+					return;
+				}
+
+				if( cls.download.disconnect ) //if the user type disconnect in the middle of the download
+				{
+					cls.download.disconnect = false;
+					CL_Disconnect_f();
+					return;
+				}
+			} else {
+				Con_Printf("Model %s not found\n", model_precache[i]);
+				Sys_BigStackFree(MAX_MODELS * sizeof(char*) + MAX_MODELS * MAX_QPATH + MAX_SOUNDS * sizeof(char*) + MAX_SOUNDS * MAX_QPATH, "CL_ParseServerInfo");
+				return;
+			}
 		}
 		CL_KeepaliveMessage ();
 	}
