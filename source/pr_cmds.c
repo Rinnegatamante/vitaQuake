@@ -37,9 +37,11 @@ char *pr_extensions[] =
 	"DP_HALFLIFE_MAP",
 	"DP_LITSUPPORT",
 	"DP_QC_ASINACOSATANATAN2TAN",
+	"DP_QC_COPYENTITY",
 	"DP_QC_CVAR_STRING",
 	"DP_QC_EDICT_NUM",
 	"DP_QC_ETOS",
+	"DP_QC_MINMAXBOUND",
 	"DP_QC_NUM_FOR_EDICT",
 	"DP_QC_RANDOMVEC",
 	"DP_QC_SINCOSSQRTPOW",
@@ -198,6 +200,14 @@ void PF_setorigin(void)
 	org = G_VECTOR(OFS_PARM1);
 	VectorCopy(org, e->v.origin);
 	SV_LinkEdict(e, false);
+}
+
+void PF_copyentity(void)
+{
+	edict_t *in, *out;
+	in = G_EDICT(OFS_PARM0);
+	out = G_EDICT(OFS_PARM1);
+	memcpy(out, in, pr_edict_size);
 }
 
 
@@ -1904,6 +1914,75 @@ void PF_randomvec(void)
 	VectorCopy(temp, G_VECTOR(OFS_RETURN));
 }
 
+/*
+=================
+PF_min
+Returns the minimum of two or more supplied floats
+float min(float f1, float f2, ...)
+=================
+*/
+void PF_min (void)
+{
+	// LordHavoc: 3+ argument enhancement suggested by FrikaC
+	if (pr_argc == 2)
+		G_FLOAT(OFS_RETURN) = min(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
+	else if (pr_argc >= 3)
+	{
+		int i;
+		float f = G_FLOAT(OFS_PARM0);
+		for (i = 1;i < pr_argc;i++)
+			if (G_FLOAT((OFS_PARM0+i*3)) < f)
+				f = G_FLOAT((OFS_PARM0+i*3));
+		G_FLOAT(OFS_RETURN) = f;
+	}
+	else
+		PR_RunError("min: must supply at least 2 floats\n");
+}
+
+/*
+=================
+PF_max
+Returns the maximum of two or more supplied floats
+float max(float f1, float f2, ...)
+=================
+*/
+void PF_max (void)
+{
+	// LordHavoc: 3+ argument enhancement suggested by FrikaC
+	if (pr_argc == 2)
+		G_FLOAT(OFS_RETURN) = max(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
+	else if (pr_argc >= 3)
+	{
+		int i;
+		float f = G_FLOAT(OFS_PARM0);
+		for (i = 1;i < pr_argc;i++)
+			if (G_FLOAT((OFS_PARM0+i*3)) > f)
+				f = G_FLOAT((OFS_PARM0+i*3));
+		G_FLOAT(OFS_RETURN) = f;
+	}
+	else
+		PR_RunError("max: must supply at least 2 floats\n");
+}
+
+/*
+=================
+PF_bound
+Returns number bounded by supplied range
+float bound(float min, float f, float max)
+=================
+*/
+void PF_bound (void)
+{
+	G_FLOAT(OFS_RETURN) = min(G_FLOAT(OFS_PARM2), max(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1)));
+}
+
+/*
+=================
+PF_pow
+Returns base raised to power exp (base^exp)
+float pow(float base, float exp)
+=================
+*/
 void PF_pow(void)
 {
 	G_FLOAT(OFS_RETURN) = pow(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
@@ -2442,6 +2521,9 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  81, "stof", PF_stof },	// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes
 	{  90, "tracebox", PF_tracebox},
 	{  91, "randomvec", PF_randomvec},
+	{  94, "min", PF_min},
+	{  95, "max", PF_max},
+	{  96, "bound", PF_bound},
 	{  97, "pow", PF_pow },
 	{ PR_DEFAULT_FUNCNO_EXTENSION_FIND, "extension_find", PF_extension_find },	// 2001-10-20 Extension System by Lord Havoc/Maddes
 	{ PR_DEFAULT_FUNCNO_BUILTIN_FIND, "builtin_find", PF_builtin_find },	// 2001-09-14 Enhanced BuiltIn Function System (EBFS) by Maddes
@@ -2459,6 +2541,7 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{ 118, "strzone", PF_strzone },
 	{ 119, "strunzone", PF_strunzone },
 	{ 218, "bitshift", PF_bitshift },
+	{ 400, "copyentity", PF_copyentity },
 	{ 448, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
 	{ 459, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
 	{ 471, "asin", PF_asin },
