@@ -48,6 +48,8 @@ An official channel to discuss the development of this source port can be found 
 - DP_QC_CVAR_STRING
 - DP_QC_EDICT_NUM
 - DP_QC_ETOS
+- DP_QC_FINDCHAIN
+- DP_QC_FINDCHAINFLOAT
 - DP_QC_MINMAXBOUND
 - DP_QC_NUM_FOR_EDICT
 - DP_QC_RANDOMVEC

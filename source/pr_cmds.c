@@ -41,6 +41,8 @@ char *pr_extensions[] =
 	"DP_QC_CVAR_STRING",
 	"DP_QC_EDICT_NUM",
 	"DP_QC_ETOS",
+	"DP_QC_FINDCHAIN",
+	"DP_QC_FINDCHAINFLOAT",
 	"DP_QC_MINMAXBOUND",
 	"DP_QC_NUM_FOR_EDICT",
 	"DP_QC_RANDOMVEC",
@@ -1988,6 +1990,72 @@ void PF_pow(void)
 	G_FLOAT(OFS_RETURN) = pow(G_FLOAT(OFS_PARM0), G_FLOAT(OFS_PARM1));
 }
 
+// chained search for strings in entity fields
+// entity(.string field, string match) findchain = #402;
+void PF_findchain (void)
+{
+	int		i;
+	int		f;
+	char	*s, *t;
+	edict_t	*ent, *chain;
+
+	chain = (edict_t *)sv.edicts;
+
+	f = G_INT(OFS_PARM0);
+	s = G_STRING(OFS_PARM1);
+	if (!s || !s[0])
+	{
+		RETURN_EDICT(sv.edicts);
+		return;
+	}
+
+	ent = NEXT_EDICT(sv.edicts);
+	for (i = 1;i < sv.num_edicts;i++, ent = NEXT_EDICT(ent))
+	{
+		if (ent->free)
+			continue;
+		t = E_STRING(ent,f);
+		if (!t)
+			continue;
+		if (strcmp(t,s))
+			continue;
+
+		ent->v.chain = EDICT_TO_PROG(chain);
+		chain = ent;
+	}
+
+	RETURN_EDICT(chain);
+}
+
+// LordHavoc: chained search for float, int, and entity reference fields
+// entity(.string field, float match) findchainfloat = #403;
+void PF_findchainfloat (void)
+{
+	int		i;
+	int		f;
+	float	s;
+	edict_t	*ent, *chain;
+
+	chain = (edict_t *)sv.edicts;
+
+	f = G_INT(OFS_PARM0);
+	s = G_FLOAT(OFS_PARM1);
+
+	ent = NEXT_EDICT(sv.edicts);
+	for (i = 1;i < sv.num_edicts;i++, ent = NEXT_EDICT(ent))
+	{
+		if (ent->free)
+			continue;
+		if (E_FLOAT(ent,f) != s)
+			continue;
+
+		ent->v.chain = EDICT_TO_PROG(chain);
+		chain = ent;
+	}
+
+	RETURN_EDICT(chain);
+}
+
 void PF_log(void)
 {
 	G_FLOAT(OFS_RETURN) = log(G_FLOAT(OFS_PARM0));
@@ -2542,6 +2610,8 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{ 119, "strunzone", PF_strunzone },
 	{ 218, "bitshift", PF_bitshift },
 	{ 400, "copyentity", PF_copyentity },
+	{ 402, "findchain", PF_findchain },
+	{ 403, "findchainfloat", PF_findchainfloat },
 	{ 448, "cvar_string", PF_cvar_string },	// 2001-09-16 New BuiltIn Function: cvar_string() by Maddes
 	{ 459, "ftoe", PF_ftoe },	// 2001-09-25 New BuiltIn Function: ftoe() by Maddes
 	{ 471, "asin", PF_asin },
