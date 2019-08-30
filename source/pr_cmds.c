@@ -40,6 +40,7 @@ char *pr_extensions[] =
 	"DP_QC_NUM_FOR_EDICT",
 	"DP_QC_RANDOMVEC",
 	"DP_QC_SINCOSSQRTPOW",
+	"DP_QC_TRACEBOX",
 	"DP_SND_FAKETRACKS",
 	"DP_SV_MODELFLAGS_AS_EFFECTS",
 	"DP_SV_NODRAWTOCLIENT",
@@ -698,6 +699,36 @@ void PF_traceline(void)
 	VectorCopy(trace.endpos, pr_global_struct->trace_endpos);
 	VectorCopy(trace.plane.normal, pr_global_struct->trace_plane_normal);
 	pr_global_struct->trace_plane_dist = trace.plane.dist;
+	if (trace.ent)
+		pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
+	else
+		pr_global_struct->trace_ent = EDICT_TO_PROG(sv.edicts);
+}
+
+void PF_tracebox (void)
+{
+	float   *v1, *v2, *mins, *maxs;
+	trace_t   trace;
+	int      nomonsters;
+	edict_t   *ent;
+
+	v1 = G_VECTOR(OFS_PARM0);
+	mins = G_VECTOR(OFS_PARM1);
+	maxs = G_VECTOR(OFS_PARM2);
+	v2 = G_VECTOR(OFS_PARM3);
+	nomonsters = G_FLOAT(OFS_PARM4);
+	ent = G_EDICT(OFS_PARM5);
+
+	trace = SV_Move (v1, mins, maxs, v2, nomonsters, ent);
+
+	pr_global_struct->trace_allsolid = trace.allsolid;
+	pr_global_struct->trace_startsolid = trace.startsolid;
+	pr_global_struct->trace_fraction = trace.fraction;
+	pr_global_struct->trace_inwater = trace.inwater;
+	pr_global_struct->trace_inopen = trace.inopen;
+	VectorCopy (trace.endpos, pr_global_struct->trace_endpos);
+	VectorCopy (trace.plane.normal, pr_global_struct->trace_plane_normal);
+	pr_global_struct->trace_plane_dist =  trace.plane.dist;   
 	if (trace.ent)
 		pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
 	else
@@ -2406,6 +2437,7 @@ ebfs_builtin_t pr_ebfs_builtins[] = {
 	{  77, "precache_file2", PF_precache_file },
 	{  78, "setspawnparms", PF_setspawnparms },
 	{  81, "stof", PF_stof },	// 2001-09-20 QuakeC string manipulation by FrikaC/Maddes
+	{  90, "tracebox", PF_tracebox},
 	{  91, "randomvec", PF_randomvec},
 	{  97, "pow", PF_pow },
 	{ PR_DEFAULT_FUNCNO_EXTENSION_FIND, "extension_find", PF_extension_find },	// 2001-10-20 Extension System by Lord Havoc/Maddes
