@@ -21,6 +21,7 @@ An official channel to discuss the development of this source port can be found 
 - Savegames fully working
 - Support for colored lights with .lit files support
 - Support for Half-Life BSP
+- Supprt for BSP2 and 2BSP formats
 - Smooth animations thanks to interpolation techniques
 - Crosshair and custom crosshairs support
 - Mirrors support
@@ -31,10 +32,32 @@ An official channel to discuss the development of this source port can be found 
 - Dynamic shadows support
 - Several different improvements in the renderer quality
 - Several different miscellaneous features (eg: transparent statusbar, benchmark feature, working gamma, etc...)
+- Map downloader support if you try to join an online server and you don't own the running map
+
+# Supported DarkPlaces extensions
+- DP_CON_SET
+- DP_CON_SETA
+- DP_ENT_ALPHA
+- DP_HALFLIFE_MAP
+- DP_LITSUPPORT
+- DP_QC_ASINACOSATANATAN2TAN
+- DP_QC_CVAR_STRING
+- DP_QC_EDICT_NUM
+- DP_QC_ETOS
+- DP_QC_NUM_FOR_EDICT
+- DP_QC_RANDOMVEC
+- DP_QC_SINCOSSQRTPOW
+- DP_QC_TRACEBOX
+- DP_SND_FAKETRACKS
+- DP_SV_MODELFLAGS_AS_EFFECTS
+- DP_SV_NODRAWTOCLIENT
+- DP_SV_DRAWONLYTOCLIENT
+- EXT_BITSHIFT
+- FRIK_FILE
 
 # CDAudio Support
 
-vitaQuake supports all soundtrack packs for Quake and its two official mission packs, "Scourge of Armagon" and "Dissolution of Eternity." In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign folder (see chart below for directories). The normal campaign and the two official mission packs will have their own /cdtracks/ folder. 
+vitaQuake supports all soundtrack packs for Quake and its two official mission packs, "Scourge of Armagon" and "Dissolution of Eternity." In order for the soundtrack to work, files must be placed in a folder named /cdtracks/ in each campaign folder (main game for example will be ux0:data/Quake/id1/cdtracks). 
 
 By default, the music folder has tracks named as track02, track03, etc. For vitaQuake, add an extra "0" after "track" in order for them to be loaded properly and in order. **Ex.: track02 -> track002**
 
@@ -64,7 +87,6 @@ SUPERQOT | [Free](https://superhotgame.com/SUPERQOT/) | ![#ff0000](https://place
 # Credits
 - idSoftware for winQuake sourcecode
 - MasterFeizz for ctrQuake sourcecode i studied to understand how winQuake works
-- xerpi for vita2dlib
 - EasyRPG Team for the audio decoder used for CDAudio support
 - Ch0wW for various improvements and code cleanup
 - JPG for ProQuake and some various fixes.
