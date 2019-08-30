@@ -46,14 +46,20 @@ vitaQuake supports the official Quake expansions, "Scourge of Armagon" and "Diss
 
 Both official mission packs support their own soundtracks as long as they are placed properly in their respective "/cdtracks/" folder.
 
-Mod compatibility is varied, but as a general rule of thumb, mods compatible with winQuake will be compatible with vitaQuake. Some confirmed working mod packs include:
+Mod compatibility is varied, but as a general rule of thumb, mods compatible with winQuake will be compatible with vitaQuake.
 
-Expansion/Mod | Status/Link | Developer | CD Audio Folder
----|---|---|---|
-dopa | [Free](https://twitter.com/machinegames/status/746363189768650752?lang=en) | machinegames | N/A
-Scourge of Armagon | Official Expansion | Hipnotic Software | `ux0:/data/Quake/hipnotic/cdtracks`
-Dissolution of Eternity | Official Expansion | Rogue Entertainment | `ux0:/data/Quake/rogue/cdtracks`
-Kurok | [Free](http://www.bladebattles.com/kurok/) | MDave | N/A
+Here's a list of some popular mods and their actual working state:
+
+Expansion/Mod | Link | Status
+---|---|---|
+Dissolution of Eternity | Official Expansion | Fully Working
+dopa | [Free](https://twitter.com/machinegames/status/746363189768650752?lang=en) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
+Halo Revamped | [Free](https://wololo.net/downloads/index.php/download/1376) | ![#d0d000](https://placehold.it/15/d0d000/000000?text=+) `Boots, lots of bugs`
+Kurok | [Free](http://www.bladebattles.com/kurok/) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Playable with glitches`
+Nazi Zombies Portable | [Free](https://www.moddb.com/games/nazi-zombies-portable/news/nazi-zombies-portable-ps-vita-info) | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+) `Not Working`
+Scourge of Armagon | Official Expansion | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
+SUPERHOT Quake | [Free](https://www.moddb.com/mods/superhot-quake) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Working without monochromatic graphics`
+SUPERQOT | [Free](https://superhotgame.com/SUPERQOT/) | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+) `Not Working`
 
 # Credits
 - idSoftware for winQuake sourcecode
