@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 server_t		sv;
 server_static_t	svs;
 
+cvar_t sv_progs = {"sv_progs", "progs.dat"};
+
 #define MODSTRLEN (sizeof("*" stringify(MAX_MODELS)) / sizeof(char))
 char localmodels[MAX_MODELS][MODSTRLEN]; // inline model names for precache
 
@@ -58,6 +60,7 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_idealpitchscale);
 	Cvar_RegisterVariable (&sv_aim);
 	Cvar_RegisterVariable (&sv_nostep);
+	Cvar_RegisterVariable (&sv_progs);
 
 	Cvar_RegisterVariable(&pq_fullpitch); // JPG 2.01
 	
@@ -1168,7 +1171,7 @@ void SV_SpawnServer (char *server)
 #endif
 
 // load progs to get entity field count
-	PR_LoadProgs ();
+	PR_LoadProgs (sv_progs.string);
 
 // allocate server memory
 	sv.max_edicts = MAX_EDICTS;

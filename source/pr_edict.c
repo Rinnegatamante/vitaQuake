@@ -1016,7 +1016,7 @@ void ED_LoadFromFile (char *data)
 PR_LoadProgs
 ===============
 */
-void PR_LoadProgs (void)
+void PR_LoadProgs (char *progsname)
 {
 	int		i;
 
@@ -1029,12 +1029,15 @@ void PR_LoadProgs (void)
 // flush the non-C variable lookup cache
 	for (i=0 ; i<GEFV_CACHESIZE ; i++)
 		gefvCache[i].field[0] = 0;
+	
+	if (!progsname || !*progsname)
+		Host_Error("PR_LoadProgs: passed empty progsname");
 
 	CRC_Init (&pr_crc);
 
-	progs = (dprograms_t *)COM_LoadHunkFile ("progs.dat");
+	progs = (dprograms_t *)COM_LoadHunkFile (progsname);
 	if (!progs)
-		Sys_Error ("PR_LoadProgs: couldn't load progs.dat");
+		Sys_Error ("PR_LoadProgs: couldn't load %s", progsname);
 	Con_DPrintf ("Programs occupy %iK.\n", com_filesize/1024);
 
 	for (i=0 ; i<com_filesize ; i++)
@@ -1045,9 +1048,9 @@ void PR_LoadProgs (void)
 		((int *)progs)[i] = LittleLong ( ((int *)progs)[i] );		
 
 	if (progs->version != PROG_VERSION)
-		Sys_Error ("progs.dat has wrong version number (%i should be %i)", progs->version, PROG_VERSION);
+		Sys_Error ("%s has wrong version number (%i should be %i)", progsname, progs->version, PROG_VERSION);
 	if (progs->crc != PROGHEADER_CRC)
-		Sys_Error ("progs.dat system vars have been modified, progdefs.h is out of date");
+		Sys_Error ("%s has wrong CRC number (%i should be %i)", progsname, progs->crc, PROGHEADER_CRC);
 
 	pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
 	pr_strings = (char *)progs + progs->ofs_strings;
