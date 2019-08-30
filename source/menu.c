@@ -1495,9 +1495,9 @@ void M_Options_Key (int k)
 			sensitivity.value = 3;
 			invert_camera.value = 0;
 			bgmvolume.value = 1.0;
-			volume.value = 0.7;
+			volume.value = 0.7f;
 			retrotouch.value = 0;
-			pstv_rumble.value = 1.0;
+			pstv_rumble.value = 1.0f;
 			show_fps.value = 0;
 			r_drawviewmodel.value = 1;
 			crosshair.value = 1;
@@ -1507,13 +1507,14 @@ void M_Options_Key (int k)
 			r_shadows.value = 1;
 			r_interpolate_model_animation.value = 0;
 			r_interpolate_model_transform.value = 0;
-			r_mirroralpha.value = 1.0;
+			r_mirroralpha.value = 0.8f;
+			r_wateralpha.value = 0.5f;
 			gl_xflip.value = 0;
 			motioncam.value = 0;
 			vid_vsync.value = 1;
 			motion_horizontal_sensitivity.value = 3;
 			motion_vertical_sensitivity.value = 3;
-			scr_sbaralpha.value = 0.5;
+			scr_sbaralpha.value = 0.5f;
 			gl_outline.value = 0;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
@@ -1533,6 +1534,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("r_interpolate_model_animation", r_interpolate_model_animation.value);
 			Cvar_SetValue ("r_interpolate_model_transform", r_interpolate_model_transform.value);
 			Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
+			Cvar_SetValue ("r_wateralpha", r_wateralpha.value);
 			Cvar_SetValue ("gl_xflip", gl_xflip.value);
 			Cvar_SetValue ("motioncam", motioncam.value);
 			Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
