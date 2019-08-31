@@ -41,6 +41,8 @@ An official channel to discuss the development of this source port can be found 
 - DP_EF_NODRAW
 - DP_EF_RED
 - DP_ENT_ALPHA
+- DP_GFX_EXTERNALTEXTURES
+- DP_GFX_EXTERNALTEXTURES_PERMAPTEXTURES
 - DP_HALFLIFE_MAP
 - DP_LITSUPPORT
 - DP_QC_ASINACOSATANATAN2TAN

@@ -53,6 +53,7 @@ extern cvar_t crosshaircolor_b;
 extern cvar_t cl_crossx;
 extern cvar_t cl_crossy;
 extern cvar_t crosshair;
+extern cvar_t gl_mipmap;
 
 byte		*draw_chars;				// 8*8 graphic characters
 qpic_t		*draw_disc;
@@ -91,6 +92,21 @@ typedef struct
 #define	MAX_GLTEXTURES	1024
 gltexture_t	gltextures[MAX_GLTEXTURES];
 int numgltextures = 0;
+
+static int LoadExternalPic(char *identifier)
+{
+	char fname[512];
+	COM_StripExtension (identifier, fname);
+	int w, h;
+	byte *data = Image_LoadImage (fname, &w, &h);
+	if (data) {
+		int r = GL_LoadTexture32 ("", w, h, data, false, true, false);
+		Con_Printf("LoadExternalPic: %s is OK\n", fname);
+		free(data);
+		return r;
+	}
+	return -1;
+}
 
 // FIXME: It seems the texture manager fails with Half Life BSPs
 // Turned off for the moment since not strictly required for the engine to correctly work
@@ -475,7 +491,19 @@ qpic_t *Draw_PicFromWad (char *name)
 
 	p = (qpic_t*)W_GetLumpName (name);
 	gl = (glpic_t *)p->data;
-
+	
+	char fname[64];
+	sprintf(fname, "gfx/%s", name);
+	int texnum = LoadExternalPic(fname);
+	if (texnum != -1) {
+		gl->texnum = texnum;
+		gl->sl = 0;
+		gl->sh = 1;
+		gl->tl = 0;
+		gl->th = 1;
+		return p;
+	}
+	
 	// load little ones into the scrap
 	if (p->width < 64 && p->height < 64)
 	{
@@ -531,7 +559,7 @@ qpic_t	*Draw_CachePic (char *path)
 		Sys_Error ("menu_numcachepics == MAX_CACHED_PICS");
 	menu_numcachepics++;
 	strcpy (pic->name, path);
-
+	
 //
 // load the pic from disk
 //
@@ -548,14 +576,16 @@ qpic_t	*Draw_CachePic (char *path)
 
 	pic->pic.width = dat->width;
 	pic->pic.height = dat->height;
-
+	
 	gl = (glpic_t *)pic->pic.data;
-	gl->texnum = GL_LoadPicTexture (dat);
+	int texnum = LoadExternalPic(path);
+	if (texnum != -1) gl->texnum = texnum;
+	else gl->texnum = GL_LoadPicTexture (dat);
 	gl->sl = 0;
 	gl->sh = 1;
 	gl->tl = 0;
 	gl->th = 1;
-
+	
 	return &pic->pic;
 }
 
@@ -717,29 +747,42 @@ void Draw_Init (void)
 	cs_texture = GL_LoadTexture ("crosshair", 8, 8, cs_data, false, true);
 
 	start = Hunk_LowMark();
+	
+	// External conback texture support
+	int cwidth, cheight;
+	byte *data = Image_LoadImage ("gfx/conback", &cwidth, &cheight);
+	if (data) {
+		conback->width = cwidth;
+		conback->height = cheight;
+		ncdata = data;
+	} else {
+		cb = (qpic_t *)COM_LoadTempFile ("gfx/conback.lmp");	
+		if (!cb)
+			Sys_Error ("Couldn't load gfx/conback.lmp");
+		SwapPic (cb);
 
-	cb = (qpic_t *)COM_LoadTempFile ("gfx/conback.lmp");	
-	if (!cb)
-		Sys_Error ("Couldn't load gfx/conback.lmp");
-	SwapPic (cb);
+		// hack the version number directly into the pic
+		sprintf (ver, "(gl %4.2f) %4.2f", (float)GLQUAKE_VERSION, (float)VERSION);
 
-	// hack the version number directly into the pic
-	sprintf (ver, "(gl %4.2f) %4.2f", (float)GLQUAKE_VERSION, (float)VERSION);
+		dest = cb->data + 320*186 + 320 - 11 - 8*strlen(ver);
+		y = strlen(ver);
+		for (x=0 ; x<y ; x++)
+			Draw_CharToConback (ver[x], dest+(x<<3));
 
-	dest = cb->data + 320*186 + 320 - 11 - 8*strlen(ver);
-	y = strlen(ver);
-	for (x=0 ; x<y ; x++)
-		Draw_CharToConback (ver[x], dest+(x<<3));
-
-	conback->width = cb->width;
-	conback->height = cb->height;
-	ncdata = cb->data;
+		conback->width = cb->width;
+		conback->height = cb->height;
+		ncdata = cb->data;
+	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);  // 13/02/2000 changed: M.Tretene
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 	gl = (glpic_t *)conback->data;
-	gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, true); //  30/01/2000 modified: M.Tretene
+	if (data) {
+		gl->texnum = GL_LoadTexture32 ("conback", conback->width, conback->height, ncdata, false, true, false);
+		free(data);
+	} else
+		gl->texnum = GL_LoadTexture ("conback", conback->width, conback->height, ncdata, false, true); //  30/01/2000 modified: M.Tretene
 	gl->sl = 0;
 	gl->sh = 1;
 	gl->tl = 0;
@@ -1264,8 +1307,9 @@ GL_Upload32
 */
 void GL_Upload32 (unsigned *data, int width, int height,  bool mipmap, bool alpha)
 {
+	if (!gl_mipmap.value) mipmap = false;
 	int			samples;
-static	unsigned	scaled[1024*512];	// [512*256];
+	static unsigned int scaled[2048*2048];	// [512*256];
 	int			scaled_width, scaled_height;
 
 	for (scaled_width = 1 ; scaled_width < width ; scaled_width<<=1)
@@ -1381,8 +1425,9 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 		{
 			if (!strcmp (identifier, glt->identifier))
 			{
-				if (width != glt->width || height != glt->height)
-					Sys_Error ("GL_LoadTexture: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
+				// FIXME: Caching is broken with external textures
+				//if (width != glt->width || height != glt->height)
+				//	Sys_Error ("GL_LoadTexture32: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
 				return gltextures[i].texnum;
 			}
 		}
@@ -1414,7 +1459,7 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 GL_LoadTexture32
 ================
 */
-int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool mipmap, bool alpha)
+int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool mipmap, bool alpha, bool fullbright)
 {
 	bool	noalpha;
 	int			i, p, s;
@@ -1428,7 +1473,7 @@ int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool 
 			if (!strcmp (identifier, glt->identifier))
 			{
 				if (width != glt->width || height != glt->height)
-					Sys_Error ("GL_LoadTexture: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
+					Sys_Error ("GL_LoadTexture32: cache mismatch for %s, expected: %ld, got %d", identifier, width, glt->width);
 				return gltextures[i].texnum;
 			}
 		}
@@ -1437,7 +1482,16 @@ int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool 
 		glt = &gltextures[numgltextures];
 		numgltextures++;
 	//}
-
+	
+	// Make black pixels transparent for *_luma textures
+	if (fullbright) {
+		int cnt = width * height * 4;
+		for (i=0; i<cnt; i+=4) {
+			if (data[i] < 1 && data[i+1] < 1 && data[i+2] < 1)
+				data[i+3] = 0;
+		}
+	}
+	
 	strcpy (glt->identifier, identifier);
 	glt->texnum = texture_extension_number;
 	glt->width = width;

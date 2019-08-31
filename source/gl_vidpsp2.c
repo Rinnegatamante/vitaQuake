@@ -53,6 +53,7 @@ CVAR (vid_mode, 5, CVAR_NONE)
 CVAR (vid_redrawfull, 0, CVAR_NONE)
 CVAR (vid_waitforrefresh, 1, CVAR_ARCHIVE)
 CVAR (gl_outline, 0, CVAR_ARCHIVE)
+CVAR (gl_mipmap, 1, CVAR_ARCHIVE)
 
 signed char *framebuffer_ptr;
 
@@ -555,6 +556,7 @@ void VID_Init(unsigned char *palette)
 	Cvar_RegisterVariable (&vid_waitforrefresh);
 	Cvar_RegisterVariable (&gl_ztrick);
 	Cvar_RegisterVariable (&gl_outline);
+	Cvar_RegisterVariable (&gl_mipmap);
 	
 	vid.maxwarpwidth = width;
 	vid.maxwarpheight = height;

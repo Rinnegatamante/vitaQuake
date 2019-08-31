@@ -86,6 +86,7 @@ typedef struct texture_s
 	struct texture_s *alternate_anims;	// bmodels in frmae 1 use these
 	unsigned	offsets[MIPLEVELS];		// four mip maps stored
 	int			fullbright;
+	bool		luma;
 } texture_t;
 
 

@@ -23,6 +23,7 @@ COMMON_OBJS =	source/chase.o \
 	source/cvar.o \
 	source/host.o \
 	source/host_cmd.o \
+	source/image.o \
 	source/keys.o \
 	source/mathlib.o \
 	source/menu.o \
@@ -79,7 +80,7 @@ OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -fsigned-char -Wl,-q -O3 -g \
+CFLAGS  = -fsigned-char -Wl,-q -O2 -g \
 	-ffast-math -mtune=cortex-a9 -mfpu=neon -DDISABLE_TEXTURE_CACHE \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
 	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"

@@ -352,12 +352,13 @@ Mod_LoadTextures
 */
 void Mod_LoadTextures (lump_t *l)
 {
-	int		i, j, pixels, num, max, altmax;
+	int		i, j, pixels, num, max, altmax, fwidth, fheight;
 	miptex_t	*mt;
 	texture_t	*tx, *tx2;
 	texture_t	*anims[10];
 	texture_t	*altanims[10];
 	dmiptexlump_t *m;
+	char filename[MAX_OSPATH], filename2[MAX_OSPATH], mapname[MAX_OSPATH];
 
 	if (!l->filelen)
 	{
@@ -394,6 +395,16 @@ void Mod_LoadTextures (lump_t *l)
 		for (j=0 ; j<MIPLEVELS ; j++)
 			tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
 
+		// ericw -- check for pixels extending past the end of the lump.
+		// appears in the wild; e.g. jam2_tronyn.bsp (func_mapjam2),
+		// kellbase1.bsp (quoth), and can lead to a segfault if we read past
+		// the end of the .bsp file buffer
+		if (((byte*)(mt+1) + pixels) > (mod_base + l->fileofs + l->filelen))
+		{
+			Con_DPrintf("Texture %s extends past end of lump\n", mt->name);
+			pixels = max(0, (mod_base + l->fileofs + l->filelen) - (byte*)(mt+1));
+		}
+
 		if (loadmodel->bspversion != HL_BSPVERSION && (!Q_strncmp(mt->name,"sky",3))) {
 			R_InitSky (mt);
 			continue;
@@ -405,27 +416,62 @@ void Mod_LoadTextures (lump_t *l)
 				//com_netpath[0] = 0;      
 				//alpha_flag = ISALPHATEX(tx->name) ? TEX_ALPHA : 0;
 				texture_mode = GL_LINEAR;
-				tx->gl_texturenum = GL_LoadTexture32 (mt->name, tx->width, tx->height, (byte *)data, true, false);
+				tx->gl_texturenum = GL_LoadTexture32 (mt->name, tx->width, tx->height, data, true, false, false);
 				tx->fullbright = -1;
 				free(data);
 				continue;
 			}
 		}
-			
-		texture_mode = GL_LINEAR;
-		tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(mt+1), true, false);
-
-		// check for fullbright pixels in the texture - only if it ain't liquid, etc also
-		if ((tx->name[0] != '*') && (FindFullbrightTexture ((byte *)(mt+1), pixels)))
-		{
-			// convert any non fullbright pixel to fully transparent
-			ConvertPixels ((byte *)(mt+1), pixels);
-			// get a new name for the fullbright mask to avoid cache mismatches
-			sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
-			// load the fullbright pixels version of the texture
-			tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(mt + 1), true, true);
+		
+		// External textures support for regular textures
+		tx->fullbright = -1;
+		tx->gl_texturenum = -1;
+		tx->luma = false;
+		COM_StripExtension (loadmodel->name + 5, mapname);
+		snprintf(filename, sizeof(filename), "textures/%s/%s%s", mapname, tx->name[0] == '*' ? "#" : "", tx->name);
+		byte *data = Image_LoadImage (filename, &fwidth, &fheight);
+		if (!data) {
+			snprintf(filename, sizeof(filename), "textures/%s%s", tx->name[0] == '*' ? "#" : "", tx->name);
+			data = Image_LoadImage (filename, &fwidth, &fheight);
+			if (!data) {
+				snprintf(filename, sizeof(filename), "textures/bmodels/%s%s", tx->name[0] == '*' ? "#" : "", tx->name);
+				data = Image_LoadImage (filename, &fwidth, &fheight);
+			}
 		}
-		else tx->fullbright = -1; // because 0 is a potentially valid texture number
+		if (data) {
+			tx->gl_texturenum = GL_LoadTexture32 (mt->name, fwidth, fheight, data, true, tx->name[0] == '{', false);
+			free(data);
+				
+			// Fullbright
+			snprintf (filename2, sizeof(filename2), "%s_luma", filename);
+			data = Image_LoadImage (filename2, &fwidth, &fheight);
+			if (!data) {
+				snprintf (filename2, sizeof(filename2), "%s_glow", filename);
+				data = Image_LoadImage (filename2, &fwidth, &fheight);
+			}
+			if (data) {
+				// get a new name for the fullbright mask to avoid cache mismatches
+				sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
+				// load the fullbright pixels version of the texture
+				tx->fullbright = GL_LoadTexture32 (fbr_mask_name, fwidth, fheight, data, true, tx->name[0] == '{', true);
+				tx->luma = true;
+				free(data);
+			}
+		}
+		
+		// Fallback to original textures
+		if (tx->gl_texturenum == -1) {
+			tx->gl_texturenum = GL_LoadTexture (mt->name, tx->width, tx->height, (byte *)(mt+1), true, false);
+		
+			if (FindFullbrightTexture ((byte *)(mt+1), pixels)) {
+				// convert any non fullbright pixel to fully transparent
+				ConvertPixels ((byte *)(mt+1), pixels);
+				// get a new name for the fullbright mask to avoid cache mismatches
+				sprintf (fbr_mask_name, "fullbright_mask_%s", mt->name);
+				// load the fullbright pixels version of the texture
+				tx->fullbright = GL_LoadTexture (fbr_mask_name, tx->width, tx->height, (byte *)(mt + 1), true, true);
+			}
+		}
 	}
 
 //
@@ -1977,6 +2023,18 @@ void Mod_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 	}
 }
 
+static int Mod_LoadExternalSkin(char *identifier)
+{
+	int w, h;
+	byte *data = Image_LoadImage (identifier, &w, &h);
+	if (data) {
+		int r = GL_LoadTexture32 (identifier, w, h, data, false, false, false);
+		free(data);
+		return r;
+	}
+	return -1;
+}
+
 /*
 ===============
 Mod_LoadAllSkins
@@ -1986,7 +2044,7 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype)
 {
 	int		i, j, k;
 	char	name[32];
-	int		s;
+	int		s, texnum;
 	byte	*copy;
 	byte	*skin;
 	byte	*texels;
@@ -2007,18 +2065,18 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype)
 			Mod_FloodFillSkin( skin, pheader->skinwidth, pheader->skinheight );
 
 			// save 8 bit texels for the player model to remap
-	//		if (!strcmp(loadmodel->name,"progs/player.mdl")) {
+			if (!strcmp(loadmodel->name,"progs/player.mdl")) {
 				texels = Hunk_AllocName(s, loadname);
 				pheader->texels[i] = texels - (byte *)pheader;
 				memcpy (texels, (byte *)(pskintype + 1), s);
-	//		}
+			}
 			sprintf (name, "%s_%i", loadmodel->name, i);
+			
+			texnum = Mod_LoadExternalSkin(name);
 			pheader->gl_texturenum[i][0] =
 			pheader->gl_texturenum[i][1] =
 			pheader->gl_texturenum[i][2] =
-			pheader->gl_texturenum[i][3] =
-				GL_LoadTexture (name, pheader->skinwidth, 
-				pheader->skinheight, (byte *)(pskintype + 1), true, false);
+			pheader->gl_texturenum[i][3] = texnum != -1 ? texnum : GL_LoadTexture (name, pheader->skinwidth, pheader->skinheight, (byte *)(pskintype + 1), true, false);
 			pskintype = (daliasskintype_t *)((byte *)(pskintype+1) + s);
 		} else {
 			// animating skin group.  yuck.
@@ -2038,9 +2096,8 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype)
 						memcpy (texels, (byte *)(pskintype), s);
 					}
 					sprintf (name, "%s_%i_%i", loadmodel->name, i,j);
-					pheader->gl_texturenum[i][j&3] = 
-						GL_LoadTexture (name, pheader->skinwidth, 
-						pheader->skinheight, (byte *)(pskintype), true, false);
+					texnum = Mod_LoadExternalSkin(name);
+					pheader->gl_texturenum[i][j&3] = texnum != -1 ? texnum : GL_LoadTexture (name, pheader->skinwidth, pheader->skinheight, (byte *)(pskintype), true, false);
 					pskintype = (daliasskintype_t *)((byte *)(pskintype) + s);
 			}
 			k = j;
