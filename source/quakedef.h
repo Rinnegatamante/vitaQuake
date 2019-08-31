@@ -356,7 +356,7 @@ void Chase_Init (void);
 void Chase_Reset (void);
 void Chase_Update (void);
 
-void DrawQuad_NoTex(GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+void DrawQuad_NoTex(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 void DrawQuad(GLfloat x, GLfloat y, GLfloat w, GLfloat h, GLfloat u, GLfloat v, GLfloat uw, GLfloat vh);
 
 void GL_SubdivideSurface (msurface_t *fa);
