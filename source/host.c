@@ -246,7 +246,7 @@ Host_WriteConfiguration
 Writes key bindings and archived cvars to config.cfg
 ===============
 */
-void Host_WriteConfiguration (void)
+void Host_WriteConfiguration (char *name)
 {
 	FILE	*f;
 
@@ -254,7 +254,7 @@ void Host_WriteConfiguration (void)
 // config.cfg cvars
 	if (host_initialized)
 	{
-		f = fopen (va("%s/config.cfg",com_gamedir), "w");
+		f = fopen (va("%s/%s",com_gamedir, name), "w");
 		if (!f)
 		{
 			Sys_Error ("Couldn't write config.cfg.\n");
@@ -982,7 +982,7 @@ void Host_Shutdown(void)
 // keep Con_Printf from trying to update the screen
 	scr_disabled_for_loading = true;
 
-	Host_WriteConfiguration ();
+	Host_WriteConfiguration ("config.cfg");
 
 	CDAudio_Shutdown ();
 	NET_Shutdown ();

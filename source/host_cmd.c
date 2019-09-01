@@ -117,6 +117,30 @@ int NumGames(searchpath_t *search)
 void ExtraMaps_NewGame (void);
 
 /*
+===============
+Host_WriteConfig_f
+Writes key bindings and ONLY archived cvars to a custom config file
+===============
+*/
+void Host_WriteConfig_f (void)
+{
+	char	name[MAX_OSPATH];
+
+	if (Cmd_Argc() != 2)
+	{
+		Con_Printf ("Usage: writeconfig <filename>\n");
+		return;
+	}
+
+	Q_strncpyz (name, Cmd_Argv(1), sizeof(name));
+	COM_ForceExtension (name, ".cfg");
+
+	Con_Printf ("Writing %s\n", name);
+
+	Host_WriteConfiguration (name);
+}
+
+/*
 ==================
 Host_Game_f
 ==================
@@ -157,7 +181,7 @@ void Host_Game_f (void)
 		Host_ShutdownServer(true);
 
 		//Write config file
-		Host_WriteConfiguration ();
+		Host_WriteConfiguration ("config.cfg");
 
 		//Kill the extra game if it is loaded
 		if (NumGames(com_searchpaths) > 1 + com_nummissionpacks)
@@ -2333,6 +2357,9 @@ void Host_InitCommands (void)
 	Cmd_AddCommand ("viewframe", Host_Viewframe_f);
 	Cmd_AddCommand ("viewnext", Host_Viewnext_f);
 	Cmd_AddCommand ("viewprev", Host_Viewprev_f);
+	
+	Cmd_AddCommand ("saveconfig", Host_WriteConfig_f);	// dp cfg compat
+	Cmd_AddCommand ("writeconfig", Host_WriteConfig_f);	// by joe
 
 	Cmd_AddCommand ("mcache", Mod_Print);
 }
