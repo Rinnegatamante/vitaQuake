@@ -1310,7 +1310,7 @@ void M_Graphics_Draw (void)
 	r = gl_outline.value / 6;
 	M_DrawSlider (220, 96, r);
 
-	M_Print (16, 104, "        Anti-Aliasing");
+	M_Print (16, 104,"         Anti-Aliasing");
 	switch (antialiasing) {
 	case 1:
 		M_Print (220, 104, "MSAA 2x");

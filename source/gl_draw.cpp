@@ -731,8 +731,18 @@ void Draw_Init (void)
 		if (draw_chars[i] == 0)
 			draw_chars[i] = 255;	// proper transparent color
 
+	// forcing GL_NEAREST to prevent bug with 'Y' glyph
+	int old_min = gl_filter_min;
+	int old_max = gl_filter_max;
+	gl_filter_min = gl_filter_max = GL_NEAREST;
+
 	// now turn them into textures
 	char_texture = GL_LoadTexture ("charset", 128, 128, draw_chars, false, true);
+	
+	
+	// restoring true filter settings
+	gl_filter_min = old_min;
+	gl_filter_max = old_max;
 	
 	// custom crosshair support
 	char crosshair_file[1024];
