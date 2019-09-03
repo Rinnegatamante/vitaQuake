@@ -537,7 +537,9 @@ void Con_DrawNotify (void)
 	float	time;
 	extern char chat_buffer[];
 
-	v = 0;
+	GL_SetCanvas (CANVAS_CONSOLE); //johnfitz
+	v = vid.conheight;
+	
 	for (i= con_current-NUM_CON_TIMES+1 ; i<=con_current ; i++)
 	{
 		if (i < 0)
@@ -591,37 +593,57 @@ The typing input line at the bottom should only be drawn if typing is allowed
 */
 void Con_DrawConsole (int lines, bool drawinput)
 {
-	int				i, x, y;
+	int				i, sb, x, y;
 	int				rows;
 	char			*text;
 	int				j;
-
+	char	ver[32];
+	
 	if (lines <= 0)
 		return;
+	
+	GL_SetCanvas (CANVAS_CONSOLE);
 
 // draw the background
-	Draw_ConsoleBackground (lines);
+	Draw_ConsoleBackground ();
 
 // draw the text
-	con_vislines = lines;
+	con_vislines = lines * vid.conheight / glheight;
 
-	rows = (lines-16)>>3;		// rows of text to draw
-	y = lines - 16 - (rows<<3);	// may start slightly negative
+	rows = (con_vislines +7)/8;
+	y = vid.conheight - rows*8;
+	rows -= 2; //for input and version lines
+	sb = (con_backscroll) ? 2 : 0;
 
-	for (i= con_current - rows + 1 ; i<=con_current ; i++, y+=8 )
+	for (i = con_current - rows + 1; i <= con_current - sb; i++, y += 8)
 	{
 		j = i - con_backscroll;
-		if (j<0)
+		if (j < 0)
 			j = 0;
 		text = con_text + (j % con_totallines)*con_linewidth;
 
-		for (x=0 ; x<con_linewidth ; x++)
-			Draw_Character ( (x+1)<<3, y, text[x]);
+		for (x = 0; x < con_linewidth; x++)
+			Draw_Character ( (x + 1)<<3, y, text[x]);
 	}
 
-// draw the input prompt, user text, and cursor if desired
+// draw scrollback arrows
+	if (con_backscroll)
+	{
+		y += 8; // blank line
+		for (x = 0; x < con_linewidth; x += 4)
+			Draw_Character ((x + 1)<<3, y, '^');
+		y += 8;
+	}
+
+// draw the input prompt, user text, and cursor
 	if (drawinput)
 		Con_DrawInput ();
+
+//draw version number in bottom right
+	y += 8;
+	snprintf (ver, sizeof(ver), "vitaQuake v.%.2f", VERSION);
+	for (x = 0; x < (int)strlen(ver); x++)
+		Draw_Character ((con_linewidth - strlen(ver) + x + 2)<<3, y, ver[x] /*+ 128*/);
 }
 
 

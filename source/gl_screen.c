@@ -87,6 +87,12 @@ CVAR	(fov,		90, CVAR_ARCHIVE) // LIMITS: 10 - 170
 CVAR	(scr_conspeed, 300, CVAR_NONE)
 CVAR	(scr_centertime, 2, CVAR_NONE)
 CVAR	(scr_sbaralpha, 0.50, CVAR_ARCHIVE)
+CVAR	(scr_conscale, 1, CVAR_ARCHIVE)
+CVAR	(scr_conwidth, 0, CVAR_ARCHIVE)
+CVAR	(scr_conalpha, 0.75, CVAR_ARCHIVE)
+CVAR	(scr_menuscale, 2, CVAR_ARCHIVE)
+CVAR	(scr_sbarscale, 1, CVAR_ARCHIVE)
+CVAR	(scr_crosshairscale, 1, CVAR_ARCHIVE)
 
 CVAR	(showram, 1,	CVAR_ARCHIVE)
 CVAR	(showturtle, 0, CVAR_ARCHIVE)
@@ -168,6 +174,8 @@ void SCR_DrawCenterString (void)
 	int		j;
 	int		x, y;
 	int		remaining;
+	
+	GL_SetCanvas (CANVAS_MENU); //johnfitz
 
 // the finale prints the characters one at a time
 	if (cl.intermission)
@@ -179,7 +187,7 @@ void SCR_DrawCenterString (void)
 	start = scr_centerstring;
 
 	if (scr_center_lines <= 4)
-		y = vid.height*0.35;
+		y = 200*0.35;	//johnfitz -- 320x200 coordinate system
 	else
 		y = 48;
 
@@ -189,7 +197,7 @@ void SCR_DrawCenterString (void)
 		for (l=0 ; l<40 ; l++)
 			if (start[l] == '\n' || !start[l])
 				break;
-		x = (vid.width - l*8)/2;
+		x = (320 - l*8)/2;	//johnfitz -- 320x200 coordinate system
 		for (j=0 ; j<l ; j++, x+=8)
 		{
 			Draw_Character (x, y, start[j]);	
@@ -259,7 +267,7 @@ Internal use only
 static void SCR_CalcRefdef (void)
 {
 	vrect_t		vrect;
-	float		size;
+	float		size, scale;
 	int		h;
 	bool		full = false;
 
@@ -272,61 +280,40 @@ static void SCR_CalcRefdef (void)
 
 //========================================
 	
-// bound viewsize
+	// bound viewsize
 	if (viewsize.value < 30)
 		Cvar_Set ("viewsize","30");
 	if (viewsize.value > 120)
 		Cvar_Set ("viewsize","120");
 
-// bound field of view
+	// bound field of view
 	if (fov.value < 10)
 		Cvar_Set ("fov","10");
 	if (fov.value > 170)
 		Cvar_Set ("fov","170");
+	
+	vid.recalc_refdef = 0;
 
-// intermission is always full screen	
-	if (cl.intermission)
-		size = 120;
-	else
-		size = viewsize.value;
+	//johnfitz -- rewrote this section
+	size = viewsize.value;
+	scale = Q_CLAMP (1.0, scr_sbarscale.value, (float)glwidth / 320.0);
 
-	if (viewsize.value >= 120.0)
+	if (size >= 120 || cl.intermission || scr_sbaralpha.value < 1) //johnfitz -- scr_sbaralpha.value
 		sb_lines = 0;
+	else if (size >= 110)
+		sb_lines = 24 * scale;
 	else
-		sb_lines = (viewsize.value == 110.0) ? 24 : 48;
+		sb_lines = 48 * scale;
 
-	if (viewsize.value >= 100.0) {
-		full = true;
-		size = 100.0;
-	} else
-		size = viewsize.value;
-	if (cl.intermission)
-	{
-		full = true;
-		size = 100;
-		sb_lines = 0;
-	}
-	size /= 100.0;
+	size = fmin(viewsize.value, 100) / 100;
+	//johnfitz
 
-	h = vid.height - sb_lines;
-
-	r_refdef.vrect.width = vid.width * size;
-	if (r_refdef.vrect.width < 96)
-	{
-		size = 96.0 / r_refdef.vrect.width;
-		r_refdef.vrect.width = 96;	// min for icons
-	}
-
-	r_refdef.vrect.height = vid.height * size;
-	if (r_refdef.vrect.height > vid.height - sb_lines)
-		r_refdef.vrect.height = vid.height - sb_lines;
-	if (r_refdef.vrect.height > vid.height)
-			r_refdef.vrect.height = vid.height;
-	r_refdef.vrect.x = (vid.width - r_refdef.vrect.width)/2;
-	if (full)
-		r_refdef.vrect.y = 0;
-	else 
-		r_refdef.vrect.y = (h - r_refdef.vrect.height)/2;
+	//johnfitz -- rewrote this section
+	r_refdef.vrect.width = fmax(glwidth * size, 96); //no smaller than 96, for icons
+	r_refdef.vrect.height = fmin(glheight * size, glheight - sb_lines); //make room for sbar
+	r_refdef.vrect.x = (glwidth - r_refdef.vrect.width)/2;
+	r_refdef.vrect.y = (glheight - sb_lines - r_refdef.vrect.height)/2;
+	//johnfitz
 
 	r_refdef.fov_x = fov.value;
 	r_refdef.fov_y = CalcFov (r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
@@ -374,6 +361,11 @@ void SCR_Init (void)
 	Cvar_RegisterVariable (&viewsize);
 	Cvar_RegisterVariable (&fov);
 	Cvar_RegisterVariable (&scr_sbaralpha);
+	Cvar_RegisterVariable (&scr_conalpha);
+	Cvar_RegisterVariable (&scr_conwidth);
+	Cvar_RegisterVariable (&scr_conscale);
+	Cvar_RegisterVariable (&scr_menuscale);
+	Cvar_RegisterVariable (&scr_sbarscale);
 	Cvar_RegisterVariable (&scr_conspeed);
 	Cvar_RegisterVariable (&showram);
 	Cvar_RegisterVariable (&showturtle);
@@ -410,7 +402,9 @@ void SCR_DrawRam (void)
 
 	if (!r_cache_thrash)
 		return;
-
+	
+	GL_SetCanvas (CANVAS_DEFAULT); //johnfitz
+	
 	Draw_Pic (scr_vrect.x+32, scr_vrect.y, scr_ram);
 }
 
@@ -435,7 +429,9 @@ void SCR_DrawTurtle (void)
 	count++;
 	if (count < 3)
 		return;
-
+	
+	GL_SetCanvas (CANVAS_DEFAULT); //johnfitz
+	
 	Draw_Pic (scr_vrect.x, scr_vrect.y, scr_turtle);
 }
 
@@ -450,6 +446,8 @@ void SCR_DrawNet (void)
 		return;
 	if (cls.demoplayback)
 		return;
+	
+	GL_SetCanvas (CANVAS_DEFAULT); //johnfitz
 
 	Draw_Pic (scr_vrect.x+64, scr_vrect.y, scr_net);
 }
@@ -468,10 +466,12 @@ void SCR_DrawPause (void)
 
 	if (!cl.paused)
 		return;
+	
+	GL_SetCanvas (CANVAS_MENU); //johnfitz
 
 	pic = Draw_CachePic ("gfx/pause.lmp");
-	Draw_Pic ( (vid.width - pic->width)/2, 
-		(vid.height - 48 - pic->height)/2, pic);
+	Draw_Pic ( (320 - pic->width)/2, 
+		(240 - 48 - pic->height)/2, pic);
 }
 
 
@@ -487,10 +487,12 @@ void SCR_DrawLoading (void)
 
 	if (!scr_drawloading)
 		return;
+	
+	GL_SetCanvas (CANVAS_MENU); //johnfitz
 		
 	pic = Draw_CachePic ("gfx/loading.lmp");
-	Draw_Pic ( (vid.width - pic->width)/2, 
-		(vid.height - 48 - pic->height)/2, pic);
+	Draw_Pic ( (320 - pic->width)/2, 
+		(240 - 48 - pic->height)/2, pic);
 }
 
 
@@ -709,9 +711,11 @@ void SCR_DrawNotifyString (void)
 	int		j;
 	int		x, y;
 
+	GL_SetCanvas (CANVAS_MENU); //johnfitz
+	
 	start = scr_notifystring;
 
-	y = (int)(vid.height*0.35);
+	y = (int)(200*0.35);
 
 	do	
 	{
@@ -719,7 +723,7 @@ void SCR_DrawNotifyString (void)
 		for (l=0 ; l<40 ; l++)
 			if (start[l] == '\n' || !start[l])
 				break;
-		x = (vid.width - l*8)/2;
+		x = (320 - l*8)/2;
 		for (j=0 ; j<l ; j++, x+=8)
 			Draw_Character (x, y, start[j]);	
 			

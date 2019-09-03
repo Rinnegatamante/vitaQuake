@@ -63,6 +63,8 @@ float	r_base_world_matrix[16];
 extern	cvar_t		v_gamma; // muff
 extern	cvar_t		gl_outline;
 
+float r_fovx, r_fovy;
+
 // idea originally nicked from LordHavoc
 // re-worked + extended - muff 5 Feb 2001
 // called inside polyblend
@@ -147,7 +149,6 @@ CVAR	(gl_doubleeyes, 1, CVAR_NONE)
 // Torch flares. KH
 CVAR	(gl_torchflares, 1, CVAR_ARCHIVE)
 
-extern	cvar_t	gl_ztrick;
 extern bool gl_warp;
 
 /*
@@ -1563,21 +1564,15 @@ void R_SetupFrame (void)
 
 }
 
-
-void MYgluPerspective( GLdouble fovy, GLdouble aspect,
-		     GLdouble zNear, GLdouble zFar )
+#define NEARCLIP 4
+#define FARCLIP  4096
+void GL_SetFrustum(float fovx, float fovy)
 {
-   GLdouble xmin, xmax, ymin, ymax;
-
-   ymax = zNear * tan( fovy * M_PI / 360.0 );
-   ymin = -ymax;
-
-   xmin = ymin * aspect;
-   xmax = ymax * aspect;
-
-   glFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
+	float xmax, ymax;
+	xmax = NEARCLIP * tan( fovx * M_PI / 360.0 );
+	ymax = NEARCLIP * tan( fovy * M_PI / 360.0 );
+	glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, FARCLIP);
 }
-
 
 /*
 =============
@@ -1586,45 +1581,20 @@ R_SetupGL
 */
 void R_SetupGL (void)
 {
-	float	screenaspect;
-	float	yfov;
 	int		i;
 	extern	int glwidth, glheight;
-	int		x, x2, y2, y, w, h;
 
 	//
 	// set up viewpoint
 	//
 	glMatrixMode(GL_PROJECTION);
-    glLoadIdentity ();
-	x = r_refdef.vrect.x * glwidth/vid.width;
-	x2 = (r_refdef.vrect.x + r_refdef.vrect.width) * glwidth/vid.width;
-	y = (vid.height-r_refdef.vrect.y) * glheight/vid.height;
-	y2 = (vid.height - (r_refdef.vrect.y + r_refdef.vrect.height)) * glheight/vid.height;
-
-	// fudge around because of frac screen scale
-	if (x > 0)
-		x--;
-	if (x2 < glwidth)
-		x2++;
-	if (y2 < 0)
-		y2--;
-	if (y < glheight)
-		y++;
-
-	w = x2 - x;
-	h = y - y2;
-
-	if (envmap)
-	{
-		x = y2 = 0;
-		w = h = 256;
-	}
-
-	glViewport (glx + x, gly + y2, w, h);
-    screenaspect = (float)r_refdef.vrect.width/r_refdef.vrect.height;
-//	yfov = 2*atan((float)r_refdef.vrect.height/r_refdef.vrect.width)*180/M_PI;
-    MYgluPerspective (r_refdef.fov_y,  screenaspect,  4,  4096);
+	glLoadIdentity ();
+	glViewport (glx + r_refdef.vrect.x,
+		gly + glheight - r_refdef.vrect.y - r_refdef.vrect.height,
+		r_refdef.vrect.width,
+		r_refdef.vrect.height);
+				
+    GL_SetFrustum (r_refdef.fov_x, r_refdef.fov_y);
 
 	if (mirror)
 	{
@@ -1692,10 +1662,6 @@ void R_RenderScene (void)
 	R_RenderDlights ();
 	
 	R_DrawParticles ();
-	
-#ifdef GLTEST
-	Test_Draw ();
-#endif
 
 }
 
@@ -1707,52 +1673,19 @@ R_Clear
 */
 void R_Clear (void)
 {
+	if (gl_clear.value){
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}else{
+		glClear (GL_DEPTH_BUFFER_BIT);
+	}
+	
 	if (r_mirroralpha.value != 1.0)
-	{
-		
-		if (gl_clear.value){
-			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}else{
-			glClear (GL_DEPTH_BUFFER_BIT);
-		}
-		gldepthmin = 0;
 		gldepthmax = 0.5;
-		glDepthFunc (GL_LEQUAL);
-	}
-	else if (gl_ztrick.value)
-	{
-		static int trickframe;
-
-		if (gl_clear.value){
-			glClear (GL_COLOR_BUFFER_BIT);
-		}
-		
-		trickframe++;
-		if (trickframe & 1)
-		{
-			gldepthmin = 0;
-			gldepthmax = 0.49999;
-			glDepthFunc (GL_LEQUAL);
-		}
-		else
-		{
-			gldepthmin = 1;
-			gldepthmax = 0.5;
-			glDepthFunc (GL_GEQUAL);
-		}
-	}
 	else
-	{
-		if (gl_clear.value){
-			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}else{
-			glClear (GL_DEPTH_BUFFER_BIT);
-		}
-		gldepthmin = 0;
 		gldepthmax = 1;
-		glDepthFunc (GL_LEQUAL);
-	}
-
+		
+	gldepthmin = 0;
+	glDepthFunc (GL_LEQUAL);
 	glDepthRangef (gldepthmin, gldepthmax);
 }
 

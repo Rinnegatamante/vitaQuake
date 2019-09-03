@@ -54,6 +54,10 @@ extern cvar_t cl_crossx;
 extern cvar_t cl_crossy;
 extern cvar_t crosshair;
 extern cvar_t gl_mipmap;
+extern cvar_t scr_crosshairscale;
+extern cvar_t scr_conalpha;
+extern cvar_t scr_menuscale;
+extern cvar_t scr_sbarscale;
 
 byte		*draw_chars;				// 8*8 graphic characters
 qpic_t		*draw_disc;
@@ -61,6 +65,7 @@ qpic_t		*draw_backtile;
 
 int			translate_texture;
 int			char_texture;
+int 		currentcanvas = -1;
 
 typedef struct
 {
@@ -101,7 +106,6 @@ static int LoadExternalPic(char *identifier)
 	byte *data = Image_LoadImage (fname, &w, &h);
 	if (data) {
 		int r = GL_LoadTexture32 ("", w, h, data, false, true, false);
-		Con_Printf("LoadExternalPic: %s is OK\n", fname);
 		free(data);
 		return r;
 	}
@@ -365,8 +369,6 @@ textureStore* textureStore::g_pTextureCache;
 
 void GL_Bind (int texnum)
 {
-	if (gl_nobind.value)
-		texnum = char_texture;
 	if (currenttexture == texnum)
 		return;
 	currenttexture = texnum;
@@ -622,11 +624,7 @@ typedef struct
 
 glmode_t modes[] = {
 	{"GL_NEAREST", GL_NEAREST, GL_NEAREST},
-	{"GL_LINEAR", GL_LINEAR, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
+	{"GL_LINEAR", GL_LINEAR, GL_LINEAR}
 };
 
 /*
@@ -809,22 +807,22 @@ void Draw_Init (void)
 
 void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float b, float a)
 {
-  float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
-  float color[4] = {r,g,b,a};
-  GL_DisableState(GL_TEXTURE_COORD_ARRAY);
-  vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-  glUniform4fv(monocolor, 1, color);
-  GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
-  GL_EnableState(GL_TEXTURE_COORD_ARRAY);
+	float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
+	float color[4] = {r,g,b,a};
+	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+	glUniform4fv(monocolor, 1, color);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
+	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, float vh)
 {
-  float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
-  float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
-  vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-  vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
-  GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
+	float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
+	float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
+	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
+	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 }
 
 /*
@@ -896,21 +894,19 @@ void Draw_DebugChar (signed char num)
 
 void Draw_Crosshair(void)
 {
-	int x, y;
-	extern vrect_t scr_vrect;
+	GL_SetCanvas (CANVAS_CROSSHAIR);
 
 	if (crosshair.value == 2) {
-		x = scr_vrect.x + scr_vrect.width/2 + 1 + cl_crossx.value;
-		y = scr_vrect.y + scr_vrect.height/2  + cl_crossy.value;
-		
 		GL_EnableState(GL_MODULATE);
 		GL_Bind (cs_texture);
 		GL_Color(crosshaircolor_r.value, crosshaircolor_g.value, crosshaircolor_b.value, 1);
-		DrawQuad(x, y, 12, 12, 0, 0, 1, 1);
+		DrawQuad(-6, -6, 12, 12, 0, 0, 1, 1);
 		GL_EnableState(GL_REPLACE);
 	}
 	else if (crosshair.value)
-		Draw_Character (scr_vrect.x + scr_vrect.width/2 + cl_crossx.value, scr_vrect.y + scr_vrect.height/2 + cl_crossy.value, '+');
+		Draw_Character(-4, -4, '+');
+	
+	
 }
 
 /*
@@ -1035,14 +1031,18 @@ Draw_ConsoleBackground
 
 ================
 */
-void Draw_ConsoleBackground (int lines)
+void Draw_ConsoleBackground (void)
 {
-	int y = (vid.height * 3) >> 2;
 
-	if (lines > y)
-		Draw_Pic(0, lines - vid.height, conback);
-	else
-		Draw_AlphaPic (0, lines - vid.height, conback, (float)(1.2 * lines)/y);
+	GL_SetCanvas (CANVAS_CONSOLE);
+	
+	if (scr_conalpha.value > 0.0f) {
+		if (scr_conalpha.value < 1.0f)
+			Draw_Pic(0, 0, conback);
+		else
+			Draw_AlphaPic(0, 0, conback, scr_conalpha.value);
+	}
+
 }
 
 
@@ -1091,6 +1091,8 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
+	GL_SetCanvas (CANVAS_DEFAULT);
+	
 	glEnable (GL_BLEND);
 	DrawQuad_NoTex(0, 0, vid.width, vid.height, 0, 0, 0, 0.8f);
 	GL_Color(1,1,1,1);
@@ -1103,36 +1105,6 @@ void Draw_FadeScreen (void)
 
 /*
 ================
-Draw_BeginDisc
-
-Draws the little blue disc in the corner of the screen.
-Call before beginning any disc IO.
-================
-*/
-void Draw_BeginDisc (void)
-{
-	if (!draw_disc)
-		return;
-	//->glDrawBuffer  (GL_FRONT);
-	//->Draw_Pic (vid.width - 24, 0, draw_disc);
-	//->glDrawBuffer  (GL_BACK);
-}
-
-
-/*
-================
-Draw_EndDisc
-
-Erases the disc icon.
-Call after completing any disc IO
-================
-*/
-void Draw_EndDisc (void)
-{
-}
-
-/*
-================
 GL_Set2D
 
 Setup as if the screen was 320*200
@@ -1140,14 +1112,8 @@ Setup as if the screen was 320*200
 */
 void GL_Set2D (void)
 {
-	glViewport (glx, gly, glwidth, glheight);
-
-	glMatrixMode(GL_PROJECTION);
-    glLoadIdentity ();
-	glOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
-
-	glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity ();
+	currentcanvas = -1;
+	GL_SetCanvas (CANVAS_DEFAULT);
 
 	glDisable (GL_DEPTH_TEST);
 	glDisable (GL_CULL_FACE);
@@ -1548,15 +1514,16 @@ void GL_DrawBenchmark(void)
 		sprintf(st3, "    Min: %3d", min_fps);	// <-- Dat Result really feels cheated
 	}
 
-	x = vid.width - strlen(st) * 8 - 16;
-	y = (vid.height * 0.2);
-	Draw_String(x, y, st);
-	Draw_String(x, y+8, st2);
-	Draw_String(x, y+16, st3);
-
+	x = 320 - strlen(st) * 8 - 16;
+	GL_SetCanvas (CANVAS_TOPRIGHT);
+	Draw_String(x, 2, st);
+	Draw_String(x, 10, st2);
+	Draw_String(x, 18, st3);
+	
 	if (bBlinkBenchmark) {	// Neato messaji
+		GL_SetCanvas (CANVAS_MENU);
 		char *msg = "Benchmark in progress, please wait...";
-		Draw_String((vid.width / 2) - (strlen(msg) * 4), vid.height*0.25, msg);
+		Draw_String(160 - (strlen(msg) * 4), 200*0.25, msg);
 	}
 }
 
@@ -1566,7 +1533,7 @@ void GL_DrawFPS(void){
 	double t;
 	extern int fps_count;
 	static int lastfps;
-	int x, y;
+	int x;
 	char st[80];
 	
 	if (!show_fps.value)
@@ -1582,7 +1549,68 @@ void GL_DrawFPS(void){
 	}
 	sprintf(st, "%3d FPS", lastfps);
 
-	x = vid.width - strlen(st) * 8 - 16;
-	y = 8 ; //vid.height - (sb_lines * (vid.height/240) )- 16;
-	Draw_String(x, y, st);
+	x = 329 - strlen(st) * 8 - 16;
+	GL_SetCanvas (CANVAS_TOPRIGHT);
+	Draw_String(x, 2, st);
+}
+
+void GL_SetCanvas (int newcanvas)
+{
+	extern vrect_t scr_vrect;
+	float s;
+	int lines;
+	
+	if (newcanvas == currentcanvas) return;
+		currentcanvas = newcanvas;
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity ();
+	
+	switch(newcanvas)
+	{
+	case CANVAS_DEFAULT:
+		glOrtho (0, glwidth, glheight, 0, -99999, 99999);
+		glViewport (glx, gly, glwidth, glheight);
+		break;
+	case CANVAS_CONSOLE:
+		lines = vid.conheight - (scr_con_current * vid.conheight / glheight);
+		glOrtho (0, vid.conwidth, vid.conheight + lines, lines, -99999, 99999);
+		glViewport (glx, gly, glwidth, glheight);
+		break;
+	case CANVAS_MENU:
+		s = fmin((float)glwidth / 320.0, (float)glheight / 200.0);
+		s = Q_CLAMP (1.0, scr_menuscale.value, s);
+		// ericw -- doubled width to 640 to accommodate long keybindings
+		glOrtho (0, 640, 200, 0, -99999, 99999);
+		glViewport (glx + (glwidth - 320*s) / 2, gly + (glheight - 200*s) / 2, 640*s, 200*s);
+		break;
+	case CANVAS_SBAR:
+		s = Q_CLAMP (1.0, scr_sbarscale.value, (float)glwidth / 320.0);
+		if (cl.gametype == GAME_DEATHMATCH)
+		{
+			glOrtho (0, glwidth / s, 48, 0, -99999, 99999);
+			glViewport (glx, gly, glwidth, 48*s);
+		}
+		else
+		{
+			glOrtho (0, 320, 48, 0, -99999, 99999);
+			glViewport (glx + (glwidth - 320*s) / 2, gly, 320*s, 48*s);
+		}
+		break;
+	case CANVAS_CROSSHAIR: //0,0 is center of viewport
+		s = Q_CLAMP (1.0, scr_crosshairscale.value, 10.0);
+		glOrtho (scr_vrect.width/-2/s, scr_vrect.width/2/s, scr_vrect.height/2/s, scr_vrect.height/-2/s, -99999, 99999);
+		glViewport (scr_vrect.x, glheight - scr_vrect.y - scr_vrect.height, scr_vrect.width & ~1, scr_vrect.height & ~1);
+		break;
+	case CANVAS_TOPRIGHT: //used by fps
+		s = 1;
+		glOrtho (0, 320, 200, 0, -99999, 99999);
+		glViewport (glx+glwidth-320*s, gly+glheight-200*s, 320*s, 200*s);
+		break;
+	default:
+		Sys_Error ("GL_SetCanvas: bad canvas type");
+	}
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity ();
 }

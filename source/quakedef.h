@@ -19,8 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // quakedef.h -- primary header for client
 
-//#define	GLTEST			// experimental stuff
-
 #define m_none 0
 #define m_main 1
 #define m_singleplayer 2
@@ -41,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define m_onlineserverlist 17
 #define m_benchmark 18
 #define m_mods 19
+#define m_graphics 20
 
 extern int m_state;
 
@@ -432,6 +431,7 @@ void GL_DisableState(GLenum state);
 void GL_DrawPolygon(GLenum prim, int num);
 void GL_Color(float r, float g, float b, float a);
 void GL_ResetShaders();
+void GL_SetCanvas(int type);
 
 extern float sintablef[17];
 extern float costablef[17];
@@ -441,3 +441,10 @@ typedef struct ModsList{
 	char name[256];
 	struct ModsList* next;
 } ModsList;
+
+#define CANVAS_DEFAULT     0
+#define CANVAS_CONSOLE     1
+#define CANVAS_MENU        2
+#define CANVAS_SBAR        3
+#define CANVAS_CROSSHAIR   4
+#define CANVAS_TOPRIGHT    5
