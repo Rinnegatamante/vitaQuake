@@ -105,62 +105,6 @@ Grab six views for environment mapping tests
 */
 void R_Envmap_f (void)
 {
-	//->byte	buffer[256*256*4];
-	//->char	name[1024];
-
-	//->glDrawBuffer  (GL_FRONT);
-	//->glReadBuffer  (GL_FRONT);
-	//->envmap = true;
-
-	//->r_refdef.vrect.x = 0;
-	//->r_refdef.vrect.y = 0;
-	//->r_refdef.vrect.width = 256;
-	//->r_refdef.vrect.height = 256;
-
-	//->r_refdef.viewangles[0] = 0;
-	//->r_refdef.viewangles[1] = 0;
-	//->r_refdef.viewangles[2] = 0;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env0.rgb", buffer, sizeof(buffer));		
-
-	//->r_refdef.viewangles[1] = 90;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env1.rgb", buffer, sizeof(buffer));		
-
-	//->r_refdef.viewangles[1] = 180;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env2.rgb", buffer, sizeof(buffer));		
-
-	//->r_refdef.viewangles[1] = 270;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env3.rgb", buffer, sizeof(buffer));		
-
-	//->r_refdef.viewangles[0] = -90;
-	//->r_refdef.viewangles[1] = 0;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env4.rgb", buffer, sizeof(buffer));		
-
-	//->r_refdef.viewangles[0] = 90;
-	//->r_refdef.viewangles[1] = 0;
-	//->GL_BeginRendering (&glx, &gly, &glwidth, &glheight);
-	//->R_RenderView ();
-	//->glReadPixels (0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	//->COM_WriteFile ("env5.rgb", buffer, sizeof(buffer));		
-
-	//->envmap = false;
-	//->glDrawBuffer  (GL_BACK);
-	//->glReadBuffer  (GL_BACK);
-	//->GL_EndRendering ();
 }
 
 /*
@@ -393,28 +337,6 @@ For program optimization
 */
 void R_TimeRefresh_f (void)
 {
-	//->int			i;
-	//->float		start, stop, time;
-	//->int			startangle;
-	//->vrect_t		vr;
-
-	//->glDrawBuffer  (GL_FRONT);
-	//->glFinish ();
-
-	//->start = Sys_FloatTime ();
-	//->for (i=0 ; i<128 ; i++)
-	//->{
-	//->	r_refdef.viewangles[1] = i/128.0*360.0;
-	//->	R_RenderView ();
-	//->}
-
-	//->glFinish ();
-	//->stop = Sys_FloatTime ();
-	//->time = stop-start;
-	//->Con_Printf ("%f seconds (%f fps)\n", time, 128/time);
-
-	//->glDrawBuffer  (GL_BACK);
-	//->GL_EndRendering ();
 }
 
 void D_FlushCaches (void)

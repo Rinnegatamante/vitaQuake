@@ -6,7 +6,7 @@ int FindFullbrightTexture (byte *pixels, int num_pix)
 	int i;
 	for (i = 0; i < num_pix; i++)
 	if (pixels[i] > 223)
-	return 1;
+		return 1;
 	return 0;
 }
 
@@ -14,8 +14,8 @@ void ConvertPixels (byte *pixels, int num_pixels)
 {
 	int i;
 	for (i = 0; i < num_pixels; i++)
-	if (pixels[i] < 224)
-	pixels[i] = 255;
+		if (pixels[i] < 224)
+			pixels[i] = 255;
 }
 
 void DrawFullBrightTextures (msurface_t *first_surf, int num_surfs)

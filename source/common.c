@@ -1422,10 +1422,8 @@ byte *COM_LoadFile (char *path, int usehunk)
 		Sys_Error ("COM_LoadFile: not enough space for %s", path);
 
 	((byte *)buf)[len] = 0;
-	Draw_BeginDisc ();
 	Sys_FileRead (h, buf, len);
 	COM_CloseFile (h);
-	Draw_EndDisc ();
 	return buf;
 }
 
