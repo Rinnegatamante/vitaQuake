@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+GLuint fb;
+int fb_tex = -1;
+
 float *gVertexBuffer;
 float *gColorBuffer;
 float *gTexCoordBuffer;
@@ -55,6 +58,11 @@ CVAR (vid_waitforrefresh, 1, CVAR_ARCHIVE)
 CVAR (gl_outline, 0, CVAR_ARCHIVE)
 CVAR (gl_mipmap, 1, CVAR_ARCHIVE)
 
+int gl_ssaa = 1;
+
+extern cvar_t scr_conscale;
+extern cvar_t scr_conwidth;
+
 signed char *framebuffer_ptr;
 
 int     mouse_buttons;
@@ -68,18 +76,11 @@ int scr_width = 960, scr_height = 544;
 
 /*-----------------------------------------------------------------------*/
 
-//int		texture_mode = GL_NEAREST;
-//int		texture_mode = GL_NEAREST_MIPMAP_NEAREST;
-//int		texture_mode = GL_NEAREST_MIPMAP_LINEAR;
 int		texture_mode = GL_LINEAR;
-//int		texture_mode = GL_LINEAR_MIPMAP_NEAREST;
-//int		texture_mode = GL_LINEAR_MIPMAP_LINEAR;
 
 int		texture_extension_number = 1;
 
 float		gldepthmin, gldepthmax;
-
-CVAR (gl_ztrick, 0, CVAR_NONE) // Default now OFF. KH
 
 const char *gl_vendor;
 const char *gl_renderer;
@@ -450,13 +451,10 @@ void GL_Init (void)
 	Con_Printf ("GL_VERSION: %s\n", gl_version);
 	gl_extensions = glGetString (GL_EXTENSIONS);
 	Con_Printf ("GL_EXTENSIONS: %s\n", gl_extensions);
-	
-//	Con_Printf ("%s %s\n", gl_renderer, gl_version);
 
 	glClearColor (1,0,0,0);
 	glCullFace(GL_FRONT);
 
-	//->glShadeModel (GL_FLAT);
 	Cvar_RegisterVariable (&gl_fog);
 	Cvar_SetCallback(&gl_fog, &Callback_Fog_f);
 	GL_ResetShaders();
@@ -497,7 +495,20 @@ void GL_BeginRendering (int *x, int *y, int *width, int *height)
 	*x = *y = 0;
 	*width = scr_width;
 	*height = scr_height;
-
+	if (gl_ssaa > 1) {
+		if (fb_tex == -1) {
+			void *buffer = malloc(vid.width * vid.height * 4);
+			memset(buffer, 0xFF, vid.width * vid.height * 4);
+			fb_tex = GL_LoadTexture32 ("***framebuffer***", scr_width, scr_height, buffer, false, false, false);
+			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, scr_width, scr_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			free(buffer);
+			glBindTexture(GL_TEXTURE_2D, fb_tex);
+			glEnable(GL_TEXTURE_2D);
+			glGenFramebuffers(1, &fb);
+			glBindFramebuffer(GL_FRAMEBUFFER, fb);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fb_tex, 0);
+		} else glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	}
 	vglStartRendering();
 	vglIndexPointerMapped(indices);
 	gVertexBuffer = gVertexBufferPtr;
@@ -509,15 +520,39 @@ void GL_EndRendering (void)
 {
 	if (benchmark) GL_DrawBenchmark ();
 	else GL_DrawFPS ();
+	GL_SetCanvas(CANVAS_DEFAULT);
 	
-	//->glFlush();
-
 	if (isKeyboard || netcheck_dialog_running){
 		vglStopRenderingInit();
 		vglUpdateCommonDialog();
 		vglStopRenderingTerm();
 	}else vglStopRendering();
-		
+	
+	if (gl_ssaa > 1) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, 960, 544, 0, -1, 1);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		vglStartRendering();
+		glBindTexture(GL_TEXTURE_2D, fb_tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glBegin(GL_QUADS);
+		glTexCoord2i(0, 0);
+		glVertex3f(0, 0, 0);
+		glTexCoord2i(1, 0);
+		glVertex3f(960, 0, 0);
+		glTexCoord2i(1, 1);
+		glVertex3f(960, 544, 0);
+		glTexCoord2i(0, 1);
+		glVertex3f(0, 544, 0);
+		glEnd();
+		vglStopRendering();
+	}
+	
 }
 
 static void Check_Gamma (unsigned char *pal)
@@ -529,7 +564,7 @@ static void Check_Gamma (unsigned char *pal)
 	if ((i = COM_CheckParm("-gamma")) == 0) {
 		vid_gamma = 0.7; // default to 0.7 on non-3dfx hardware
 	} else
-		vid_gamma = Q_atof(com_argv[i+1]);
+		vid_gamma = atof(com_argv[i+1]);
 
 	for (i=0 ; i<768 ; i++)
 	{
@@ -548,13 +583,11 @@ static void Check_Gamma (unsigned char *pal)
 void VID_Init(unsigned char *palette)
 {
 	int i;
-	char	gldir[MAX_OSPATH];
 	int width = scr_width, height = scr_height;
-
+	
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&vid_redrawfull);
 	Cvar_RegisterVariable (&vid_waitforrefresh);
-	Cvar_RegisterVariable (&gl_ztrick);
 	Cvar_RegisterVariable (&gl_outline);
 	Cvar_RegisterVariable (&gl_mipmap);
 	
@@ -565,16 +598,15 @@ void VID_Init(unsigned char *palette)
 	vid.aspect = (float) width / (float) height;
 	vid.numpages = 2;
 	vid.rowbytes = 2 * width;
-	vid.width = width;
-	vid.height = height;
+	vid.width = width * gl_ssaa;
+	vid.height = height * gl_ssaa;
 
-	vid.conwidth = width;
-	vid.conheight = height;
+	vid.conwidth = (scr_conwidth.value > 0) ? (int)scr_conwidth.value : (scr_conscale.value > 0) ? (int)(vid.width/scr_conscale.value) : vid.width;
+	vid.conwidth = Q_CLAMP (320, vid.conwidth, vid.width);
+	vid.conwidth &= 0xFFFFFFF8;
+	vid.conheight = vid.conwidth * vid.height / vid.width;
 	
 	GL_Init();
-	
-	sprintf (gldir, "%s/glquake", com_gamedir);
-	Sys_mkdir (gldir);
 
 	Check_Gamma(palette);
 	VID_SetPalette(palette);

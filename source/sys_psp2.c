@@ -20,15 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "errno.h"
+#include "net_dgrm.h"
 #include <vitasdk.h>
 
 #define BIGSTACK_SIZE 20 * 1024 * 1024
 byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
 uint8_t is_uma0 = 0;
-extern int msaa;
+extern int antialiasing;
 extern uint8_t netcheck_dialog_running;
 extern uint8_t proto_idx;
+extern int gl_ssaa;
 
 // Mods support
 int max_mod_idx = -1;
@@ -250,7 +252,7 @@ void Sys_Quit(void)
 	sceKernelExitProcess(0);
 }
 
-void Sys_Error(char *error, ...)
+void Sys_Error(const char *error, ...)
 {
 
 	va_list         argptr;
@@ -468,30 +470,31 @@ int quake_main (unsigned int argc, void* argv){
 	static quakeparms_t    parms;
 	
 	// Loading resolution and MSAA mode from config files, those are not handled via Host cause Host_Init requires vitaGL to be working
-	char res_str[64];
 	if (is_uma0) f = fopen("uma0:data/Quake/resolution.cfg", "rb");
 	else f = fopen("ux0:data/Quake/resolution.cfg", "rb");
 	if (f != NULL){
-		fread(res_str, 1, 64, f);
+		fscanf(f, "%dx%d", &scr_width, &scr_height);
 		fclose(f);
-		sscanf(res_str, "%dx%d", &scr_width, &scr_height);
 	}
 	if (is_uma0) f = fopen("uma0:data/Quake/antialiasing.cfg", "rb");
 	else f = fopen("ux0:data/Quake/antialiasing.cfg", "rb");
 	if (f != NULL){
-		fread(res_str, 1, 64, f);
+		fscanf(f, "%d", &antialiasing);
 		fclose(f);
-		sscanf(res_str, "%d", &msaa);
 	}
 	cfg_width = scr_width;
 	cfg_height = scr_height;
 	
 	// Initializing vitaGL
-	switch (msaa) {
+	switch (antialiasing) {
 	case 1:
+	case 5:
+	case 6:
 		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_2X);
 		break;
 	case 2:
+	case 7:
+	case 8:
 		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_4X);
 		break;
 	default:
@@ -499,6 +502,23 @@ int quake_main (unsigned int argc, void* argv){
 		break;
 	}
 	vglUseVram(GL_TRUE);
+	
+	// Properly setting SSAA
+	switch (antialiasing) {
+	case 3:
+	case 5:
+	case 7:
+		gl_ssaa = 2;
+		break;
+	case 4:
+	case 6:
+	case 8:
+		gl_ssaa = 4;
+		break;
+	default:
+		gl_ssaa = 1;
+		break;
+	}
 	
 	// Official mission packs support
 	SceAppUtilAppEventParam eventParam;
@@ -619,7 +639,7 @@ int quake_main (unsigned int argc, void* argv){
 	{
 		int t = COM_CheckParm("-mem") + 1;
 		if (t < com_argc)
-			parms.memsize = Q_atoi(com_argv[t]) * 1024 * 1024;
+			parms.memsize = atoi(com_argv[t]) * 1024 * 1024;
 	} else
 		parms.memsize = 64 * 1024 * 1024;
 	
@@ -705,7 +725,7 @@ int quake_main (unsigned int argc, void* argv){
 						if (key_dest == key_console)
 						{
 							utf2ascii(title_keyboard, input_text);
-							Q_strcpy(key_lines[edit_line] + 1, title_keyboard);
+							strcpy(key_lines[edit_line] + 1, title_keyboard);
 							Key_SendText(key_lines[edit_line] + 1);
 						} else {
 							utf2ascii(title_keyboard, input_text);
@@ -742,8 +762,8 @@ int quake_main (unsigned int argc, void* argv){
 						param.maxTextLength = (m_state == m_lanconfig && lanConfig_cursor == 0) ? 5 : SCE_IME_DIALOG_MAX_TEXT_LENGTH;
 						/*if (key_dest == key_console)
 						{
-							Q_strcpy(initial_text, key_lines[edit_line] + 1);
-							Q_strcpy(input_text, key_lines[edit_line] + 1);
+							strcpy(initial_text, key_lines[edit_line] + 1);
+							strcpy(input_text, key_lines[edit_line] + 1);
 						}*/
 						param.initialText = initial_text;
 						param.inputTextBuffer = input_text;

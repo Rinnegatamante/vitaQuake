@@ -18,23 +18,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "quakedef.h"
+#include "net_dgrm.h"
 
 char res_string[256];
+CVAR (vid_vsync, 1, CVAR_ARCHIVE)
 extern cvar_t	fov;
 extern cvar_t	crosshair;
-CVAR (vid_vsync, 1, CVAR_ARCHIVE)
 extern cvar_t	invert_camera;
 extern cvar_t	pstv_rumble;
 extern cvar_t	retrotouch;
-extern cvar_t scr_sbaralpha;
+extern cvar_t	scr_sbaralpha;
 extern cvar_t	motioncam;
-extern cvar_t motion_horizontal_sensitivity;
-extern cvar_t motion_vertical_sensitivity;
+extern cvar_t	motion_horizontal_sensitivity;
+extern cvar_t	motion_vertical_sensitivity;
 extern cvar_t	gl_torchflares;
 extern cvar_t	show_fps;
-extern cvar_t gl_fog;
-extern cvar_t gl_outline;
-extern cvar_t r_viewmodeloffset;
+extern cvar_t	gl_fog;
+extern cvar_t	gl_outline;
+extern cvar_t	r_viewmodeloffset;
 extern int scr_width;
 extern int scr_height;
 extern uint8_t is_uma0;
@@ -77,6 +78,7 @@ void M_Main_Draw (void);
 			void M_OnlineServerList_Draw (void);
 	void M_Options_Draw (void);
 		void M_Keys_Draw (void);
+		void M_Graphics_Draw (void);
 		void M_Video_Draw (void);
 		void M_Mods_Draw (void);
 	void M_Help_Draw (void);
@@ -96,6 +98,7 @@ void M_Main_Key (int key);
 			void M_OnlineServerList_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
+		void M_Graphics_Key (int key);
 		void M_Video_Key (int key);
 		void M_Mods_key (int key);
 	void M_Help_Key (int key);
@@ -122,7 +125,7 @@ char		m_return_reason [32];
 
 void M_ConfigureNetSubsystem(void);
 
-int msaa = 0;
+int antialiasing = 2;
 uint8_t netcheck_dialog_running = 0;
 
 void SetResolution(int w, int h){
@@ -152,9 +155,6 @@ void M_DrawColorBar (int x, int y, int highlight)
     int i;
     int intense = highlight * 16 + (highlight < 8 ? 11 : 4);
 
-    // position correctly
-    x = x + ((vid.width - 320) >> 1);
-
     for (i = 0; i < 14; i++)
     {
         // take the approximate midpoint colour (handle backward ranges)
@@ -180,7 +180,7 @@ Draws one solid graphics character
 */
 void M_DrawCharacter (int cx, int line, int num)
 {
-	Draw_Character ( cx + ((vid.width - 320)>>1), line, num);
+	Draw_Character ( cx, line, num);
 }
 
 void M_Print (int cx, int cy, char *str)
@@ -192,6 +192,19 @@ void M_Print (int cx, int cy, char *str)
 		cx += 8;
 	}
 }
+
+void M_PrintCentered (int cy, char *str)
+{
+	int cx = 160 - strlen(str) * 4;
+	
+	while (*str)
+	{
+		M_DrawCharacter (cx, cy, (*str)+128);
+		str++;
+		cx += 8;
+	}
+}
+
 
 void M_PrintWhite (int cx, int cy, char *str)
 {
@@ -205,12 +218,12 @@ void M_PrintWhite (int cx, int cy, char *str)
 
 void M_DrawTransPic (int x, int y, qpic_t *pic)
 {
-	Draw_TransPic (x + ((vid.width - 320)>>1), y, pic);
+	Draw_TransPic (x, y, pic);
 }
 
 void M_DrawPic (int x, int y, qpic_t *pic)
 {
-	Draw_Pic (x + ((vid.width - 320)>>1), y, pic);
+	Draw_Pic (x, y, pic);
 }
 
 byte identityTable[256];
@@ -243,7 +256,7 @@ void M_BuildTranslationTable(int top, int bottom)
 
 void M_DrawTransPicTranslate (int x, int y, qpic_t *pic)
 {
-	Draw_TransPicTranslate (x + ((vid.width - 320)>>1), y, pic, translationTable);
+	Draw_TransPicTranslate (x, y, pic, translationTable);
 }
 
 
@@ -370,12 +383,12 @@ void M_Main_Draw (void)
 	f = (int)(host_time * 10)%6;
 
 	M_DrawTransPic (54, 32 + m_main_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
-
-	M_Print (-40, 300, "Huge thanks for their awesome support on Patreon to:");
-	M_Print (-40, 308, "- RaveHeart");
-	M_Print (-40, 316, "- nobodywasishere");
-	M_Print (-40, 324, "- Tain Sueiras");
-	M_Print (-40, 332, "- The Vita3K project");
+	
+	M_PrintCentered (190, " THANKS FOR THE AWESOME SUPPORT ");
+	M_PrintCentered (198, "         ON PATREON TO:         ");
+	M_PrintCentered (206, "     TAIN SUEIRAS, POLYTOAD     ");
+	M_PrintCentered (214, "      DRD7OF14, RAVEHEART       ");
+	M_PrintCentered (222, "       THE VITA3K PROJECT       ");
 }
 
 
@@ -825,8 +838,8 @@ void M_Menu_Setup_f (void)
 	key_dest = key_menu;
 	m_state = m_setup;
 	m_entersound = true;
-	Q_strcpy(setup_myname, cl_name.string);
-	Q_strcpy(setup_hostname, hostname.string);
+	strcpy(setup_myname, cl_name.string);
+	strcpy(setup_hostname, hostname.string);
 	setup_top = setup_oldtop = ((int)cl_color.value) >> 4;
 	setup_bottom = setup_oldbottom = ((int)cl_color.value) & 15;
 }
@@ -927,9 +940,9 @@ forward:
 			goto forward;
 
 		// setup_cursor == 4 (OK)
-		if (Q_strcmp(cl_name.string, setup_myname) != 0)
+		if (strcmp(cl_name.string, setup_myname) != 0)
 			Cbuf_AddText ( va ("name \"%s\"\n", setup_myname) );
-		if (Q_strcmp(hostname.string, setup_hostname) != 0)
+		if (strcmp(hostname.string, setup_hostname) != 0)
 			Cvar_Set("hostname", setup_hostname);
 		if (setup_top != setup_oldtop || setup_bottom != setup_oldbottom)
 			Cbuf_AddText( va ("color %i %i\n", setup_top, setup_bottom) );
@@ -1129,13 +1142,272 @@ void M_Mods_Key (int k)
 }
 
 //=============================================================================
-/* OPTIONS MENU */
+/* GRAPHICS MENU */
 
-#define	OPTIONS_ITEMS 32
+# define GRAPHICS_ITEMS 12
 
 #define	SLIDER_RANGE 10
 
-int		options_cursor;
+int	graphics_cursor;
+
+int w_res[] = {480, 640, 720, 960};
+int h_res[] = {272, 368, 408, 544};
+int r_idx = -1;
+
+void M_Menu_Graphics_f (void)
+{
+	key_dest = key_menu;
+	m_state = m_graphics;
+	m_entersound = true;
+}
+
+void M_AdjustSliders2 (int dir)
+{
+	S_LocalSound ("misc/menu3.wav");
+	
+	switch (graphics_cursor)
+	{
+	case 0:  // bilinear filtering
+		Cvar_ToggleValue(&gl_bilinear);
+		break;
+	case 1:	// gamma
+		v_gamma.value -= dir * 0.05;
+		if (v_gamma.value < 0.5)
+			v_gamma.value = 0.5;
+		if (v_gamma.value > 1)
+			v_gamma.value = 1;
+		Cvar_SetValue ("v_gamma", v_gamma.value);
+		break;
+	case 2: // hud transparency
+		scr_sbaralpha.value += dir * 0.1;
+		if (scr_sbaralpha.value < 0)
+			scr_sbaralpha.value = 0;
+		if (scr_sbaralpha.value > 1)
+			scr_sbaralpha.value = 1;
+		Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
+		break;
+	case 3:  // mirrors opacity
+		r_mirroralpha.value += dir * 0.1;
+		if (r_mirroralpha.value < 0)
+			r_mirroralpha.value = 0;
+		if (r_mirroralpha.value > 1)
+			r_mirroralpha.value = 1;
+		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
+		break;
+	case 4: // water opacity
+		r_wateralpha.value += dir * 0.1;
+		if (r_wateralpha.value < 0)
+			r_wateralpha.value = 0;
+		if (r_wateralpha.value > 1)
+			r_wateralpha.value = 1;
+		Cvar_SetValue ("r_wateralpha", r_wateralpha.value);
+		break;
+	case 5:	// dynamic torchflares
+		Cvar_ToggleValue(&gl_torchflares);
+		break;
+	case 6:	// dynamic shadows
+		Cvar_ToggleValue(&r_shadows);
+		break;
+	case 7:	// Fog
+		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
+		else Cvar_SetValue ("r_fullbright", 1);
+		Cvar_ToggleValue (&gl_fog);
+		break;
+	case 8:  // cel shading
+		gl_outline.value += dir;
+		if (gl_outline.value > 6) gl_outline.value = 6;
+		else if (gl_outline.value < 0) gl_outline.value = 0;
+		Cvar_SetValue ("gl_outline",gl_outline.value);
+		break;
+	case 9:	// antialiasing
+		antialiasing += dir;
+		if (antialiasing < 0) antialiasing = 8;
+		else if (antialiasing > 8) antialiasing = 0;
+		SetAntiAliasing(antialiasing);
+		break;
+	case 10:	// resolution
+		if (r_idx == -1) {
+			for (r_idx = 0; r_idx < 4; r_idx++) {
+				if (cfg_width == w_res[r_idx]) break;
+			}
+		}
+		r_idx += dir;
+		if (r_idx > 3) r_idx = 0;
+		else if (r_idx < 0) r_idx = 3;
+		SetResolution(w_res[r_idx], h_res[r_idx]);
+		break;
+	case 11:
+		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
+		break;
+	case 12:	// performance test
+		key_dest = key_benchmark;
+		m_state = m_none;
+		cls.demonum = m_save_demonum;
+		Cbuf_AddText("benchmark demo1\n");
+		break;
+	default:
+		break;
+	}
+}
+
+void M_DrawSlider (int x, int y, float range)
+{
+	int	i;
+
+	if (range < 0)
+		range = 0;
+	if (range > 1)
+		range = 1;
+	M_DrawCharacter (x-8, y, 128);
+	for (i=0 ; i<SLIDER_RANGE ; i++)
+		M_DrawCharacter (x + i*8, y, 129);
+	M_DrawCharacter (x+i*8, y, 130);
+	M_DrawCharacter (x + (SLIDER_RANGE-1)*8 * range, y, 131);
+}
+
+void M_DrawCheckbox (int x, int y, int on)
+{
+	M_Print (x, y, on ? "on" : "off");
+}
+
+void M_Graphics_Draw (void)
+{
+	float		r;
+	qpic_t	*p;
+
+	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
+	p = Draw_CachePic ("gfx/p_option.lmp");
+	M_DrawPic ( (320-p->width)/2, 4, p);
+	
+	M_Print (16, 32, "    Bilinear Filtering");
+	M_DrawCheckbox (220, 32, gl_bilinear.value);
+	
+	M_Print (16, 40, "            Brightness");
+	r = (1.0 - v_gamma.value) / 0.5;
+	M_DrawSlider (220, 40, r);
+	
+	M_Print (16, 48, "      HUD Transparency");
+	M_DrawSlider (220, 48, scr_sbaralpha.value);
+	
+	M_Print (16, 56, "       Mirrors Opacity");
+	r = r_mirroralpha.value;
+	M_DrawSlider (220, 56, r);
+	
+	M_Print (16, 64, "         Water Opacity");
+	r = r_wateralpha.value;
+	M_DrawSlider (220, 64, r);
+	
+	M_Print (16, 72, "        Dynamic Lights");
+	M_DrawCheckbox (220, 72, gl_torchflares.value);
+
+	M_Print (16, 80, "       Dynamic Shadows");
+	M_DrawCheckbox (220, 80, r_shadows.value);
+	
+	M_Print (16, 88, "         Fog Rendering");
+	M_DrawCheckbox (220, 88, gl_fog.value);
+	
+	M_Print (16, 96, "           Cel Shading");
+	r = gl_outline.value / 6;
+	M_DrawSlider (220, 96, r);
+
+	M_Print (16, 104, "        Anti-Aliasing");
+	switch (antialiasing) {
+	case 1:
+		M_Print (220, 104, "MSAA 2x");
+		break;
+	case 2:
+		M_Print (220, 104, "MSAA 4x");
+		break;
+	case 3:
+		M_Print (220, 104, "SSAA 2x");
+		break;
+	case 4:
+		M_Print (220, 104, "SSAA 4x");
+		break;
+	case 5:
+		M_Print (220, 104, "MSAA 2x + SSAA 2x");
+		break;
+	case 6:
+		M_Print (220, 104, "MSAA 2x + SSAA 4x");
+		break;
+	case 7:
+		M_Print (220, 104, "MSAA 4x + SSAA 2x");
+		break;
+	case 8:
+		M_Print (220, 104, "MSAA 4x + SSAA 4x");
+		break;
+	default:
+		M_Print (220, 104, "Disabled");
+		break;
+	}
+	
+	char res_str[64];
+	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
+	M_Print (16, 112,"            Resolution");
+	M_Print (220, 112, res_str);
+
+	M_Print (16, 120,"                V-Sync");
+	M_DrawCheckbox (220, 120, vid_vsync.value);
+	
+	M_Print (16, 136,"      Test Performance");
+	
+	// Warn users for reboot required
+	if (graphics_cursor == 9 || graphics_cursor == 10) {
+		M_PrintCentered (210, "EDITING THIS OPTION WILL REQUIRE");
+		M_PrintCentered (218, "  AN APP REBOOT TO TAKE EFFECT  ");
+	}
+	
+// cursor
+	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 136, 12+((int)(realtime*4)&1));
+	else M_DrawCharacter (200, 32 + graphics_cursor*8, 12+((int)(realtime*4)&1));
+}
+
+void M_Graphics_Key (int k)
+{
+	switch (k)
+	{
+	case K_ENTER:
+	case K_START:
+	case K_TRIANGLE:
+		M_Menu_Options_f ();
+		break;
+
+	case K_CIRCLE:
+	case K_CROSS:
+		m_entersound = true;
+		M_AdjustSliders2 (1);
+		return;
+
+	case K_UPARROW:
+		S_LocalSound ("misc/menu1.wav");
+		graphics_cursor--;
+		if (graphics_cursor < 0)
+			graphics_cursor = GRAPHICS_ITEMS;
+		break;
+
+	case K_DOWNARROW:
+		S_LocalSound ("misc/menu1.wav");
+		graphics_cursor++;
+		if (graphics_cursor > GRAPHICS_ITEMS)
+			graphics_cursor = 0;
+		break;
+
+	case K_LEFTARROW:
+		M_AdjustSliders2 (-1);
+		break;
+
+	case K_RIGHTARROW:
+		M_AdjustSliders2 (1);
+		break;
+	}
+}
+
+//=============================================================================
+/* OPTIONS MENU */
+
+#define	OPTIONS_ITEMS 20
+
+int	options_cursor;
 
 void M_Menu_Options_f (void)
 {
@@ -1143,10 +1415,6 @@ void M_Menu_Options_f (void)
 	m_state = m_options;
 	m_entersound = true;
 }
-
-int w_res[] = {480, 640, 720, 960};
-int h_res[] = {272, 368, 408, 544};
-int r_idx = -1;
 
 char *w_pos[] = {"Center", "Right", "Left", "Hidden"};
 int w_pos_idx = -1;
@@ -1157,7 +1425,7 @@ void M_AdjustSliders (int dir)
 
 	switch (options_cursor)
 	{
-	case 4:	// screen size
+	case 5:	// screen size
 		viewsize.value += dir * 10;
 		if (viewsize.value < 30)
 			viewsize.value = 30;
@@ -1165,23 +1433,7 @@ void M_AdjustSliders (int dir)
 			viewsize.value = 120;
 		Cvar_SetValue ("viewsize", viewsize.value);
 		break;
-	case 5:	// gamma
-		v_gamma.value -= dir * 0.05;
-		if (v_gamma.value < 0.5)
-			v_gamma.value = 0.5;
-		if (v_gamma.value > 1)
-			v_gamma.value = 1;
-		Cvar_SetValue ("v_gamma", v_gamma.value);
-		break;
-	case 6:
-		scr_sbaralpha.value += dir * 0.1;
-		if (scr_sbaralpha.value < 0)
-			scr_sbaralpha.value = 0;
-		if (scr_sbaralpha.value > 1)
-			scr_sbaralpha.value = 1;
-		Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
-		break;
-	case 7:	// camera sensitivity
+	case 6:	// camera sensitivity
 		sensitivity.value += dir * 0.5;
 		if (sensitivity.value < 1)
 			sensitivity.value = 1;
@@ -1189,10 +1441,10 @@ void M_AdjustSliders (int dir)
 			sensitivity.value = 11;
 		Cvar_SetValue ("sensitivity", sensitivity.value);
 		break;
-	case 8:	// invert camera
+	case 7:	// invert camera
 		Cvar_ToggleValue (&invert_camera);
 		break;
-	case 9:	// music volume
+	case 8:	// music volume
 		bgmvolume.value += dir * 0.1;
 		if (bgmvolume.value < 0)
 			bgmvolume.value = 0;
@@ -1200,7 +1452,7 @@ void M_AdjustSliders (int dir)
 			bgmvolume.value = 1;
 		Cvar_SetValue ("bgmvolume", bgmvolume.value);
 		break;
-	case 10:	// sfx volume
+	case 9:	// sfx volume
 		volume.value += dir * 0.1;
 		if (volume.value < 0)
 			volume.value = 0;
@@ -1208,13 +1460,13 @@ void M_AdjustSliders (int dir)
 			volume.value = 1;
 		Cvar_SetValue ("volume", volume.value);
 		break;
-	case 11:	// retrotouch
+	case 10:	// retrotouch
 		Cvar_SetValue ("retrotouch", !retrotouch.value);
 		break;
-	case 12:	// motion camera
+	case 11:	// motion camera
 		Cvar_SetValue ("motioncam", !motioncam.value);
 		break;
-	case 13:	// motion camera sensitivity horizontal
+	case 12:	// motion camera sensitivity horizontal
 		motion_horizontal_sensitivity.value += dir * 0.5;
 		if (motion_horizontal_sensitivity.value < 0)
 			motion_horizontal_sensitivity.value = 0;
@@ -1222,7 +1474,7 @@ void M_AdjustSliders (int dir)
 			motion_horizontal_sensitivity.value = 10;
 		Cvar_SetValue ("motion_horizontal_sensitivity", motion_horizontal_sensitivity.value);
 		break;
-	case 14:	// motion camera sensitivity vertical
+	case 13:	// motion camera sensitivity vertical
 		motion_vertical_sensitivity.value += dir * 0.5;
 		if (motion_vertical_sensitivity.value < 0)
 			motion_vertical_sensitivity.value = 0;
@@ -1230,11 +1482,17 @@ void M_AdjustSliders (int dir)
 			motion_vertical_sensitivity.value = 10;
 		Cvar_SetValue ("motion_vertical_sensitivity", motion_vertical_sensitivity.value);
 		break;
-	case 15:	// rumble
+	case 14:	// rumble
 		Cvar_SetValue ("pstv_rumble", !pstv_rumble.value);
 		break;
-	case 16:	// show fps
+	case 15:	// show fps
 		Cvar_SetValue ("show_fps", !show_fps.value);
+		break;
+	case 16:	// crosshair
+		crosshair.value += dir;
+		if (crosshair.value > 2) crosshair.value = 0;
+		else if (crosshair.value < 0) crosshair.value = 2;
+		Cvar_SetValue ("crosshair", crosshair.value);
 		break;
 	case 17:	// show weapon
 		w_pos_idx += dir;
@@ -1258,109 +1516,22 @@ void M_AdjustSliders (int dir)
 				break;
 		}
 		break;
-	case 18:	// crosshair
-		crosshair.value += dir;
-		if (crosshair.value > 2) crosshair.value = 0;
-		else if (crosshair.value < 0) crosshair.value = 2;
-		Cvar_SetValue ("crosshair", crosshair.value);
-		break;
-	case 19:	// field of view
+	case 18:	// field of view
 		fov.value += dir * 5;
 		if (fov.value > 130) fov.value = 130;
 		else if (fov.value < 75) fov.value = 75;
 		Cvar_SetValue ("fov",fov.value);
 		break;
-	case 20:	// Fog
-		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
-		else Cvar_SetValue ("r_fullbright", 1);
-		Cvar_ToggleValue (&gl_fog);
-		break;
-	case 21:	// dynamic torchflares
-		Cvar_ToggleValue(&gl_torchflares);
-		break;
-	case 22:	// dynamic shadows
-		Cvar_ToggleValue(&r_shadows);
-		break;
-	case 23:	// smooth animations
+	case 19:	// smooth animations
 		Cvar_ToggleValue(&r_interpolate_model_animation);
 		Cvar_ToggleValue(&r_interpolate_model_transform);
 		break;
-	case 24:  // bilinear filtering
-		Cvar_ToggleValue(&gl_bilinear);
-		break;
-	case 25:  // cel shading
-		gl_outline.value += dir;
-		if (gl_outline.value > 6) gl_outline.value = 6;
-		else if (gl_outline.value < 0) gl_outline.value = 0;
-		Cvar_SetValue ("gl_outline",gl_outline.value);
-		break;
-	case 26:  // mirrors opacity
-		r_mirroralpha.value += dir * 0.1;
-		if (r_mirroralpha.value < 0)
-			r_mirroralpha.value = 0;
-		if (r_mirroralpha.value > 1)
-			r_mirroralpha.value = 1;
-		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
-		break;
-	case 27: // water opacity
-		r_wateralpha.value += dir * 0.1;
-		if (r_wateralpha.value < 0)
-			r_wateralpha.value = 0;
-		if (r_wateralpha.value > 1)
-			r_wateralpha.value = 1;
-		Cvar_SetValue ("r_wateralpha", r_wateralpha.value);
-		break;
-	case 28:	// specular mode
+	case 20:	// specular mode
 		Cvar_SetValue ("gl_xflip", !gl_xflip.value);
 		break;
-	case 29:
-		msaa += dir;
-		if (msaa < 0) msaa = 2;
-		else if (msaa > 2) msaa = 0;
-		SetAntiAliasing(msaa);
-		break;
-	case 30:	// resolution
-		if (r_idx == -1) {
-			for (r_idx = 0; r_idx < 4; r_idx++) {
-				if (cfg_width == w_res[r_idx]) break;
-			}
-		}
-		r_idx += dir;
-		if (r_idx > 3) r_idx = 0;
-		else if (r_idx < 0) r_idx = 3;
-		SetResolution(w_res[r_idx], h_res[r_idx]);
-		break;
-	case 31:
-		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
-		break;
-	case 32:	// performance test
-		key_dest = key_benchmark;
-		m_state = m_none;
-		cls.demonum = m_save_demonum;
-		Cbuf_AddText("benchmark demo1\n");
+	default:
 		break;
 	}
-}
-
-
-void M_DrawSlider (int x, int y, float range)
-{
-	int	i;
-
-	if (range < 0)
-		range = 0;
-	if (range > 1)
-		range = 1;
-	M_DrawCharacter (x-8, y, 128);
-	for (i=0 ; i<SLIDER_RANGE ; i++)
-		M_DrawCharacter (x + i*8, y, 129);
-	M_DrawCharacter (x+i*8, y, 130);
-	M_DrawCharacter (x + (SLIDER_RANGE-1)*8 * range, y, 131);
-}
-
-void M_DrawCheckbox (int x, int y, int on)
-{
-		M_Print (x, y, on ? "on" : "off");
 }
 
 void M_Options_Draw (void)
@@ -1372,58 +1543,57 @@ void M_Options_Draw (void)
 	p = Draw_CachePic ("gfx/p_option.lmp");
 	M_DrawPic ( (320-p->width)/2, 4, p);
 
-	M_Print (16, 32, "    Customize controls");
-	M_Print (16, 40, "         Go to console");
-	M_Print (16, 48, "       Go to Mods Menu");
-	M_Print (16, 56, "     Reset to defaults");
+	M_Print (16, 32, "     Controls Settings");
+	M_Print (16, 40, "     Graphics Settings");
+	M_Print (16, 48, "          Open Console");
+	M_Print (16, 56, "        Open Mods Menu");
+	M_Print (16, 64, "     Reset to defaults");
 
-	M_Print (16, 64, "           Screen size");
+	M_Print (16, 72, "           Screen size");
 	r = (viewsize.value - 30) / (120 - 30);
-	M_DrawSlider (220, 64, r);
-
-	M_Print (16, 72, "            Brightness");
-	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 72, r);
-
-	M_Print (16, 80, "      HUD Transparency");
-	M_DrawSlider (220, 80, scr_sbaralpha.value);
-
-	M_Print (16, 88, "    Camera Sensitivity");
+	
+	M_Print (16, 80, "    Camera Sensitivity");
 	r = (sensitivity.value - 1)/10;
-	M_DrawSlider (220, 88, r);
+	M_DrawSlider (220, 80, r);
+	
+	M_Print (16, 88, "         Invert Camera");
+	M_DrawCheckbox (220, 88, invert_camera.value);
 
-	M_Print (16, 96, "         Invert Camera");
-	M_DrawCheckbox (220, 96, invert_camera.value);
-
-	M_Print (16, 104, "          Music Volume");
+	M_Print (16, 96,"          Music Volume");
 	r = bgmvolume.value;
-	M_DrawSlider (220, 104, r);
-
-	M_Print (16, 112, "          Sound Volume");
+	M_DrawSlider (220, 96, r);
+	
+	M_Print (16, 104,"          Sound Volume");
 	r = volume.value;
-	M_DrawSlider (220, 112, r);
+	M_DrawSlider (220, 104, r);
+	
+	M_Print (16, 112,"        Use Retrotouch");
+	M_DrawCheckbox (220, 112, retrotouch.value);
 
-	M_Print (16, 120, "        Use Retrotouch");
-	M_DrawCheckbox (220, 120, retrotouch.value);
-
-	M_Print (16, 128, "         Use Gyroscope");
-	M_DrawCheckbox (220, 128, motioncam.value);
-
-	M_Print (16, 136, "    Gyro X Sensitivity");
+	M_Print (16, 120,"         Use Gyroscope");
+	M_DrawCheckbox (220, 120, motioncam.value);
+	
+	M_Print (16, 128,"    Gyro X Sensitivity");
 	r = motion_horizontal_sensitivity.value/10;
+	M_DrawSlider (220, 128, r);
+
+	M_Print (16, 136,"    Gyro Y Sensitivity");
+	r = motion_vertical_sensitivity.value/10;
 	M_DrawSlider (220, 136, r);
 
-	M_Print (16, 144, "    Gyro Y Sensitivity");
-	r = motion_vertical_sensitivity.value/10;
-	M_DrawSlider (220, 144, r);
-
-	M_Print (16, 152, "         Rumble Effect");
-	M_DrawCheckbox (220, 152, pstv_rumble.value);
-
-	M_Print (16, 160, "        Show Framerate");
-	M_DrawCheckbox (220, 160, show_fps.value);
-
-	M_Print (16, 168, "       Weapon Position");
+	M_Print (16, 144,"         Rumble Effect");
+	M_DrawCheckbox (220, 144, pstv_rumble.value);
+	
+	M_Print (16, 152,"        Show Framerate");
+	M_DrawCheckbox (220, 152, show_fps.value);
+	
+	M_Print (16, 160,"        Show Crosshair");
+	if (crosshair.value == 0) M_Print (220, 160, "Off");
+	else if (crosshair.value == 1) M_Print (220, 160, "Original");
+	else M_Print (220, 160, "Custom");
+	
+	M_Print (16, 168,"       Weapon Position");
 	if (w_pos_idx == -1) {
 		if (!r_drawviewmodel.value) w_pos_idx = 3;
 		else if (r_viewmodeloffset.value < 0) w_pos_idx = 2;
@@ -1431,64 +1601,18 @@ void M_Options_Draw (void)
 		else w_pos_idx = 0;
 	}
 	M_Print (220, 168, w_pos[w_pos_idx]);
-
-	M_Print (16, 176, "        Show Crosshair");
-	if (crosshair.value == 0) M_Print (220, 176, "Off");
-	else if (crosshair.value == 1) M_Print (220, 176, "Original");
-	else M_Print (220, 176, "Custom");
-
-	M_Print (16, 184, "         Field of View");
+	
+	M_Print (16, 176,"         Field of View");
 	r = (fov.value - 75) / 55;
-	M_DrawSlider (220, 184, r);
-
-	M_Print (16, 192, "         Fog Rendering");
-	M_DrawCheckbox (220, 192, gl_fog.value);
-
-	M_Print (16, 200, " Dynamic Torches Light");
-	M_DrawCheckbox (220, 200, gl_torchflares.value);
-
-	M_Print (16, 208, "       Dynamic Shadows");
-	M_DrawCheckbox (220, 208, r_shadows.value);
-
-	M_Print (16, 216, "     Smooth Animations");
-	M_DrawCheckbox (220, 216, r_interpolate_model_animation.value);
-
-	M_Print (16, 224, "    Bilinear Filtering");
-	M_DrawCheckbox (220, 224, gl_bilinear.value);
+	M_DrawSlider (220, 176, r);
 	
-	M_Print (16, 232, "           Cel Shading");
-	r = gl_outline.value / 6;
-	M_DrawSlider (220, 232, r);
-
-	M_Print (16, 240, "       Mirrors Opacity");
-	r = r_mirroralpha.value;
-	M_DrawSlider (220, 240, r);
+	M_Print (16, 184,"     Smooth Animations");
+	M_DrawCheckbox (220, 184, r_interpolate_model_animation.value);
 	
-	M_Print (16, 248, "         Water Opacity");
-	r = r_wateralpha.value;
-	M_DrawSlider (220, 248, r);
+	M_Print (16, 192,"         Specular Mode");
+	M_DrawCheckbox (220, 192, gl_xflip.value);
 
-	M_Print (16, 256, "         Specular Mode");
-	M_DrawCheckbox (220, 256, gl_xflip.value);
-	
-	M_Print (16, 264, "         Anti-Aliasing");
-	if (msaa == 0) M_Print (220, 264, "Disabled");
-	else if (msaa == 1) M_Print (220, 264, "MSAA 2x");
-	else M_Print (220, 264, "MSAA 4x");
-	
-	char res_str[64];
-	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 272, "            Resolution");
-	M_Print (220, 272, res_str);
-
-	M_Print (16, 280, "                V-Sync");
-	M_DrawCheckbox (220, 280, vid_vsync.value);
-	
-	M_Print (16, 292, "      Test Performance");
-
-// cursor
-	if (options_cursor == OPTIONS_ITEMS) M_DrawCharacter (200, 292, 12+((int)(realtime*4)&1));
-	else M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
+	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
 }
 
 
@@ -1507,17 +1631,20 @@ void M_Options_Key (int k)
 		m_entersound = true;
 		switch (options_cursor)
 		{
-		case 0: // Customize controls
+		case 0: // Controls Settings
 			M_Menu_Keys_f ();
 			break;
-		case 1: // Go to console
+		case 1: // Graphics Settings
+			M_Menu_Graphics_f ();
+			break;
+		case 2: // Open Console
 			m_state = m_none;
 			Con_ToggleConsole_f ();
 			break;
-		case 2: // Go to mods menu
+		case 3: // Open Mods Menu
 			M_Menu_Mods_f ();
 			break;
-		case 3: // Reset to defaults
+		case 4: // Reset to defaults
 			Cbuf_AddText ("exec default.cfg\n");
 			IN_ResetInputs();
 			viewsize.value = 120;
@@ -1576,9 +1703,9 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("gl_outline", gl_outline.value);
 			Cvar_SetValue ("r_viewmodeloffset", r_viewmodeloffset.value);
 			SetResolution(960, 544);
-			msaa = 0;
+			antialiasing = 2;
 			r_idx = -1;
-			SetAntiAliasing(msaa);
+			SetAntiAliasing(antialiasing);
             Cbuf_AddText ("gl_texturemode GL_LINEAR\n");
 			break;
 		default: // All other settings
@@ -1609,15 +1736,6 @@ void M_Options_Key (int k)
 		M_AdjustSliders (1);
 		break;
 	}
-
-	if (options_cursor > OPTIONS_ITEMS)
-	{
-		if (k == K_UPARROW)
-			options_cursor = OPTIONS_ITEMS;
-		else
-			options_cursor = 0;
-	}
-
 }
 
 //=============================================================================
@@ -2273,7 +2391,7 @@ void M_LanConfig_Key (int key)
 		else
 			lanConfig_cursor = 0;
 
-	l =  Q_atoi(lanConfig_portname);
+	l =  atoi(lanConfig_portname);
 	if (l > 65535)
 		l = lanConfig_port;
 	else
@@ -2918,9 +3036,9 @@ void M_ServerList_Draw (void)
 				for (j = i+1; j < hostCacheCount; j++)
 					if (strcmp(hostcache[j].name, hostcache[i].name) < 0)
 					{
-						Q_memcpy(&temp, &hostcache[j], sizeof(hostcache_t));
-						Q_memcpy(&hostcache[j], &hostcache[i], sizeof(hostcache_t));
-						Q_memcpy(&hostcache[i], &temp, sizeof(hostcache_t));
+						memcpy(&temp, &hostcache[j], sizeof(hostcache_t));
+						memcpy(&hostcache[j], &hostcache[i], sizeof(hostcache_t));
+						memcpy(&hostcache[i], &temp, sizeof(hostcache_t));
 					}
 		}
 		slist_sorted = true;
@@ -3023,7 +3141,7 @@ void M_Draw (void)
 
 		if (scr_con_current)
 		{
-			Draw_ConsoleBackground (vid.height);
+			Draw_ConsoleBackground ();
 			VID_UnlockBuffer ();
 			S_ExtraUpdate ();
 			VID_LockBuffer ();
@@ -3037,6 +3155,8 @@ void M_Draw (void)
 	{
 		m_recursiveDraw = false;
 	}
+
+	GL_SetCanvas (CANVAS_MENU); //johnfitz
 
 	switch (m_state)
 	{
@@ -3074,7 +3194,11 @@ void M_Draw (void)
 	case m_options:
 		M_Options_Draw ();
 		break;
-
+		
+	case m_graphics:
+		M_Graphics_Draw();
+		break;
+		
 	case m_mods:
 		M_Mods_Draw();
 		break;
@@ -3169,6 +3293,10 @@ void M_Keydown (int key)
 
 	case m_options:
 		M_Options_Key (key);
+		return;
+		
+	case m_graphics:
+		M_Graphics_Key (key);
 		return;
 
 	case m_mods:
