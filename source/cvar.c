@@ -29,12 +29,12 @@ char	*cvar_null_string = "";
 Cvar_FindVar
 ============
 */
-cvar_t *Cvar_FindVar (char *var_name)
+cvar_t *Cvar_FindVar (const char *var_name)
 {
 	cvar_t	*var;
 	
 	for (var=cvar_vars ; var ; var=var->next)
-		if (!Q_strcmp (var_name, var->name))
+		if (!strcmp (var_name, var->name))
 			return var;
 
 	return NULL;
@@ -45,14 +45,14 @@ cvar_t *Cvar_FindVar (char *var_name)
 Cvar_VariableValue
 ============
 */
-float	Cvar_VariableValue (char *var_name)
+float	Cvar_VariableValue (const char *var_name)
 {
 	cvar_t	*var;
 	
 	var = Cvar_FindVar (var_name);
 	if (!var)
 		return 0;
-	return Q_atof (var->string);
+	return atof (var->string);
 }
 
 
@@ -61,7 +61,7 @@ float	Cvar_VariableValue (char *var_name)
 Cvar_VariableString
 ============
 */
-char *Cvar_VariableString (char *var_name)
+char *Cvar_VariableString (const char *var_name)
 {
 	cvar_t *var;
 	
@@ -82,15 +82,15 @@ char *Cvar_CompleteVariable (char *partial)
 	cvar_t		*cvar;
 	int			len;
 	
-	len = Q_strlen(partial);
+	len = strlen(partial);
 	
 	if (!len)
 		return NULL;
 		
 // check functions
 	for (cvar=cvar_vars ; cvar ; cvar=cvar->next)
-		if (!Q_strncmp (partial,cvar->name, len))
-			return cvar->name;
+		if (!strncmp (partial,cvar->name, len))
+			return (char*)cvar->name;
 
 	return NULL;
 }
@@ -101,7 +101,7 @@ char *Cvar_CompleteVariable (char *partial)
 Cvar_Set
 ============
 */
-void Cvar_SetFull (char *var_name, char *value, bool forced)
+void Cvar_SetFull (const char *var_name, const char *value, bool forced)
 {
 	cvar_t	*var;
 	bool changed;
@@ -119,13 +119,13 @@ void Cvar_SetFull (char *var_name, char *value, bool forced)
 		return;
 	}
 	
-	changed = Q_strcmp(var->string, value);
+	changed = strcmp(var->string, value);
 	
 	Z_Free (var->string);	// free the old value string
 	
-	var->string = Z_Malloc (Q_strlen(value)+1);
-	Q_strcpy (var->string, value);
-	var->value = Q_atof (var->string);
+	var->string = Z_Malloc (strlen(value)+1);
+	strcpy (var->string, value);
+	var->value = atof (var->string);
 	if (var->flags & CVAR_SERVERINFO && changed)
 	{
 		if (sv.active)
@@ -136,12 +136,12 @@ void Cvar_SetFull (char *var_name, char *value, bool forced)
 		var->callback(var);
 }
 
-void Cvar_Set (char *var_name, char *value)
+void Cvar_Set (const char *var_name, const char *value)
 {
 	Cvar_SetFull (var_name, value, false);
 }
 
-void Cvar_ForceSet (char *var_name, char *value)
+void Cvar_ForceSet (const char *var_name, const char *value)
 {
 	Cvar_SetFull (var_name, value, true);
 }
@@ -151,7 +151,7 @@ void Cvar_ForceSet (char *var_name, char *value)
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue (char *var_name, float value)
+void Cvar_SetValue (const char *var_name, float value)
 {
 	char	val[32];
 	
@@ -202,9 +202,9 @@ void Cvar_RegisterVariable (cvar_t *variable)
 		
 // copy the value off, because future sets will Z_Free it
 	oldstr = variable->string;
-	variable->string = Z_Malloc (Q_strlen(variable->string)+1);	
-	Q_strcpy (variable->string, oldstr);
-	variable->value = Q_atof (variable->string);
+	variable->string = Z_Malloc (strlen(variable->string)+1);	
+	strcpy (variable->string, oldstr);
+	variable->value = atof (variable->string);
 	
 	if (!(variable->flags & CVAR_CALLBACK))
 		variable->callback = NULL;

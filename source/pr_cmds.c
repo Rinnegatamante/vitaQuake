@@ -66,7 +66,7 @@ bool extension_find(char *name)
 
 	for (i=0; i < pr_numextensions; i++)
 	{
-		if (!Q_strcasecmp(pr_extensions[i], name))
+		if (!strcasecmp(pr_extensions[i], name))
 			return true;
 	}
 	return false;
@@ -2492,7 +2492,7 @@ void PF_builtin_find (void)
 	// search function name
 	for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
 	{
-		if ((pr_ebfs_builtins[j].funcname) && (!(Q_strcasecmp(funcname,pr_ebfs_builtins[j].funcname))))
+		if ((pr_ebfs_builtins[j].funcname) && (!(strcasecmp(funcname,pr_ebfs_builtins[j].funcname))))
 		{
 			break;	// found
 		}

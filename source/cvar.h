@@ -64,7 +64,7 @@ typedef void(*cvarcallback_t) (struct cvar_s *);
 
 typedef struct cvar_s
 {
-	char	*name;
+	const char	*name;
 	char	*string;
 	unsigned int flags;
 	float	value;
@@ -72,7 +72,7 @@ typedef struct cvar_s
 	struct cvar_s *next;
 } cvar_t;
 
-#define CVAR(name, defaultvalue, flags) cvar_t name = {#name, #defaultvalue, flags};
+#define CVAR(name, defaultvalue, flags) cvar_t name = {#name, (char*)#defaultvalue, flags};
 #define STATIC_CVAR(name, defaultvalue, flags) static cvar_t name = {#name, #defaultvalue, flags};
 
 void 	Cvar_RegisterVariable (cvar_t *variable);
@@ -80,23 +80,23 @@ void 	Cvar_RegisterVariable (cvar_t *variable);
 // archive elements set.
 
 // equivelant to "<name> <variable>" typed at the console
-void 	Cvar_Set (char *var_name, char *value);
-void 	Cvar_ForceSet (char *var_name, char *value);
+void 	Cvar_Set (const char *var_name, const char *value);
+void 	Cvar_ForceSet (const char *var_name, const char *value);
 
 // set a callback function to the var
 void	Cvar_SetCallback(cvar_t *var, cvarcallback_t func);
 
 // expands value to a string and calls Cvar_Set
-void	Cvar_SetValue (char *var_name, float value);
+void	Cvar_SetValue (const char *var_name, float value);
 
 // Toggles a value
 void	Cvar_ToggleValue(cvar_t *cvar);
 
 // returns 0 if not defined or non numeric
-float	Cvar_VariableValue (char *var_name);
+float	Cvar_VariableValue (const char *var_name);
 
 // returns an empty string if not defined
-char	*Cvar_VariableString (char *var_name);
+char	*Cvar_VariableString (const char *var_name);
 
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
@@ -111,7 +111,7 @@ void 	Cvar_WriteVariables (FILE *f);
 // Writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
-cvar_t *Cvar_FindVar (char *var_name);
+cvar_t *Cvar_FindVar (const char *var_name);
 
 void Cvar_Set_f(void);
 void Cvar_Seta_f(void);

@@ -64,7 +64,7 @@ int AdHoc_Init (void)
 	char *colon;
 	
 	// if the quake hostname isn't set, set it to player nickname
-	if (!Q_strcmp(hostname.string, "UNNAMED"))
+	if (!strcmp(hostname.string, "UNNAMED"))
 	{
 		SceAppUtilInitParam init_param;
 		SceAppUtilBootParam boot_param;
@@ -85,9 +85,9 @@ int AdHoc_Init (void)
 	((struct sockaddr_adhoc *)&broadcastaddr)->port = sceNetHtons(net_hostport);
 
 	AdHoc_GetSocketAddr (net_controlsocket, &addr);
-	Q_strcpy(my_tcpip_address,  AdHoc_AddrToString (&addr));
+	strcpy(my_tcpip_address,  AdHoc_AddrToString (&addr));
 
-	colon = Q_strrchr (my_tcpip_address, ':');
+	colon = strrchr (my_tcpip_address, ':');
 	if (colon)
 		*colon = 0;
 	
@@ -138,8 +138,8 @@ int AdHoc_OpenSocket (int port)
 {
 	Log("AdHoc_OpenSocket(%ld)", port);
 	uint8_t mac[8];
-	sceNetAdhocctlGetEtherAddr(&mac);
-	int rc = sceNetAdhocPdpCreate(mac, port, 0x2000, 0);
+	sceNetAdhocctlGetEtherAddr((SceNetEtherAddr *)mac);
+	int rc = sceNetAdhocPdpCreate((SceNetEtherAddr *)mac, port, 0x2000, 0);
 	if(rc < 0) return -1;
 	return rc;
 }
@@ -201,7 +201,7 @@ int AdHoc_Read (int socket, byte *buf, int len, struct qsockaddr *addr)
 	int datalength = len;
 	int ret;
 	
-	ret = sceNetAdhocPdpRecv(socket, (unsigned char *)((sockaddr_adhoc *)addr)->mac, &port, buf, &datalength, 0, 1);
+	ret = sceNetAdhocPdpRecv(socket, (SceNetEtherAddr *)((sockaddr_adhoc *)addr)->mac, &port, buf, &datalength, 0, 1);
 	Log("AdHoc_Read returned %ld",ret);
 	if (ret == SCE_ERROR_NET_ADHOC_WOULD_BLOCK)
 		return 0;
@@ -251,7 +251,7 @@ int AdHoc_Write (int socket, byte *buf, int len, struct qsockaddr *addr)
 {
 	int ret;
 
-	ret = sceNetAdhocPdpSend(socket, (unsigned char*)((sockaddr_adhoc *)addr)->mac, ((sockaddr_adhoc *)addr)->port, buf, len, 0, 1);
+	ret = sceNetAdhocPdpSend(socket, (SceNetEtherAddr *)((sockaddr_adhoc *)addr)->mac, ((sockaddr_adhoc *)addr)->port, buf, len, 0, 1);
 	Log("AdHoc_Write returned %ld",ret);
 	if (ret == SCE_ERROR_NET_ADHOC_WOULD_BLOCK)
 		return 0;
@@ -267,7 +267,7 @@ char *AdHoc_AddrToString (struct qsockaddr *addr)
 	static char buffer[22];
 	int haddr;
 
-	sceNetEtherNtostr((unsigned char *)((sockaddr_adhoc *)addr)->mac, buffer, 22);
+	sceNetEtherNtostr((SceNetEtherAddr *)((sockaddr_adhoc *)addr)->mac, buffer, 22);
 	sprintf(buffer + strlen(buffer), ":%d", ((sockaddr_adhoc *)addr)->port);
 	Log("AdHoc_AddrToString returned %s",buffer);
 	return buffer;
@@ -317,7 +317,7 @@ int AdHoc_GetSocketAddr (int socket, struct qsockaddr *addr)
 
 int AdHoc_GetNameFromAddr (struct qsockaddr *addr, char *name)
 {
-	Q_strcpy (name, AdHoc_AddrToString (addr));
+	strcpy (name, AdHoc_AddrToString (addr));
 	return 0;
 }
 

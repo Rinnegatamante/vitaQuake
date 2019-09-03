@@ -99,7 +99,7 @@ Con_Clear_f
 void Con_Clear_f (void)
 {
 	if (con_text)
-		Q_memset (con_text, ' ', CON_TEXTSIZE);
+		memset (con_text, ' ', CON_TEXTSIZE);
 }
 
 
@@ -226,7 +226,7 @@ void Con_Init (void)
 	}
 
 	con_text = Hunk_AllocName (CON_TEXTSIZE, "context");
-	Q_memset (con_text, ' ', CON_TEXTSIZE);
+	memset (con_text, ' ', CON_TEXTSIZE);
 	con_linewidth = -1;
 	Con_CheckResize ();
 
@@ -256,7 +256,7 @@ void Con_Linefeed (void)
 {
 	con_x = 0;
 	con_current++;
-	Q_memset (&con_text[(con_current%con_totallines)*con_linewidth]
+	memset (&con_text[(con_current%con_totallines)*con_linewidth]
 	, ' ', con_linewidth);
 }
 
@@ -375,7 +375,7 @@ Handles cursor positioning, line wrapping, etc
 */
 #define	MAXPRINTMSG	16384
 // FIXME: make a buffer size safe vsprintf?
-void Con_Printf (char *fmt, ...)
+void Con_Printf (const char *fmt, ...)
 {
 	va_list		argptr;
 	char*		msg = Sys_BigStackAlloc(MAXPRINTMSG, "Con_Printf");

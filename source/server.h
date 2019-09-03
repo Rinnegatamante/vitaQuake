@@ -247,7 +247,7 @@ void SV_AddUpdates (void);
 void SV_ClientThink (void);
 void SV_AddClientToServer (struct qsocket_s	*ret);
 
-void SV_ClientPrintf (char *fmt, ...);
+void SV_ClientPrintf (const char *fmt, ...);
 void SV_BroadcastPrintf (char *fmt, ...);
 
 void SV_Physics (void);

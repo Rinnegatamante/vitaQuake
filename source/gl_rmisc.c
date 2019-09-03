@@ -319,9 +319,9 @@ void R_NewMap (void)
 	{
 		if (!cl.worldmodel->textures[i])
 			continue;
-		if (!Q_strncmp(cl.worldmodel->textures[i]->name,"sky",3) )
+		if (!strncmp(cl.worldmodel->textures[i]->name,"sky",3) )
 			skytexturenum = i;
-		if (!Q_strncmp(cl.worldmodel->textures[i]->name,"window02_1",10) )
+		if (!strncmp(cl.worldmodel->textures[i]->name,"window02_1",10) )
 			mirrortexturenum = i;
  		cl.worldmodel->textures[i]->texturechain = NULL;
 	}

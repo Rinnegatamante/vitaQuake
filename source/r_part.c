@@ -50,7 +50,7 @@ void R_InitParticles (void)
 
 	if ((i = COM_CheckParm ("-particles"))  && i+1 < com_argc)
 	{
-		r_numparticles = (int)(Q_atoi(com_argv[i+1]));
+		r_numparticles = (int)(atoi(com_argv[i+1]));
 		if (r_numparticles < ABSOLUTE_MIN_PARTICLES) r_numparticles = ABSOLUTE_MIN_PARTICLES;
 		else if (r_numparticles > ABSOLUTE_MAX_PARTICLES) r_numparticles = ABSOLUTE_MAX_PARTICLES;
 	}
@@ -182,25 +182,7 @@ void R_ReadPointFile_f (void)
 	c = 0;
 	for ( ;; )
 	{
-		// Read the line into a string.
-		signed char line[128];
-		int chars = 0;
-		do
-		{
-			if (chars >= (sizeof(line) - 2))
-			{
-				Sys_Error("Line buffer overflow when reading point file");
-			}
-
-			if (!Sys_FileRead(f, &line[chars++], 1) != 1)
-			{
-				break;
-			}
-		}
-		while (line[chars - 1] != '\n');
-		line[chars] = '\0';
-
-		r = sscanf (line, "%f %f %f\n", &org[0], &org[1], &org[2]);
+		r = fscanf (f, "%f %f %f\n", &org[0], &org[1], &org[2]);
 		if (r != 3)
 			break;
 		c++;
@@ -222,7 +204,7 @@ void R_ReadPointFile_f (void)
 		VectorCopy (org, p->org);
 	}
 
-	Sys_FileClose (f);
+	fclose (f);
 	Con_Printf ("%i points read\n", c);
 }
 

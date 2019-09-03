@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include <assert.h>
+#include <ctype.h>
 #include <vitasdk.h>
 
 CVAR (registered, 0, CVAR_ROM)
@@ -142,81 +143,10 @@ void InsertLinkAfter (link_t *l, link_t *after)
 ============================================================================
 */
 
-inline void Q_memset (void *dest, int fill, int count)
-{
-	memset(dest, fill, count);
-}
-
-inline void Q_memcpy (void *dest, void *src, int count)
-{
-	memcpy(dest, src, count);
-}
-
-inline int Q_memcmp (void *m1, void *m2, int count)
-{
-	return memcmp(m1, m2, count);
-}
-
-inline void Q_strcpy (char *dest, char *src)
-{
-	strcpy(dest, src);
-}
-
-inline void Q_strncpy (char *dest, char *src, int count)
-{
-	strncpy(dest, src, count);
-}
-
-inline void Q_strncpyz (char *dest, char *src, size_t size)
+void strncpyz (char *dest, const char *src, size_t size)
 {
    strncpy (dest, src, size - 1);
    dest[size-1] = 0;
-}
-
-inline int Q_strlen (char *str)
-{
-	return strlen(str);
-}
-
-inline char *Q_strrchr(char *s, char c)
-{
-    return strrchr(s, c);
-}
-
-inline void Q_strcat (char *dest, char *src)
-{
-	strcat(dest, src);
-}
-
-inline int Q_strcmp (char *s1, char *s2)
-{
-	return strcmp(s1, s2);
-}
-
-inline int Q_strncmp (char *s1, char *s2, int count)
-{
-	return strncmp(s1, s2, count);
-}
-
-inline int Q_strncasecmp (char *s1, char *s2, int n)
-{
-	return strncasecmp(s1, s2, n);
-}
-
-inline int Q_strcasecmp (char *s1, char *s2)
-{
-	return strcasecmp (s1, s2);
-}
-
-inline int Q_atoi (char *str)
-{
-	return atoi(str);
-}
-
-
-inline float Q_atof (char *str)
-{
-	return atof(str);
 }
 
 /*
@@ -368,12 +298,12 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 	SZ_Write (sb, &dat.l, 4);
 }
 
-void MSG_WriteString (sizebuf_t *sb, char *s)
+void MSG_WriteString (sizebuf_t *sb, const char *s)
 {
 	if (!s)
 		SZ_Write (sb, "", 1);
 	else
-		SZ_Write (sb, s, Q_strlen(s)+1);
+		SZ_Write (sb, s, strlen(s)+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
@@ -582,22 +512,22 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 	return data;
 }
 
-void SZ_Write (sizebuf_t *buf, void *data, int length)
+void SZ_Write (sizebuf_t *buf, const void *data, int length)
 {
-	Q_memcpy (SZ_GetSpace(buf,length),data,length);
+	memcpy (SZ_GetSpace(buf,length),data,length);
 }
 
 void SZ_Print (sizebuf_t *buf, char *data)
 {
 	int             len;
 
-	len = Q_strlen(data)+1;
+	len = strlen(data)+1;
 
 // byte * cast to keep VC++ happy
 	if (buf->data[buf->cursize-1])
-		Q_memcpy ((byte *)SZ_GetSpace(buf, len),data,len); // no trailing 0
+		memcpy ((byte *)SZ_GetSpace(buf, len),data,len); // no trailing 0
 	else
-		Q_memcpy ((byte *)SZ_GetSpace(buf, len-1)-1,data,len); // write over trailing 0
+		memcpy ((byte *)SZ_GetSpace(buf, len-1)-1,data,len); // write over trailing 0
 }
 
 
@@ -668,11 +598,11 @@ char *COM_FileExtension(char *in)
 COM_FileBase
 ============
 */
-void COM_FileBase (char *in, char *out)
+void COM_FileBase (const char *in, char *out)
 {
 	char *s, *s2;
 
-	s = in + strlen(in) - 1;
+	s = (char*)in + strlen(in) - 1;
 
 	while (s != in && *s != '.')
 		s--;
@@ -748,7 +678,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-char *COM_Parse (char *data)
+char *COM_Parse (const char *data)
 {
 	int             c;
 	int             len;
@@ -787,7 +717,7 @@ skipwhite:
 			if (c=='\"' || !c)
 			{
 				com_token[len] = 0;
-				return data;
+				return (char*)data;
 			}
 			com_token[len] = c;
 			len++;
@@ -800,7 +730,7 @@ skipwhite:
 		com_token[len] = c;
 		len++;
 		com_token[len] = 0;
-		return data+1;
+		return (char*)data+1;
 	}
 
 // parse a regular word
@@ -816,7 +746,7 @@ skipwhite:
 	} while (c>32);
 
 	com_token[len] = 0;
-	return data;
+	return (char*)data;
 }
 
 
@@ -828,7 +758,7 @@ Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
 ================
 */
-int COM_CheckParm (char *parm)
+int COM_CheckParm (const char *parm)
 {
 	int             i;
 
@@ -836,7 +766,7 @@ int COM_CheckParm (char *parm)
 	{
 		if (!com_argv[i])
 			continue;               // NEXTSTEP sometimes clears appkit vars.
-		if (!Q_strcmp (parm,com_argv[i]))
+		if (!strcmp (parm,com_argv[i]))
 			return i;
 	}
 
@@ -926,7 +856,7 @@ void COM_InitArgv (int argc, char **argv)
 		 com_argc++)
 	{
 		largv[com_argc] = argv[com_argc];
-		if (!Q_strcmp ("-safe", argv[com_argc]))
+		if (!strcmp ("-safe", argv[com_argc]))
 			safe = true;
 	}
 
@@ -1215,7 +1145,7 @@ Finds the file in the search path.
 Sets com_filesize and one of handle or file
 ===========
 */
-int COM_FindFile (char *filename, int *handle, FILE **file)
+int COM_FindFile (const char *filename, int *handle, FILE **file)
 {
 	searchpath_t    *search;
 	char            netpath[MAX_OSPATH];
@@ -1335,7 +1265,7 @@ returns a handle and a length
 it may actually be inside a pak file
 ===========
 */
-int COM_OpenFile (char *filename, int *handle)
+int COM_OpenFile (const char *filename, int *handle)
 {
 	return COM_FindFile (filename, handle, NULL);
 }
@@ -1383,7 +1313,7 @@ Always appends a 0 byte.
 cache_user_t *loadcache;
 byte    *loadbuf;
 int             loadsize;
-byte *COM_LoadFile (char *path, int usehunk)
+byte *COM_LoadFile (const char *path, int usehunk)
 {
 	int             h;
 	byte    *buf;
@@ -1427,12 +1357,12 @@ byte *COM_LoadFile (char *path, int usehunk)
 	return buf;
 }
 
-byte *COM_LoadHunkFile (char *path)
+byte *COM_LoadHunkFile (const char *path)
 {
 	return COM_LoadFile (path, 1);
 }
 
-byte *COM_LoadTempFile (char *path)
+byte *COM_LoadTempFile (const char *path)
 {
 	return COM_LoadFile (path, 2);
 }

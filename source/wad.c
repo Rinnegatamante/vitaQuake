@@ -38,7 +38,7 @@ Space padding is so names can be printed nicely in tables.
 Can safely be performed in place.
 ==================
 */
-void W_CleanupName (char *in, char *out)
+void W_CleanupName (const char *in, char *out)
 {
 	int		i;
 	int		c;
@@ -104,7 +104,7 @@ void W_LoadWadFile (char *filename)
 W_GetLumpinfo
 =============
 */
-lumpinfo_t	*W_GetLumpinfo (char *name)
+lumpinfo_t	*W_GetLumpinfo (const char *name)
 {
 	int		i;
 	lumpinfo_t	*lump_p;
@@ -122,7 +122,7 @@ lumpinfo_t	*W_GetLumpinfo (char *name)
 	return NULL;
 }
 
-void *W_GetLumpName (char *name)
+void *W_GetLumpName (const char *name)
 {
 	lumpinfo_t	*lump;
 	
@@ -235,7 +235,7 @@ loaded:
 		if (j == TEXWAD_MAXIMAGES)
 			break; // we are full, don't load any more
 		if (!texwadlump[j].name[0])
-			Q_strncpyz (texwadlump[j].name, lump_p->name, sizeof(texwadlump[j].name));
+			strncpyz (texwadlump[j].name, lump_p->name, sizeof(texwadlump[j].name));
 		texwadlump[j].file = file;
 		texwadlump[j].position = LittleLong(lump_p->filepos);
 		texwadlump[j].size = LittleLong(lump_p->disksize);

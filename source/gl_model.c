@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "gl_fullbright.h"
 
+extern void WAD3_LoadTextureWadFile (char *filename);
+extern byte *WAD3_LoadTexture(miptex_t *mt);
+
 model_t	*loadmodel;
 char	loadname[32];	// for hunk tags
 char fbr_mask_name[64]; // for fullbrights
@@ -405,7 +408,7 @@ void Mod_LoadTextures (lump_t *l)
 			pixels = max(0, (mod_base + l->fileofs + l->filelen) - (byte*)(mt+1));
 		}
 
-		if (loadmodel->bspversion != HL_BSPVERSION && (!Q_strncmp(mt->name,"sky",3))) {
+		if (loadmodel->bspversion != HL_BSPVERSION && (!strncmp(mt->name,"sky",3))) {
 			R_InitSky (mt);
 			continue;
 		}
@@ -669,7 +672,7 @@ static void Mod_ParseWadsFromEntityLump(char *data)
 		if (com_token[0] == '}')
 			break; // end of worldspawn
 
-		Q_strncpyz(key, (com_token[0] == '_') ? com_token + 1 : com_token, sizeof(key));
+		strncpyz(key, (com_token[0] == '_') ? com_token + 1 : com_token, sizeof(key));
 
 		for (s = key + strlen(key) - 1; s >= key && *s == ' '; s--)		// remove trailing spaces
 			*s = 0;
@@ -677,7 +680,7 @@ static void Mod_ParseWadsFromEntityLump(char *data)
 		if (!(data = COM_Parse(data)))
 			return; // error
 
-		Q_strncpyz(value, com_token, sizeof(value));
+		strncpyz(value, com_token, sizeof(value));
 
 		if (!strcmp("MaxRange", key))
             Cvar_Set("r_maxrange", value);
@@ -1056,7 +1059,7 @@ void Mod_LoadFaces (lump_t *l, int bsp2)
 		
 	// set the drawing flags flag
 		
-		if (!Q_strncmp(out->texinfo->texture->name,"sky",3))	// sky
+		if (!strncmp(out->texinfo->texture->name,"sky",3))	// sky
 		{
 			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
 #ifndef QUAKE2
@@ -1065,7 +1068,7 @@ void Mod_LoadFaces (lump_t *l, int bsp2)
 			continue;
 		}
 		
-		if (!Q_strncmp(out->texinfo->texture->name,"*",1))		// turbulent
+		if (!strncmp(out->texinfo->texture->name,"*",1))		// turbulent
 		{
 			out->flags |= (SURF_DRAWTURB | SURF_DRAWTILED);
 			for (i=0 ; i<2 ; i++)
@@ -1440,7 +1443,8 @@ Mod_LoadClipnodes
 */
 void Mod_LoadClipnodes (lump_t *l, int bsp2)
 {
-	dsclipnode_t *ins, *inl;
+	dsclipnode_t *ins;
+	dlclipnode_t *inl;
 	mclipnode_t *out;
 	int			i, count;
 	hull_t		*hull;
@@ -2301,7 +2305,7 @@ void * Mod_LoadSpriteFrame (void * pin, mspriteframe_t **ppframe, int framenum)
 
 	pspriteframe = Hunk_AllocName (sizeof (mspriteframe_t),loadname);
 
-	Q_memset (pspriteframe, 0, sizeof (mspriteframe_t));
+	memset (pspriteframe, 0, sizeof (mspriteframe_t));
 
 	*ppframe = pspriteframe;
 

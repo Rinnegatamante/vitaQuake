@@ -98,4 +98,4 @@ float	anglemod(float a);
 	:										\
 		BoxOnPlaneSide( (emins), (emaxs), (p)))
 		
-int ParseFloats(signed char *s, float *f, int *f_size);
+int ParseFloats(const signed char *s, float *f, int *f_size);

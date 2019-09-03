@@ -448,3 +448,5 @@ typedef struct ModsList{
 #define CANVAS_SBAR        3
 #define CANVAS_CROSSHAIR   4
 #define CANVAS_TOPRIGHT    5
+
+extern void Log(const char *format, ...);

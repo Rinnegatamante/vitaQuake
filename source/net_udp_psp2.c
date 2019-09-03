@@ -225,7 +225,7 @@ int UDP_Init (void)
 	sceNetInetPton(SCE_NET_AF_INET, info.ip_address, &myAddr);
 	
 	// if the quake hostname isn't set, set it to player nickname
-	if (!Q_strcmp(hostname.string, "UNNAMED"))
+	if (!strcmp(hostname.string, "UNNAMED"))
 	{
 		SceAppUtilInitParam init_param;
 		SceAppUtilBootParam boot_param;
@@ -245,9 +245,9 @@ int UDP_Init (void)
 	((struct sockaddr_in *)&broadcastaddr)->sin_port = sceNetHtons(net_hostport);
 
 	UDP_GetSocketAddr (net_controlsocket, &addr);
-	Q_strcpy(my_tcpip_address,  UDP_AddrToString (&addr));
+	strcpy(my_tcpip_address,  UDP_AddrToString (&addr));
 
-	colon = Q_strrchr (my_tcpip_address, ':');
+	colon = strrchr (my_tcpip_address, ':');
 	if (colon)
 		*colon = 0;
 	
@@ -378,7 +378,7 @@ static int PartialIPAddress (char *in, struct qsockaddr *hostaddr)
 	}
 
 	if (*b++ == ':')
-		port = Q_atoi(b);
+		port = atoi(b);
 	else
 		port = net_hostport;
 	
@@ -518,7 +518,7 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 	int addrlen = sizeof(struct qsockaddr);
 	unsigned int a, tmp;
 
-	Q_memset(addr, 0, sizeof(struct qsockaddr));
+	memset(addr, 0, sizeof(struct qsockaddr));
 	int ret = getsockname(socket, (struct sockaddr *)addr, &addrlen);
 	Log("getsockname returned %ld", ret);
 	a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
@@ -533,7 +533,7 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 
 int UDP_GetNameFromAddr (struct qsockaddr *addr, char *name)
 {
-	Q_strcpy (name, UDP_AddrToString (addr));
+	strcpy (name, UDP_AddrToString (addr));
 	return 0;
 }
 

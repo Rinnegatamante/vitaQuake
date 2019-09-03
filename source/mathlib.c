@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <math_neon.h>
 #include "quakedef.h"
 
-void Sys_Error(char *error, ...);
+extern void Sys_Error(const char *error, ...);
 
 vec3_t vec3_origin = { 0,0,0 };
 int nanmask = 255 << 23;
@@ -524,7 +524,7 @@ fixed16_t Invert24To16(fixed16_t val)
 
 #endif
 
-int ParseFloats(signed char *s, float *f, int *f_size) {
+int ParseFloats(const signed char *s, float *f, int *f_size) {
 	int i, argc;
 
 	if (!s || !f || !f_size)
@@ -537,7 +537,7 @@ int ParseFloats(signed char *s, float *f, int *f_size) {
 	argc = min(Cmd_Argc(), f_size[0]);
 
 	for (i = 0; i < argc; i++)
-		f[i] = Q_atof(Cmd_Argv(i));
+		f[i] = atof(Cmd_Argv(i));
 
 	for (; i < f_size[0]; i++)
 		f[i] = 0; // zeroing unused elements

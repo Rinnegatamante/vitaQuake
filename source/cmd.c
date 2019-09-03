@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 void Cmd_ForwardToServer (void);
+extern byte *COM_LoadFile (const char *path, int usehunk);
 
 #define	MAX_ALIAS_NAME	32
 
@@ -83,11 +84,11 @@ Cbuf_AddText
 Adds command text at the end of the buffer
 ============
 */
-void Cbuf_AddText (char *text)
+void Cbuf_AddText (const char *text)
 {
 	int		l;
 
-	l = Q_strlen (text);
+	l = strlen (text);
 
 	if (cmd_text.cursize + l >= cmd_text.maxsize)
 	{
@@ -95,7 +96,7 @@ void Cbuf_AddText (char *text)
 		return;
 	}
 
-	SZ_Write (&cmd_text, text, Q_strlen (text));
+	SZ_Write (&cmd_text, text, strlen (text));
 }
 
 
@@ -222,7 +223,7 @@ void Cmd_StuffCmds_f (void)
 	{
 		if (!com_argv[i])
 			continue;		// NEXTSTEP nulls out -NXHost
-		s += Q_strlen (com_argv[i]) + 1;
+		s += strlen (com_argv[i]) + 1;
 	}
 	if (!s)
 		return;
@@ -233,9 +234,9 @@ void Cmd_StuffCmds_f (void)
 	{
 		if (!com_argv[i])
 			continue;		// NEXTSTEP nulls out -NXHost
-		Q_strcat (text,com_argv[i]);
+		strcat (text,com_argv[i]);
 		if (i != com_argc-1)
-			Q_strcat (text, " ");
+			strcat (text, " ");
 	}
 
 // pull out the commands
@@ -254,8 +255,8 @@ void Cmd_StuffCmds_f (void)
 			c = text[j];
 			text[j] = 0;
 
-			Q_strcat (build, text+i);
-			Q_strcat (build, "\n");
+			strcat (build, text+i);
+			strcat (build, "\n");
 			text[j] = c;
 			i = j-1;
 		}
@@ -478,7 +479,7 @@ Cmd_TokenizeString
 Parses the given string into command line tokens.
 ============
 */
-void Cmd_TokenizeString (char *text)
+void Cmd_TokenizeString (const char *text)
 {
 	int		i;
 
@@ -507,7 +508,7 @@ void Cmd_TokenizeString (char *text)
 			return;
 
 		if (cmd_argc == 1)
-			 cmd_args = text;
+			 cmd_args = (char*)text;
 
 		text = COM_Parse (text);
 		if (!text)
@@ -515,8 +516,8 @@ void Cmd_TokenizeString (char *text)
 
 		if (cmd_argc < MAX_ARGS)
 		{
-			cmd_argv[cmd_argc] = Z_Malloc (Q_strlen(com_token)+1);
-			Q_strcpy (cmd_argv[cmd_argc], com_token);
+			cmd_argv[cmd_argc] = Z_Malloc (strlen(com_token)+1);
+			strcpy (cmd_argv[cmd_argc], com_token);
 			cmd_argc++;
 		}
 	}
@@ -529,7 +530,7 @@ void Cmd_TokenizeString (char *text)
 Cmd_AddCommand
 ============
 */
-void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
+void	Cmd_AddCommand (const char *cmd_name, xcommand_t function)
 {
 	cmd_function_t	*cmd;
 
@@ -546,7 +547,7 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 // fail if the command already exists
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
-		if (!Q_strcmp (cmd_name, cmd->name))
+		if (!strcmp (cmd_name, cmd->name))
 		{
 			Con_Printf ("Cmd_AddCommand: %s already defined\n", cmd_name);
 			return;
@@ -554,7 +555,7 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 	}
 
 	cmd = Hunk_Alloc (sizeof(cmd_function_t));
-	cmd->name = cmd_name;
+	cmd->name = (char*)cmd_name;
 	cmd->function = function;
 	cmd->next = cmd_functions;
 	cmd_functions = cmd;
@@ -565,13 +566,13 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 Cmd_Exists
 ============
 */
-bool	Cmd_Exists (char *cmd_name)
+bool	Cmd_Exists (const char *cmd_name)
 {
 	cmd_function_t	*cmd;
 
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
-		if (!Q_strcmp (cmd_name,cmd->name))
+		if (!strcmp (cmd_name,cmd->name))
 			return true;
 	}
 
@@ -590,14 +591,14 @@ char *Cmd_CompleteCommand (char *partial)
 	cmd_function_t	*cmd;
 	int				len;
 
-	len = Q_strlen(partial);
+	len = strlen(partial);
 
 	if (!len)
 		return NULL;
 
 // check functions
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
-		if (!Q_strncmp (partial,cmd->name, len))
+		if (!strncmp (partial,cmd->name, len))
 			return cmd->name;
 
 	return NULL;
@@ -626,7 +627,7 @@ void	Cmd_ExecuteString (char *text, cmd_source_t src)
 // check functions
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
-		if (!Q_strcasecmp (cmd_argv[0],cmd->name))
+		if (!strcasecmp (cmd_argv[0],cmd->name))
 		{
 			cmd->function ();
 			return;
@@ -636,7 +637,7 @@ void	Cmd_ExecuteString (char *text, cmd_source_t src)
 // check alias
 	for (a=cmd_alias ; a ; a=a->next)
 	{
-		if (!Q_strcasecmp (cmd_argv[0], a->name))
+		if (!strcasecmp (cmd_argv[0], a->name))
 		{
 			Cbuf_InsertText (a->value);
 			return;
@@ -669,7 +670,7 @@ void Cmd_ForwardToServer (void)
 		return;		// not really connected
 
 	MSG_WriteByte (&cls.message, clc_stringcmd);
-	if (Q_strcasecmp(Cmd_Argv(0), "cmd") != 0)
+	if (strcasecmp(Cmd_Argv(0), "cmd") != 0)
 	{
 		SZ_Print (&cls.message, Cmd_Argv(0));
 		SZ_Print (&cls.message, " ");
@@ -696,7 +697,7 @@ int Cmd_CheckParm (char *parm)
 		Sys_Error ("Cmd_CheckParm: NULL");
 
 	for (i = 1; i < Cmd_Argc (); i++)
-		if (! Q_strcasecmp (parm, Cmd_Argv (i)))
+		if (! strcasecmp (parm, Cmd_Argv (i)))
 			return i;
 
 	return 0;

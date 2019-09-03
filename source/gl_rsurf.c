@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_surf.c: surface-related refresh code
 
 #include "quakedef.h"
+#include "gl_fullbright.h"
 #include <math_neon.h>
 
 int			skytexturenum;

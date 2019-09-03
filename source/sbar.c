@@ -270,7 +270,7 @@ void Sbar_DrawPic (int x, int y, qpic_t *pic)
 Sbar_DrawPicAlpha
 =============
 */
-Sbar_DrawPicAlpha (int x, int y, qpic_t *pic, float alpha)
+void Sbar_DrawPicAlpha (int x, int y, qpic_t *pic, float alpha)
 {
 	Draw_AlphaPic (x, y + 24, pic, alpha);
 }

@@ -51,7 +51,7 @@ void SZ_Alloc (sizebuf_t *buf, int startsize);
 void SZ_Free (sizebuf_t *buf);
 void SZ_Clear (sizebuf_t *buf);
 void *SZ_GetSpace (sizebuf_t *buf, int length);
-void SZ_Write (sizebuf_t *buf, void *data, int length);
+void SZ_Write (sizebuf_t *buf, const void *data, int length);
 void SZ_Print (sizebuf_t *buf, char *data);	// strcats onto the sizebuf
 
 //============================================================================
@@ -112,7 +112,7 @@ void MSG_WriteByte (sizebuf_t *sb, int c);
 void MSG_WriteShort (sizebuf_t *sb, int c);
 void MSG_WriteLong (sizebuf_t *sb, int c);
 void MSG_WriteFloat (sizebuf_t *sb, float f);
-void MSG_WriteString (sizebuf_t *sb, char *s);
+void MSG_WriteString (sizebuf_t *sb, const char *s);
 void MSG_WriteCoord (sizebuf_t *sb, float f);
 void MSG_WriteAngle (sizebuf_t *sb, float f);
 void MSG_WritePreciseAngle(sizebuf_t *sb, float f); // JPG - precise aim!!
@@ -134,40 +134,26 @@ float MSG_ReadPreciseAngle(void); // JPG - precise aim!!
 
 //============================================================================
 
-void Q_memset (void *dest, int fill, int count);
-void Q_memcpy (void *dest, void *src, int count);
-int Q_memcmp (void *m1, void *m2, int count);
-void Q_strcpy (char *dest, char *src);
-void Q_strncpy (char *dest, char *src, int count);
-void Q_strncpyz (char *dest, char *src, size_t size);
-int Q_strlen (char *str);
-char *Q_strrchr (char *s, char c);
-void Q_strcat (char *dest, char *src);
-int Q_strcmp (char *s1, char *s2);
-int Q_strncmp (char *s1, char *s2, int count);
-int Q_strcasecmp (char *s1, char *s2);
-int Q_strncasecmp (char *s1, char *s2, int n);
-int	Q_atoi (char *str);
-float Q_atof (char *str);
+void strncpyz (char *dest, const char *src, size_t size);
 
 //============================================================================
 
 extern	char		com_token[1024];
 extern	bool	com_eof;
 
-char *COM_Parse (char *data);
+char *COM_Parse (const char *data);
 
 
 extern	int		com_argc;
 extern	char	**com_argv;
 
-int COM_CheckParm (char *parm);
+int COM_CheckParm (const char *parm);
 void COM_Init (char *path);
 void COM_InitArgv (int argc, char **argv);
 
 char *COM_SkipPath (char *pathname);
 void COM_StripExtension (char *in, char *out);
-void COM_FileBase (char *in, char *out);
+void COM_FileBase (const char *in, char *out);
 void COM_DefaultExtension (char *path, char *extension);
 void COM_GetFolder (char *in, char *out);
 
@@ -183,13 +169,13 @@ struct cache_user_s;
 extern	char	com_gamedir[MAX_OSPATH];
 
 void COM_WriteFile (char *filename, void *data, int len);
-int COM_OpenFile (char *filename, int *hndl);
+int COM_OpenFile (const char *filename, int *hndl);
 int COM_FOpenFile (char *filename, FILE **file);
 void COM_CloseFile (int h);
 
 byte *COM_LoadStackFile (char *path, void *buffer, int bufsize);
-byte *COM_LoadTempFile (char *path);
-byte *COM_LoadHunkFile (char *path);
+byte *COM_LoadTempFile (const char *path);
+byte *COM_LoadHunkFile (const char *path);
 void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
 
 int COM_Clamp(int value, int min, int max);

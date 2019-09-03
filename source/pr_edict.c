@@ -589,7 +589,7 @@ void ED_PrintEdict_f (void)
 {
 	int		i;
 	
-	i = Q_atoi (Cmd_Argv(1));
+	i = atoi (Cmd_Argv(1));
 	if (i >= sv.num_edicts)
 	{
 		Con_Printf("Bad edict number\n");
@@ -1016,7 +1016,7 @@ void ED_LoadFromFile (char *data)
 PR_LoadProgs
 ===============
 */
-void PR_LoadProgs (char *progsname)
+void PR_LoadProgs (const char *progsname)
 {
 	int		i;
 
@@ -1119,7 +1119,7 @@ void PR_LoadProgs (char *progsname)
 				// search function name
 				for ( j=1 ; j < pr_ebfs_numbuiltins ; j++)
 				{
-					if (!(Q_strcasecmp(funcname, pr_ebfs_builtins[j].funcname)))
+					if (!(strcasecmp(funcname, pr_ebfs_builtins[j].funcname)))
 					{
 						break;	// found
 					}
@@ -1248,7 +1248,7 @@ void PR_Extension_List_f (void)
 	count=0;
 	for (i=0; i < pr_numextensions; i++)
 	{
-		if (partial && Q_strncasecmp (partial, pr_extensions[i], len))
+		if (partial && strncasecmp (partial, pr_extensions[i], len))
 		{
 			continue;
 		}
@@ -1292,7 +1292,7 @@ void PR_BuiltInList_f (void)
 	count=0;
 	for (i=1; i < pr_ebfs_numbuiltins; i++)
 	{
-		if (partial && Q_strncasecmp (partial, pr_ebfs_builtins[i].funcname, len))
+		if (partial && strncasecmp (partial, pr_ebfs_builtins[i].funcname, len))
 		{
 			continue;
 		}

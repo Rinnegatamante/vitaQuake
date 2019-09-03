@@ -1,6 +1,8 @@
 //gl_fullbright.c
 #include "quakedef.h"
 
+extern void DrawGLPoly (glpoly_t *p);
+
 int FindFullbrightTexture (byte *pixels, int num_pix)
 {
 	int i;

@@ -486,7 +486,7 @@ int GL_LoadPicTexture (qpic_t *pic)
   return GL_LoadTexture ("", pic->width, pic->height, pic->data, false, true);
 }
 
-qpic_t *Draw_PicFromWad (char *name)
+qpic_t *Draw_PicFromWad (const char *name)
 {
 	qpic_t	*p;
 	glpic_t	*gl;
@@ -618,7 +618,7 @@ void Draw_CharToConback (int num, byte *dest)
 
 typedef struct
 {
-	char *name;
+	const char *name;
 	int	minimize, maximize;
 } glmode_t;
 
@@ -651,7 +651,7 @@ void Draw_TextureMode_f (void)
 
 	for (i=0 ; i< 6 ; i++)
 	{
-		if (!Q_strcasecmp (modes[i].name, Cmd_Argv(1) ) )
+		if (!strcasecmp ((char*)modes[i].name, Cmd_Argv(1) ) )
 			break;
 	}
 	if (i == 6)
@@ -715,7 +715,7 @@ void Draw_Init (void)
 
 	// texture_max_size
 	if ((i = COM_CheckParm("-maxsize")) != 0) {
-		maxsize = Q_atoi(com_argv[i+1]);
+		maxsize = atoi(com_argv[i+1]);
 		maxsize &= 0xff80;
 		Cvar_SetValue("gl_max_size", maxsize);
 	} 
@@ -869,7 +869,7 @@ void Draw_Character (int x, int y, int num)
 Draw_String
 ================
 */
-void Draw_String (int x, int y, char *str)
+void Draw_String (int x, int y, const char *str)
 {
 	while (*str)
 	{
@@ -1127,25 +1127,6 @@ void GL_Set2D (void)
 
 /*
 ================
-GL_FindTexture
-================
-*/
-int GL_FindTexture (char *identifier)
-{
-	int		i;
-	gltexture_t	*glt;
-
-	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
-	{
-		if (!strcmp (identifier, glt->identifier))
-			return gltextures[i].texnum;
-	}
-
-	return -1;
-}
-
-/*
-================
 GL_ResampleTexture
 ================
 */
@@ -1378,7 +1359,7 @@ static	unsigned	trans[640*480];		// FIXME, temporary
 GL_LoadTexture
 ================
 */
-int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mipmap, bool alpha)
+int GL_LoadTexture (const char *identifier, int width, int height, byte *data, bool mipmap, bool alpha)
 {
 	bool	noalpha;
 	int			i, p, s;
@@ -1425,7 +1406,7 @@ int GL_LoadTexture (char *identifier, int width, int height, byte *data, bool mi
 GL_LoadTexture32
 ================
 */
-int GL_LoadTexture32 (char *identifier, int width, int height, byte *data, bool mipmap, bool alpha, bool fullbright)
+int GL_LoadTexture32 (const char *identifier, int width, int height, byte *data, bool mipmap, bool alpha, bool fullbright)
 {
 	bool	noalpha;
 	int			i, p, s;
@@ -1522,8 +1503,7 @@ void GL_DrawBenchmark(void)
 	
 	if (bBlinkBenchmark) {	// Neato messaji
 		GL_SetCanvas (CANVAS_MENU);
-		char *msg = "Benchmark in progress, please wait...";
-		Draw_String(160 - (strlen(msg) * 4), 200*0.25, msg);
+		Draw_String(160 - 37 * 4, 200*0.25, "Benchmark in progress, please wait...");
 	}
 }
 
