@@ -384,11 +384,11 @@ void M_Main_Draw (void)
 
 	M_DrawTransPic (54, 32 + m_main_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
 	
-	M_PrintCentered (190, " THANKS FOR THE AWESOME SUPPORT ");
-	M_PrintCentered (198, "         ON PATREON TO:         ");
-	M_PrintCentered (206, "     TAIN SUEIRAS, POLYTOAD     ");
-	M_PrintCentered (214, "      DRD7OF14, RAVEHEART       ");
-	M_PrintCentered (222, "       THE VITA3K PROJECT       ");
+	M_PrintCentered (190, " Thanks for the awesome support ");
+	M_PrintCentered (198, "         on Patreon to:         ");
+	M_PrintCentered (206, "     Tain Sueiras, Polytoad     ");
+	M_PrintCentered (214, "      drd7of14, RaveHeart       ");
+	M_PrintCentered (222, "       The Vita3K Projecy       ");
 }
 
 
@@ -1353,8 +1353,8 @@ void M_Graphics_Draw (void)
 	
 	// Warn users for reboot required
 	if (graphics_cursor == 9 || graphics_cursor == 10) {
-		M_PrintCentered (210, "EDITING THIS OPTION WILL REQUIRE");
-		M_PrintCentered (218, "  AN APP REBOOT TO TAKE EFFECT  ");
+		M_PrintCentered (210, "Editing this option will require");
+		M_PrintCentered (218, "  an app reboot to take effect  ");
 	}
 	
 // cursor
