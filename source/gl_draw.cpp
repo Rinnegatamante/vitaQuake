@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern "C"{
 	#include "quakedef.h"
+	extern unsigned short CRC_Block(byte *data, int size);
 }
 
 #define GL_COLOR_INDEX8_EXT     0x80E5
@@ -727,22 +728,47 @@ void Draw_Init (void)
 	// string into the background before turning
 	// it into a texture
 	draw_chars = (byte*)W_GetLumpName ("conchars");
+	
 	for (i=0 ; i<256*64 ; i++)
 		if (draw_chars[i] == 0)
 			draw_chars[i] = 255;	// proper transparent color
+		
+	unsigned short conchars_crc = CRC_Block(draw_chars, 256*64);
+	if (conchars_crc == 0x4FA4) {
 
-	// forcing GL_NEAREST to prevent bug with 'Y' glyph
-	int old_min = gl_filter_min;
-	int old_max = gl_filter_max;
-	gl_filter_min = gl_filter_max = GL_NEAREST;
-
+		// Patching 'Y' glyphs to not make them ugly on original font
+		uint8_t grey  = draw_chars[2 +  42 * 128];
+		uint8_t brown = draw_chars[2 + 123 * 128];
+	
+		int to_grey[] = {
+			74 + 40 * 128, 75 + 41 * 128, 76 + 43 * 128, 76 + 44 * 128,
+			76 + 45 * 128, 74 + 57 * 128, 75 + 58 * 128
+		};
+	
+		int to_trans[] = {
+			74 +  42 * 128, 74 +  43 * 128, 74 +  44 * 128, 74 +  45 * 128,
+			74 +  59 * 128, 76 +  57 * 128, 74 + 123 * 128, 76 + 121 * 128,
+			74 + 106 * 128, 74 + 107 * 128, 74 + 108 * 128, 74 + 109 * 128
+		};
+	
+		int to_brown[] = {
+			74 + 104 * 128, 75 + 105 * 128, 76 + 107 * 128, 76 + 108 * 128,
+			76 + 109 * 128, 74 + 121 * 128, 75 + 122 * 128
+		};
+	
+		for (i=0 ; i<sizeof(to_grey)/sizeof(int); i++) {
+			draw_chars[to_grey[i]+129] = grey;
+		}
+		for (i=0 ; i<sizeof(to_brown)/sizeof(int); i++) {
+			draw_chars[to_brown[i]+129] = brown;
+		}
+		for (i=0 ; i<sizeof(to_trans)/sizeof(int); i++) {
+			draw_chars[to_trans[i]+129] = 0xFF;
+		}
+	}
+	
 	// now turn them into textures
 	char_texture = GL_LoadTexture ("charset", 128, 128, draw_chars, false, true);
-	
-	
-	// restoring true filter settings
-	gl_filter_min = old_min;
-	gl_filter_max = old_max;
 	
 	// custom crosshair support
 	char crosshair_file[1024];
@@ -853,7 +879,7 @@ void Draw_Character (int x, int y, int num)
 	int				row, col;
 	float			frow, fcol, size;
 
-	if (num == 32)
+	if (num == 0x20)
 		return;		// space
 
 	num &= 255;
