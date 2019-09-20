@@ -280,7 +280,7 @@ model_t *Mod_LoadModel (model_t *mod, bool crash)
 //
 // load the file
 //
-	buf = (unsigned *)COM_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf));
+	buf = (unsigned *)COM_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), &mod->path_id);
 	if (!buf)
 	{
 		if (crash)
@@ -573,6 +573,8 @@ void Mod_LoadTextures (lump_t *l)
 
 void Mod_LoadLighting (lump_t *l)
 {
+	unsigned int path_id;
+	
 	loadmodel->lightdata = NULL;
 
 	// Half-Life models support
@@ -593,8 +595,8 @@ void Mod_LoadLighting (lump_t *l)
 	strcpy(litfilename, loadmodel->name);
 	COM_StripExtension(litfilename, litfilename);
 	strcat(litfilename, ".lit");
-	data = (byte*) COM_LoadHunkFile (litfilename);
-	if (data)
+	data = (byte*) COM_LoadHunkFile (litfilename, &path_id);
+	if (data && (path_id >= loadmodel->path_id))
 	{
 		if (data[0] == 'Q' && data[1] == 'L' && data[2] == 'I' && data[3] == 'T')
 		{
@@ -726,15 +728,16 @@ Mod_LoadEntities
 void Mod_LoadEntities (lump_t *l)
 {
 	char entfilename[128];
+	unsigned int path_id;
 	
 	loadmodel->entities = NULL;
 	
 	strcpy(entfilename, loadmodel->name);
 	COM_StripExtension(entfilename, entfilename);
 	strcat(entfilename, ".ent");
-	ent_file = (byte*) COM_LoadHunkFile (entfilename);
+	ent_file = (byte*) COM_LoadHunkFile (entfilename, &path_id);
 	
-	if (ent_file)
+	if (ent_file && (path_id >= loadmodel->path_id))
 	{
 		if (ent_file[0] == '{')
 		{

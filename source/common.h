@@ -36,6 +36,28 @@ typedef unsigned char 		byte;
 #define stringify__(x) #x
 #define stringify(x) stringify__(x)
 
+typedef struct
+{
+	char    name[MAX_QPATH];
+	int             filepos, filelen;
+} packfile_t;
+
+typedef struct pack_s
+{
+	char    filename[MAX_OSPATH];
+	int             handle;
+	int             numfiles;
+	packfile_t      *files;
+} pack_t;
+
+typedef struct searchpath_s
+{
+	unsigned int path_id;
+	char    filename[MAX_OSPATH];
+	pack_t  *pack;          // only one of filename / pack will be used
+	struct searchpath_s *next;
+} searchpath_t;
+
 //============================================================================
 
 typedef struct sizebuf_s
@@ -169,14 +191,13 @@ struct cache_user_s;
 extern	char	com_gamedir[MAX_OSPATH];
 
 void COM_WriteFile (char *filename, void *data, int len);
-int COM_OpenFile (const char *filename, int *hndl);
-int COM_FOpenFile (char *filename, FILE **file);
+int COM_OpenFile (const char *filename, int *hndl, unsigned int *path_id);
+int COM_FOpenFile (char *filename, FILE **file, unsigned int *path_id);
 void COM_CloseFile (int h);
 
-byte *COM_LoadStackFile (char *path, void *buffer, int bufsize);
-byte *COM_LoadTempFile (const char *path);
-byte *COM_LoadHunkFile (const char *path);
-void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
+byte *COM_LoadStackFile (char *path, void *buffer, int bufsize, unsigned int *path_id);
+byte *COM_LoadTempFile (const char *path, unsigned int *path_id);
+byte *COM_LoadHunkFile (const char *path, unsigned int *path_id);
 
 int COM_Clamp(int value, int min, int max);
 

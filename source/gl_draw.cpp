@@ -566,7 +566,7 @@ qpic_t	*Draw_CachePic (char *path)
 //
 // load the pic from disk
 //
-	dat = (qpic_t *)COM_LoadTempFile (path);	
+	dat = (qpic_t *)COM_LoadTempFile (path, NULL);	
 	if (!dat)
 		Sys_Error ("Draw_CachePic: failed to load %s", path);
 	SwapPic (dat);
@@ -790,7 +790,7 @@ void Draw_Init (void)
 		conback->height = cheight;
 		ncdata = data;
 	} else {
-		cb = (qpic_t *)COM_LoadTempFile ("gfx/conback.lmp");	
+		cb = (qpic_t *)COM_LoadTempFile ("gfx/conback.lmp", NULL);	
 		if (!cb)
 			Sys_Error ("Couldn't load gfx/conback.lmp");
 		SwapPic (cb);

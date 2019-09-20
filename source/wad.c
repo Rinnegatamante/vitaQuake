@@ -72,7 +72,7 @@ void W_LoadWadFile (char *filename)
 	unsigned		i;
 	int				infotableofs;
 	
-	wad_base = COM_LoadHunkFile (filename);
+	wad_base = COM_LoadHunkFile (filename, NULL);
 	if (!wad_base)
 		Sys_Error ("W_LoadWadFile: couldn't load %s", filename);
 
@@ -182,11 +182,11 @@ void WAD3_LoadTextureWadFile (char *filename) {
 	int i, j, infotableofs, numlumps, lowmark;
 	FILE *file;
 
-	if (COM_FOpenFile (va("textures/halflife/%s", filename), &file) != -1)
+	if (COM_FOpenFile (va("textures/halflife/%s", filename), &file, NULL) != -1)
 		goto loaded;
-	if (COM_FOpenFile (va("textures/%s", filename), &file) != -1)
+	if (COM_FOpenFile (va("textures/%s", filename), &file, NULL) != -1)
 		goto loaded;
-	if (COM_FOpenFile (filename, &file) != -1)
+	if (COM_FOpenFile (filename, &file, NULL) != -1)
 		goto loaded;
 
 	Host_Error ("Couldn't load halflife wad \"%s\"\n", filename);

@@ -84,14 +84,16 @@ Here's a list of some popular mods and their actual working state:
 
 Expansion/Mod | Link | Status
 ---|---|---|
-Dissolution of Eternity | Official Expansion | Fully Working
+Dissolution of Eternity | Official Expansion | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
 dopa | [Free](https://twitter.com/machinegames/status/746363189768650752?lang=en) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
 Halo Revamped | [Free](https://wololo.net/downloads/index.php/download/1376) | ![#d0d000](https://placehold.it/15/d0d000/000000?text=+) `Boots, lots of bugs`
 Kurok | [Free](http://www.bladebattles.com/kurok/) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Playable with glitches`
 Nazi Zombies Portable | [Free](https://www.moddb.com/games/nazi-zombies-portable/news/nazi-zombies-portable-ps-vita-info) | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+) `Not Working`
 Scourge of Armagon | Official Expansion | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
+Slayer's Testament | [Free](https://www.youtube.com/watch?v=abn9aCiJ3pY) | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+) `Crash on models loading`
 SUPERHOT Quake | [Free](https://www.moddb.com/mods/superhot-quake) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Working without monochromatic graphics`
 SUPERQOT | [Free](https://superhotgame.com/SUPERQOT/) | ![#ff0000](https://placehold.it/15/ff0000/000000?text=+) `Not Working`
+YPOD | [Free](https://www.quakewiki.net/archives/doom/) | ![#007f00](https://placehold.it/15/007f00/000000?text=+) `Fully Working`
 
 # Credits
 - idSoftware for winQuake sourcecode

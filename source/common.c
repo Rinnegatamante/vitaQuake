@@ -789,14 +789,11 @@ void COM_CheckRegistered (void)
 	unsigned short  check[128];
 	int                     i;
 
-	COM_OpenFile("gfx/pop.lmp", &h);
+	COM_OpenFile("gfx/pop.lmp", &h, NULL);
 	static_registered = 0;
 
 	if (h == -1)
 	{
-#if WINDED
-	Sys_Error ("This dedicated server requires a full registered copy of Quake");
-#endif
 		Con_Printf ("Playing shareware version.\n");
 		if (com_modified)
 			Con_Printf ("Warning: Modified game with shareware version detected.\n");
@@ -977,25 +974,6 @@ QUAKE FILESYSTEM
 
 int     com_filesize;
 
-
-//
-// in memory
-//
-
-typedef struct
-{
-	char    name[MAX_QPATH];
-	int             filepos, filelen;
-} packfile_t;
-
-typedef struct pack_s
-{
-	char    filename[MAX_OSPATH];
-	int             handle;
-	int             numfiles;
-	packfile_t      *files;
-} pack_t;
-
 //
 // on disk
 //
@@ -1016,13 +994,6 @@ typedef struct
 
 char    com_cachedir[MAX_OSPATH];
 char    com_gamedir[MAX_OSPATH];
-
-typedef struct searchpath_s
-{
-	char    filename[MAX_OSPATH];
-	pack_t  *pack;          // only one of filename / pack will be used
-	struct searchpath_s *next;
-} searchpath_t;
 
 searchpath_t    *com_searchpaths = NULL;	// JPG 3.20 - added NULL
 searchpath_t	*com_verifypaths = NULL;	// JPG 3.20 - use original game directory for verify path
@@ -1145,7 +1116,7 @@ Finds the file in the search path.
 Sets com_filesize and one of handle or file
 ===========
 */
-int COM_FindFile (const char *filename, int *handle, FILE **file)
+int COM_FindFile (const char *filename, int *handle, FILE **file, unsigned int *path_id)
 {
 	searchpath_t    *search;
 	char            netpath[MAX_OSPATH];
@@ -1180,6 +1151,8 @@ int COM_FindFile (const char *filename, int *handle, FILE **file)
 				if (!strcmp (pak->files[i].name, filename))
 				{       // found it!
 					Sys_Printf ("PackFile: %s : %s\n",pak->filename, filename);
+					if (path_id)
+						*path_id = search->path_id;
 					if (handle)
 					{
 						*handle = pak->handle;
@@ -1215,14 +1188,7 @@ int COM_FindFile (const char *filename, int *handle, FILE **file)
 				strcpy (cachepath, netpath);
 			else
 			{
-#if defined(_WIN32)
-				if ((strlen(netpath) < 2) || (netpath[1] != ':'))
-					sprintf (cachepath,"%s%s", com_cachedir, netpath);
-				else
-					sprintf (cachepath,"%s%s", com_cachedir, netpath+2);
-#else
 				sprintf (cachepath,"%s%s", com_cachedir, netpath);
-#endif
 
 				cachetime = Sys_FileTime (cachepath);
 
@@ -1233,6 +1199,8 @@ int COM_FindFile (const char *filename, int *handle, FILE **file)
 
 			Sys_Printf ("FindFile: %s\n",netpath);
 			com_filesize = Sys_FileOpenRead (netpath, &i);
+			if (path_id)
+				*path_id = search->path_id;
 			if (handle)
 				*handle = i;
 			else
@@ -1265,9 +1233,9 @@ returns a handle and a length
 it may actually be inside a pak file
 ===========
 */
-int COM_OpenFile (const char *filename, int *handle)
+int COM_OpenFile (const char *filename, int *handle, unsigned int *path_id)
 {
-	return COM_FindFile (filename, handle, NULL);
+	return COM_FindFile (filename, handle, NULL, path_id);
 }
 
 /*
@@ -1278,9 +1246,9 @@ If the requested file is inside a packfile, a new FILE * will be opened
 into the file.
 ===========
 */
-int COM_FOpenFile (char *filename, FILE **file)
+int COM_FOpenFile (char *filename, FILE **file, unsigned int *path_id)
 {
-	return COM_FindFile (filename, NULL, file);
+	return COM_FindFile (filename, NULL, file, path_id);
 }
 
 /*
@@ -1310,10 +1278,15 @@ Filename are reletive to the quake directory.
 Always appends a 0 byte.
 ============
 */
+#define	LOADFILE_ZONE		0
+#define	LOADFILE_HUNK		1
+#define	LOADFILE_TEMPHUNK	2
+#define	LOADFILE_STACK		3
+
 cache_user_t *loadcache;
 byte    *loadbuf;
 int             loadsize;
-byte *COM_LoadFile (const char *path, int usehunk)
+byte *COM_LoadFile (const char *path, int usehunk, unsigned int *path_id)
 {
 	int             h;
 	byte    *buf;
@@ -1323,30 +1296,34 @@ byte *COM_LoadFile (const char *path, int usehunk)
 	buf = NULL;     // quiet compiler warning
 
 // look for it in the filesystem or pack files
-	len = COM_OpenFile (path, &h);
+	len = COM_OpenFile (path, &h, path_id);
 	if (h == -1)
 		return NULL;
 
 // extract the filename base name for hunk tag
 	COM_FileBase (path, base);
-
-	if (usehunk == 1)
-		buf = Hunk_AllocName (len+1, base);
-	else if (usehunk == 2)
-		buf = Hunk_TempAlloc (len+1);
-	else if (usehunk == 0)
-		buf = Z_Malloc (len+1);
-	else if (usehunk == 3)
-		buf = Cache_Alloc (loadcache, len+1, base);
-	else if (usehunk == 4)
+	
+	switch (usehunk)
 	{
-		if (len+1 > loadsize)
+		case LOADFILE_HUNK:
+			buf = Hunk_AllocName (len+1, base);
+			break;
+		case LOADFILE_TEMPHUNK:
 			buf = Hunk_TempAlloc (len+1);
-		else
-			buf = loadbuf;
+			break;
+		case LOADFILE_ZONE:
+			buf = Z_Malloc (len+1);
+			break;
+		case LOADFILE_STACK:
+			if (len+1 > loadsize)
+				buf = Hunk_TempAlloc (len+1);
+			else
+				buf = loadbuf;
+			break;
+		default:
+			Sys_Error ("COM_LoadFile: bad usehunk");
+			break;
 	}
-	else
-		Sys_Error ("COM_LoadFile: bad usehunk");
 
 	if (!buf)
 		Sys_Error ("COM_LoadFile: not enough space for %s", path);
@@ -1357,30 +1334,24 @@ byte *COM_LoadFile (const char *path, int usehunk)
 	return buf;
 }
 
-byte *COM_LoadHunkFile (const char *path)
+byte *COM_LoadHunkFile (const char *path, unsigned int *path_id)
 {
-	return COM_LoadFile (path, 1);
+	return COM_LoadFile (path, LOADFILE_HUNK, path_id);
 }
 
-byte *COM_LoadTempFile (const char *path)
+byte *COM_LoadTempFile (const char *path, unsigned int *path_id)
 {
-	return COM_LoadFile (path, 2);
-}
-
-void COM_LoadCacheFile (char *path, struct cache_user_s *cu)
-{
-	loadcache = cu;
-	COM_LoadFile (path, 3);
+	return COM_LoadFile (path, LOADFILE_TEMPHUNK, path_id);
 }
 
 // uses temp hunk if larger than bufsize
-byte *COM_LoadStackFile (char *path, void *buffer, int bufsize)
+byte *COM_LoadStackFile (char *path, void *buffer, int bufsize, unsigned int *path_id)
 {
 	byte    *buf;
 
 	loadbuf = (byte *)buffer;
 	loadsize = bufsize;
-	buf = COM_LoadFile (path, 4);
+	buf = COM_LoadFile (path, LOADFILE_STACK, path_id);
 
 	return buf;
 }
@@ -1473,15 +1444,23 @@ then loads and adds pak1.pak pak2.pak ...
 */
 void COM_AddGameDirectory(char *dir)
 {
-	int                             i;
-	searchpath_t    *search;
-	pack_t                  *pak;
-	char                    pakfile[MAX_OSPATH];
+	int i;
+	searchpath_t *search;
+	pack_t *pak;
+	char pakfile[MAX_OSPATH];
+	unsigned int path_id;
  
 	strcpy(com_gamedir, dir);
+	
+	// assign a path_id to this game directory
+	if (com_searchpaths)
+		path_id = com_searchpaths->path_id + 1;
+	else
+		path_id = 1;
 
 	// add the directory to the search path
 	search = Z_Malloc(sizeof(searchpath_t));
+	search->path_id = path_id;
 	strcpy(search->filename, dir);
 	search->next = com_searchpaths;
 	com_searchpaths = search;
@@ -1498,6 +1477,7 @@ void COM_AddGameDirectory(char *dir)
 				search = Z_Malloc (sizeof(searchpath_t));
 				search->pack = pak;
 				search->next = com_searchpaths;
+				search->path_id = path_id;
 				com_searchpaths = search;
 			}
 		}
