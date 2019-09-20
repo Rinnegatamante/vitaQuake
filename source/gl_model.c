@@ -890,8 +890,11 @@ void Mod_LoadTexinfo (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
-		for (j=0 ; j<8 ; j++)
+		for (j=0 ; j<4 ; j++)
+		{
 			out->vecs[0][j] = LittleFloat (in->vecs[0][j]);
+			out->vecs[1][j] = LittleFloat (in->vecs[1][j]);
+		}
 		len1 = Length (out->vecs[0]);
 		len2 = Length (out->vecs[1]);
 		len1 = (len1 + len2)/2;
@@ -2153,7 +2156,7 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	
 	i = LittleLong (pinmodel->flags);
 	mod->flags = ((i & 255) << 24) | (i & 0x00FFFF00);
-
+	
 //
 // endian-adjust and copy the data, starting with the alias model header
 //
@@ -2172,12 +2175,15 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 		Sys_Error ("model %s has no vertices", mod->name);
 
 	if (pheader->numverts > MAXALIASVERTS)
-		Sys_Error ("model %s has too many vertices", mod->name);
+		Sys_Error ("model %s has too many vertices (%d; max = %d)", mod->name, pheader->numverts, MAXALIASVERTS);
 
 	pheader->numtris = LittleLong (pinmodel->numtris);
 
 	if (pheader->numtris <= 0)
 		Sys_Error ("model %s has no triangles", mod->name);
+	
+	if (pheader->numtris > MAXALIASTRIS)
+		Sys_Error ("model %s has too many triangles (%d; max = %d)", mod->name, pheader->numtris, MAXALIASTRIS);
 
 	pheader->numframes = LittleLong (pinmodel->numframes);
 	numframes = pheader->numframes;
