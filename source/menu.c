@@ -1665,7 +1665,7 @@ void M_Options_Key (int k)
 			r_interpolate_model_animation.value = 0;
 			r_interpolate_model_transform.value = 0;
 			r_mirroralpha.value = 0.8f;
-			r_wateralpha.value = 0.5f;
+			r_wateralpha.value = 1.0f;
 			gl_xflip.value = 0;
 			motioncam.value = 0;
 			vid_vsync.value = 1;
