@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+extern void M_Print (int cx, int cy, char *str);
+
 extern cvar_t scr_sbaralpha;
 extern cvar_t scr_sbarscale;
 extern cvar_t viewsize;
@@ -1048,7 +1050,7 @@ void Sbar_DeathmatchOverlay (void)
 // draw the text
 	l = scoreboardlines;
 
-	x = 80 + ((vid.width - 320)>>1);
+	x = 80;
 	y = 40;
 	for (i=0 ; i<l ; i++)
 	{
@@ -1078,7 +1080,7 @@ void Sbar_DeathmatchOverlay (void)
 			Draw_Character ( x - 8, y, 12);
 
 	// draw name
-		Draw_String (x+64, y, s->name);
+		M_Print (x+64, y, s->name);
 
 		y += 10;
 	}
@@ -1101,8 +1103,10 @@ void Sbar_MiniDeathmatchOverlay (void)
 	char			num[12];
 	scoreboard_t	*s;
 	int				numlines;
-
-	if (((float)glwidth / scr_sbarscale.value) < 512 || !sb_lines)
+	
+	float scale = Q_CLAMP (1.0, scr_sbarscale.value, (float)glwidth / 320.0); //johnfitz
+	
+	if (((float)glwidth / scale) < 512 || !sb_lines)
 		return;
 
 	scr_copyeverything = 1;
