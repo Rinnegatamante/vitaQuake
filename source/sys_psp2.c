@@ -670,6 +670,9 @@ int quake_main (unsigned int argc, void* argv){
 	
 	SceRtcTick lastTick;
 	sceRtcGetCurrentTick(&lastTick);
+	
+	// Disabling all FPU exceptions traps on main thread
+	sceKernelChangeThreadVfpException(0x0800009FU, 0x0);
 
 	while (1)
 	{
