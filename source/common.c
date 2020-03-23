@@ -1469,7 +1469,7 @@ void COM_AddGameDirectory(char *dir)
 	if (d >= 0) {
 		SceIoDirent file;
 		while (sceIoDread(d, &file) > 0) {
-			if (strstr(file.d_name, ".pak") != 0) {
+			if (strcasestr(file.d_name, ".pak") != 0) {
 				sprintf(pakfile,"%s/%s", dir, file.d_name);
 				pak = COM_LoadPackFile (pakfile);
 				if (!pak)
