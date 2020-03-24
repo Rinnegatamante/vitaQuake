@@ -1145,7 +1145,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* GRAPHICS MENU */
 
-# define GRAPHICS_ITEMS 13
+# define GRAPHICS_ITEMS 14
 
 #define	SLIDER_RANGE 10
 
@@ -1179,7 +1179,15 @@ void M_AdjustSliders2 (int dir)
 			v_gamma.value = 1;
 		Cvar_SetValue ("v_gamma", v_gamma.value);
 		break;
-	case 2: // hud transparency
+	case 2: // overbright
+		gl_overbright.value += dir;
+		if (gl_overbright.value < 0)
+			gl_overbright.value = 0;
+		if (gl_overbright.value > 2)
+			gl_overbright.value = 2;
+		Cvar_SetValue ("gl_overbright", gl_overbright.value);
+		break;
+	case 3: // hud transparency
 		scr_sbaralpha.value += dir * 0.1;
 		if (scr_sbaralpha.value < 0)
 			scr_sbaralpha.value = 0;
@@ -1187,7 +1195,7 @@ void M_AdjustSliders2 (int dir)
 			scr_sbaralpha.value = 1;
 		Cvar_SetValue ("scr_sbaralpha", scr_sbaralpha.value);
 		break;
-	case 3:  // mirrors opacity
+	case 4:  // mirrors opacity
 		r_mirroralpha.value += dir * 0.1;
 		if (r_mirroralpha.value < 0)
 			r_mirroralpha.value = 0;
@@ -1195,7 +1203,7 @@ void M_AdjustSliders2 (int dir)
 			r_mirroralpha.value = 1;
 		Cvar_SetValue ("r_mirroralpha", r_mirroralpha.value);
 		break;
-	case 4: // water opacity
+	case 5: // water opacity
 		r_wateralpha.value += dir * 0.1;
 		if (r_wateralpha.value < 0)
 			r_wateralpha.value = 0;
@@ -1203,34 +1211,34 @@ void M_AdjustSliders2 (int dir)
 			r_wateralpha.value = 1;
 		Cvar_SetValue ("r_wateralpha", r_wateralpha.value);
 		break;
-	case 5:	// dynamic torchflares
+	case 6:	// dynamic torchflares
 		Cvar_ToggleValue(&gl_torchflares);
 		break;
-	case 6:	// dynamic shadows
+	case 7:	// dynamic shadows
 		Cvar_ToggleValue(&r_shadows);
 		break;
-	case 7:	// Fog
+	case 8:	// Fog
 		if (gl_fog.value) Cvar_SetValue ("r_fullbright", 0);
 		else Cvar_SetValue ("r_fullbright", 1);
 		Cvar_ToggleValue (&gl_fog);
 		break;
-	case 8:  // cel shading
+	case 9:  // cel shading
 		gl_outline.value += dir;
 		if (gl_outline.value > 6) gl_outline.value = 6;
 		else if (gl_outline.value < 0) gl_outline.value = 0;
 		Cvar_SetValue ("gl_outline",gl_outline.value);
 		break;
-	case 9:  // anaglyph 3d
+	case 10:  // anaglyph 3d
 		st_separation.value = st_separation.value == 0.5 ? 0.0 : 0.5;
 		Cvar_SetValue ("st_separation",st_separation.value);
 		break;
-	case 10:	// antialiasing
+	case 11:	// antialiasing
 		antialiasing += dir;
 		if (antialiasing < 0) antialiasing = 8;
 		else if (antialiasing > 8) antialiasing = 0;
 		SetAntiAliasing(antialiasing);
 		break;
-	case 11:	// resolution
+	case 12:	// resolution
 		if (r_idx == -1) {
 			for (r_idx = 0; r_idx < 4; r_idx++) {
 				if (cfg_width == w_res[r_idx]) break;
@@ -1241,10 +1249,10 @@ void M_AdjustSliders2 (int dir)
 		else if (r_idx < 0) r_idx = 3;
 		SetResolution(w_res[r_idx], h_res[r_idx]);
 		break;
-	case 12:
+	case 13:
 		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
 		break;
-	case 13:	// performance test
+	case 14:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1291,82 +1299,86 @@ void M_Graphics_Draw (void)
 	r = (1.0 - v_gamma.value) / 0.5;
 	M_DrawSlider (220, 40, r);
 	
-	M_Print (16, 48, "      HUD Transparency");
-	M_DrawSlider (220, 48, scr_sbaralpha.value);
+	M_Print (16, 48, "      Light Overbright");
+	r = gl_overbright.value / 2;
+	M_DrawSlider (220, 48, r);
 	
-	M_Print (16, 56, "       Mirrors Opacity");
+	M_Print (16, 56, "      HUD Transparency");
+	M_DrawSlider (220, 56, scr_sbaralpha.value);
+	
+	M_Print (16, 64, "       Mirrors Opacity");
 	r = r_mirroralpha.value;
-	M_DrawSlider (220, 56, r);
-	
-	M_Print (16, 64, "         Water Opacity");
-	r = r_wateralpha.value;
 	M_DrawSlider (220, 64, r);
 	
-	M_Print (16, 72, "        Dynamic Lights");
-	M_DrawCheckbox (220, 72, gl_torchflares.value);
+	M_Print (16, 72, "         Water Opacity");
+	r = r_wateralpha.value;
+	M_DrawSlider (220, 72, r);
+	
+	M_Print (16, 80, "        Dynamic Lights");
+	M_DrawCheckbox (220, 80, gl_torchflares.value);
 
-	M_Print (16, 80, "       Dynamic Shadows");
-	M_DrawCheckbox (220, 80, r_shadows.value);
+	M_Print (16, 88, "       Dynamic Shadows");
+	M_DrawCheckbox (220, 88, r_shadows.value);
 	
-	M_Print (16, 88, "         Fog Rendering");
-	M_DrawCheckbox (220, 88, gl_fog.value);
+	M_Print (16, 96, "         Fog Rendering");
+	M_DrawCheckbox (220, 96, gl_fog.value);
 	
-	M_Print (16, 96, "           Cel Shading");
+	M_Print (16, 104, "           Cel Shading");
 	r = gl_outline.value / 6;
-	M_DrawSlider (220, 96, r);
+	M_DrawSlider (220, 104, r);
 	
-	M_Print (16, 104,"           Anaglyph 3D");
-	M_DrawCheckbox (220, 104, st_separation.value != 0);
+	M_Print (16, 112,"           Anaglyph 3D");
+	M_DrawCheckbox (220, 112, st_separation.value != 0);
 
-	M_Print (16, 112,"         Anti-Aliasing");
+	M_Print (16, 120,"         Anti-Aliasing");
 	switch (antialiasing) {
 	case 1:
-		M_Print (220, 112, "MSAA 2x");
+		M_Print (220, 120, "MSAA 2x");
 		break;
 	case 2:
-		M_Print (220, 112, "MSAA 4x");
+		M_Print (220, 120, "MSAA 4x");
 		break;
 	case 3:
-		M_Print (220, 112, "SSAA 2x");
+		M_Print (220, 120, "SSAA 2x");
 		break;
 	case 4:
-		M_Print (220, 112, "SSAA 4x");
+		M_Print (220, 120, "SSAA 4x");
 		break;
 	case 5:
-		M_Print (220, 112, "MSAA 2x + SSAA 2x");
+		M_Print (220, 120, "MSAA 2x + SSAA 2x");
 		break;
 	case 6:
-		M_Print (220, 112, "MSAA 2x + SSAA 4x");
+		M_Print (220, 120, "MSAA 2x + SSAA 4x");
 		break;
 	case 7:
-		M_Print (220, 112, "MSAA 4x + SSAA 2x");
+		M_Print (220, 120, "MSAA 4x + SSAA 2x");
 		break;
 	case 8:
-		M_Print (220, 112, "MSAA 4x + SSAA 4x");
+		M_Print (220, 120, "MSAA 4x + SSAA 4x");
 		break;
 	default:
-		M_Print (220, 112, "Disabled");
+		M_Print (220, 120, "Disabled");
 		break;
 	}
 	
 	char res_str[64];
 	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 120,"            Resolution");
-	M_Print (220, 120, res_str);
+	M_Print (16, 128,"            Resolution");
+	M_Print (220, 128, res_str);
 
-	M_Print (16, 128,"                V-Sync");
-	M_DrawCheckbox (220, 128, vid_vsync.value);
+	M_Print (16, 136,"                V-Sync");
+	M_DrawCheckbox (220, 136, vid_vsync.value);
 	
-	M_Print (16, 144,"      Test Performance");
+	M_Print (16, 152,"      Test Performance");
 	
 	// Warn users for reboot required
-	if (graphics_cursor == 10 || graphics_cursor == 11) {
+	if (graphics_cursor == 11 || graphics_cursor == 12) {
 		M_PrintCentered (210, "Editing this option will require");
 		M_PrintCentered (218, "  an app reboot to take effect  ");
 	}
 	
 // cursor
-	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 144, 12+((int)(realtime*4)&1));
+	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 152, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + graphics_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1684,6 +1696,7 @@ void M_Options_Key (int k)
 			st_separation.value = 0;
 			w_pos_idx = 0;
 			r_viewmodeloffset.value = 0;
+			gl_overbright.value = 0;
 			Cvar_SetValue ("viewsize", viewsize.value);
 			Cvar_SetValue ("v_gamma", v_gamma.value);
 			Cvar_SetValue ("sensitivity", sensitivity.value);
@@ -1712,6 +1725,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("gl_outline", gl_outline.value);
 			Cvar_SetValue ("r_viewmodeloffset", r_viewmodeloffset.value);
 			Cvar_SetValue ("st_separation",st_separation.value);
+			Cvar_SetValue ("gl_overbright",gl_overbright.value);
 			SetResolution(960, 544);
 			antialiasing = 2;
 			r_idx = -1;

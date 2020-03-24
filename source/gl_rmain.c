@@ -22,13 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include <math_neon.h>
 
-// BEGIN STEREO DEFS
-int stereoCameraSelect = -1; // 1 = left, -1 = right
-cvar_t  st_separation = {"st_separation", "0"};	// CON: st_separation -> separation Between Cameras
-cvar_t  st_zeropdist = {"st_zeropdist", "20" };		// CON: st_zeropdist ->  Dist to zero parallax
-cvar_t  st_fustbal = {"st_fustbal", "1" };		// CON: st_fustbal ->  frustumBalance adjust
-// END Stereo Defs
-
 entity_t	r_worldentity;
 
 bool	r_cache_thrash;		// compatability
@@ -152,9 +145,17 @@ CVAR	(gl_nocolors, 0, CVAR_NONE)
 CVAR	(gl_keeptjunctions, 1, CVAR_NONE)
 CVAR	(gl_reporttjunctions, 0, CVAR_NONE)
 CVAR	(gl_doubleeyes, 1, CVAR_NONE)
+CVAR	(gl_overbright, 0, CVAR_ARCHIVE)
 
 // Torch flares. KH
 CVAR	(gl_torchflares, 1, CVAR_ARCHIVE)
+
+// BEGIN STEREO DEFS
+int stereoCameraSelect = -1; // 1 = left, -1 = right
+CVAR	(st_separation, 0, CVAR_ARCHIVE)	// CON: st_separation -> separation Between Cameras
+CVAR	(st_zeropdist, 20, CVAR_ARCHIVE)	// CON: st_zeropdist ->  Dist to zero parallax
+CVAR	(st_fustbal, 1, CVAR_ARCHIVE)		// CON: st_fustbal ->  frustumBalance adjust
+// END Stereo Defs
 
 extern bool gl_warp;
 

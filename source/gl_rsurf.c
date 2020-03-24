@@ -228,16 +228,42 @@ store:
 	bl = blocklights;
 	for (i=0 ; i<tmax ; i++, dest += stride)
 	{
-		for (j=0 ; j<smax ; j++)
-		{
-			// LordHavoc: .lit support begin
-			// LordHavoc: positive lighting (would be 255-t if it were inverse like glquake was)
-			t = bl[0] >> 7;if (t > 255) t = 255;*dest++ = t;
-			t = bl[1] >> 7;if (t > 255) t = 255;*dest++ = t;
-			t = bl[2] >> 7;if (t > 255) t = 255;*dest++ = t;
-			bl += 3;
-			*dest++ = 255;
-			// LordHavoc: .lit support end
+		if (gl_overbright.value >= 2) {
+			for (j=0 ; j<smax ; j++)
+			{
+				// LordHavoc: .lit support begin
+				// LordHavoc: positive lighting (would be 255-t if it were inverse like glquake was)
+				t = bl[0] >> 7;if (t > 255) t = 255;*dest++ = t;
+				t = bl[1] >> 7;if (t > 255) t = 255;*dest++ = t;
+				t = bl[2] >> 7;if (t > 255) t = 255;*dest++ = t;
+				bl += 3;
+				*dest++ = 255;
+				// LordHavoc: .lit support end
+			}
+		} else if (gl_overbright.value) {
+			for (j=0 ; j<smax ; j++)
+			{
+				// LordHavoc: .lit support begin
+				// LordHavoc: positive lighting (would be 255-t if it were inverse like glquake was)
+				t = bl[0]; t = (t >> 8) + (t >> 9);if (t > 255) t = 255;*dest++ = t;
+				t = bl[1]; t = (t >> 8) + (t >> 9);if (t > 255) t = 255;*dest++ = t;
+				t = bl[2]; t = (t >> 8) + (t >> 9);if (t > 255) t = 255;*dest++ = t;
+				bl += 3;
+				*dest++ = 255;
+				// LordHavoc: .lit support end
+			}
+		} else {
+			for (j=0 ; j<smax ; j++)
+			{
+				// LordHavoc: .lit support begin
+				// LordHavoc: positive lighting (would be 255-t if it were inverse like glquake was)
+				t = bl[0] >> 8;if (t > 255) t = 255;*dest++ = t;
+				t = bl[1] >> 8;if (t > 255) t = 255;*dest++ = t;
+				t = bl[2] >> 8;if (t > 255) t = 255;*dest++ = t;
+				bl += 3;
+				*dest++ = 255;
+				// LordHavoc: .lit support end
+			}
 		}
 	}
 	
@@ -551,6 +577,12 @@ void R_RenderBrushPoly (msurface_t *fa)
 
 	fa->polys->chain = lightmap_polys[fa->lightmaptexturenum];
 	lightmap_polys[fa->lightmaptexturenum] = fa->polys;
+	
+	if (fa->overbright != gl_overbright.value)//MH
+	{
+		fa->overbright = gl_overbright.value;
+		goto dynamic;
+	}
 
 	// check for lightmap modification
 	for (maps = 0 ; maps < MAXLIGHTMAPS && fa->styles[maps] != 255 ;

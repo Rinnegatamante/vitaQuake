@@ -154,6 +154,7 @@ typedef struct msurface_s
 	bool	cached_dlight;				// true if dynamic light in cache
 	byte		*samples;		// [numstyles*surfsize]
 	int			draw_this_frame;
+	int		overbright;
 } msurface_t;
 
 typedef struct mnode_s

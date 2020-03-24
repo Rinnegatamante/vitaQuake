@@ -156,6 +156,7 @@ void R_Init (void)
 	
 	Cvar_RegisterVariable (&gl_torchflares); // Torch flares. KH
 	Cvar_RegisterVariable (&gl_xflip);
+	Cvar_RegisterVariable (&gl_overbright);
 
 	R_InitParticles ();
 	R_InitParticleTexture ();
