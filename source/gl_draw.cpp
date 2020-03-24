@@ -711,6 +711,9 @@ void Draw_Init (void)
 	Cvar_RegisterVariable (&gl_max_size);
 	Cvar_RegisterVariable (&gl_picmip);
 	Cvar_RegisterVariable (&gl_bilinear);
+	Cvar_RegisterVariable (&st_separation );
+	Cvar_RegisterVariable (&st_zeropdist );
+	Cvar_RegisterVariable (&st_fustbal );
 
 	Cvar_SetCallback (&gl_bilinear, &Callback_Bilinear_f);
 

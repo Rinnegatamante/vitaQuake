@@ -22,6 +22,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include <math_neon.h>
 
+// BEGIN STEREO DEFS
+int stereoCameraSelect = -1; // 1 = left, -1 = right
+cvar_t  st_separation = {"st_separation", "0"};	// CON: st_separation -> separation Between Cameras
+cvar_t  st_zeropdist = {"st_zeropdist", "20" };		// CON: st_zeropdist ->  Dist to zero parallax
+cvar_t  st_fustbal = {"st_fustbal", "1" };		// CON: st_fustbal ->  frustumBalance adjust
+// END Stereo Defs
+
 entity_t	r_worldentity;
 
 bool	r_cache_thrash;		// compatability
@@ -1571,7 +1578,12 @@ void GL_SetFrustum(float fovx, float fovy)
 	float xmax, ymax;
 	xmax = NEARCLIP * tan( fovx * M_PI / 360.0 );
 	ymax = NEARCLIP * tan( fovy * M_PI / 360.0 );
-	glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, FARCLIP);
+	
+	if (st_separation.value != 0) {
+		float stereo_add = (st_separation.value * st_fustbal.value * (4.0f / (4 + st_zeropdist.value))) * stereoCameraSelect;
+		glFrustum(-xmax + stereo_add, xmax + stereo_add, -ymax, ymax, NEARCLIP, FARCLIP);
+		glTranslatef(st_separation.value * stereoCameraSelect, 0, 0);
+	} else glFrustum(-xmax, xmax, -ymax, ymax, NEARCLIP, FARCLIP);
 }
 
 /*
@@ -1679,7 +1691,7 @@ void R_Clear (void)
 		glClear (GL_DEPTH_BUFFER_BIT);
 	}
 	
-	if (r_mirroralpha.value != 1.0)
+	if (r_mirroralpha.value != 1.0 && st_separation.value == 0)
 		gldepthmax = 0.5;
 	else
 		gldepthmax = 1;
@@ -1752,7 +1764,7 @@ void R_Mirror (void)
 
 	glLoadMatrixf (r_base_world_matrix);
 
-	GL_Color(1,1,1,r_mirroralpha.value);
+	GL_Color(1,1,1,st_separation.value != 0 ? 1 : r_mirroralpha.value);
 	s = cl.worldmodel->textures[mirrortexturenum]->texturechain;
 	for ( ; s ; s=s->texturechain)
 		R_RenderBrushPoly (s);
@@ -1791,18 +1803,32 @@ void R_RenderView (void)
 	}
 
 	mirror = false;
-
-	R_Clear ();
-
-	// render normal view
-
-	R_RenderScene ();
-	R_DrawViewModel ();
-	R_DrawWaterSurfaces ();
-
-	// render mirror view
-	R_Mirror ();
-
+	
+	if (st_separation.value != 0) {
+		stereoCameraSelect = 1;
+		glColorMask( GL_TRUE, GL_FALSE, GL_FALSE ,GL_TRUE );
+		R_Clear ();			
+		R_RenderScene ();
+		R_DrawViewModel ();
+		R_DrawWaterSurfaces ();
+		R_Mirror ();
+		
+		stereoCameraSelect = -1;
+		glColorMask( GL_FALSE, GL_TRUE, GL_TRUE ,GL_TRUE );
+		R_Clear ();
+		R_RenderScene ();		
+		R_DrawViewModel ();
+		R_DrawWaterSurfaces ();
+		R_Mirror ();
+		glColorMask( GL_TRUE, GL_TRUE, GL_TRUE ,GL_TRUE );
+	} else {
+		R_Clear ();
+		R_RenderScene ();
+		R_DrawViewModel ();
+		R_DrawWaterSurfaces ();
+		R_Mirror ();
+	}
+	
 	R_PolyBlend ();
 
 	if (r_speeds.value)

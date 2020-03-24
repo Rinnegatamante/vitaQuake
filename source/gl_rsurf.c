@@ -685,7 +685,7 @@ void DrawTextureChains (void)
 			continue;
 		if (i == skytexturenum)
 			R_DrawSkyChain (s);
-		else if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
+		else if (i == mirrortexturenum && r_mirroralpha.value != 1.0 && st_separation.value == 0)
 		{
 			R_MirrorChain (s);
 			continue;

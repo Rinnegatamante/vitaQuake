@@ -36,6 +36,7 @@ extern cvar_t	show_fps;
 extern cvar_t	gl_fog;
 extern cvar_t	gl_outline;
 extern cvar_t	r_viewmodeloffset;
+extern cvar_t	st_separation;
 extern int scr_width;
 extern int scr_height;
 extern uint8_t is_uma0;
@@ -1144,7 +1145,7 @@ void M_Mods_Key (int k)
 //=============================================================================
 /* GRAPHICS MENU */
 
-# define GRAPHICS_ITEMS 12
+# define GRAPHICS_ITEMS 13
 
 #define	SLIDER_RANGE 10
 
@@ -1219,13 +1220,17 @@ void M_AdjustSliders2 (int dir)
 		else if (gl_outline.value < 0) gl_outline.value = 0;
 		Cvar_SetValue ("gl_outline",gl_outline.value);
 		break;
-	case 9:	// antialiasing
+	case 9:  // anaglyph 3d
+		st_separation.value = st_separation.value == 0.5 ? 0.0 : 0.5;
+		Cvar_SetValue ("st_separation",st_separation.value);
+		break;
+	case 10:	// antialiasing
 		antialiasing += dir;
 		if (antialiasing < 0) antialiasing = 8;
 		else if (antialiasing > 8) antialiasing = 0;
 		SetAntiAliasing(antialiasing);
 		break;
-	case 10:	// resolution
+	case 11:	// resolution
 		if (r_idx == -1) {
 			for (r_idx = 0; r_idx < 4; r_idx++) {
 				if (cfg_width == w_res[r_idx]) break;
@@ -1236,10 +1241,10 @@ void M_AdjustSliders2 (int dir)
 		else if (r_idx < 0) r_idx = 3;
 		SetResolution(w_res[r_idx], h_res[r_idx]);
 		break;
-	case 11:
+	case 12:
 		Cvar_SetValue ("vid_vsync", !vid_vsync.value);
 		break;
-	case 12:	// performance test
+	case 13:	// performance test
 		key_dest = key_benchmark;
 		m_state = m_none;
 		cls.demonum = m_save_demonum;
@@ -1309,56 +1314,59 @@ void M_Graphics_Draw (void)
 	M_Print (16, 96, "           Cel Shading");
 	r = gl_outline.value / 6;
 	M_DrawSlider (220, 96, r);
+	
+	M_Print (16, 104,"           Anaglyph 3D");
+	M_DrawCheckbox (220, 104, st_separation.value != 0);
 
-	M_Print (16, 104,"         Anti-Aliasing");
+	M_Print (16, 112,"         Anti-Aliasing");
 	switch (antialiasing) {
 	case 1:
-		M_Print (220, 104, "MSAA 2x");
+		M_Print (220, 112, "MSAA 2x");
 		break;
 	case 2:
-		M_Print (220, 104, "MSAA 4x");
+		M_Print (220, 112, "MSAA 4x");
 		break;
 	case 3:
-		M_Print (220, 104, "SSAA 2x");
+		M_Print (220, 112, "SSAA 2x");
 		break;
 	case 4:
-		M_Print (220, 104, "SSAA 4x");
+		M_Print (220, 112, "SSAA 4x");
 		break;
 	case 5:
-		M_Print (220, 104, "MSAA 2x + SSAA 2x");
+		M_Print (220, 112, "MSAA 2x + SSAA 2x");
 		break;
 	case 6:
-		M_Print (220, 104, "MSAA 2x + SSAA 4x");
+		M_Print (220, 112, "MSAA 2x + SSAA 4x");
 		break;
 	case 7:
-		M_Print (220, 104, "MSAA 4x + SSAA 2x");
+		M_Print (220, 112, "MSAA 4x + SSAA 2x");
 		break;
 	case 8:
-		M_Print (220, 104, "MSAA 4x + SSAA 4x");
+		M_Print (220, 112, "MSAA 4x + SSAA 4x");
 		break;
 	default:
-		M_Print (220, 104, "Disabled");
+		M_Print (220, 112, "Disabled");
 		break;
 	}
 	
 	char res_str[64];
 	sprintf(res_str, "%dx%d", cfg_width, cfg_height);
-	M_Print (16, 112,"            Resolution");
-	M_Print (220, 112, res_str);
+	M_Print (16, 120,"            Resolution");
+	M_Print (220, 120, res_str);
 
-	M_Print (16, 120,"                V-Sync");
-	M_DrawCheckbox (220, 120, vid_vsync.value);
+	M_Print (16, 128,"                V-Sync");
+	M_DrawCheckbox (220, 128, vid_vsync.value);
 	
-	M_Print (16, 136,"      Test Performance");
+	M_Print (16, 144,"      Test Performance");
 	
 	// Warn users for reboot required
-	if (graphics_cursor == 9 || graphics_cursor == 10) {
+	if (graphics_cursor == 10 || graphics_cursor == 11) {
 		M_PrintCentered (210, "Editing this option will require");
 		M_PrintCentered (218, "  an app reboot to take effect  ");
 	}
 	
 // cursor
-	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 136, 12+((int)(realtime*4)&1));
+	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 144, 12+((int)(realtime*4)&1));
 	else M_DrawCharacter (200, 32 + graphics_cursor*8, 12+((int)(realtime*4)&1));
 }
 
@@ -1673,6 +1681,7 @@ void M_Options_Key (int k)
 			motion_vertical_sensitivity.value = 3;
 			scr_sbaralpha.value = 0.5f;
 			gl_outline.value = 0;
+			st_separation.value = 0;
 			w_pos_idx = 0;
 			r_viewmodeloffset.value = 0;
 			Cvar_SetValue ("viewsize", viewsize.value);
@@ -1702,6 +1711,7 @@ void M_Options_Key (int k)
 			Cvar_SetValue ("vid_vsync", vid_vsync.value);
 			Cvar_SetValue ("gl_outline", gl_outline.value);
 			Cvar_SetValue ("r_viewmodeloffset", r_viewmodeloffset.value);
+			Cvar_SetValue ("st_separation",st_separation.value);
 			SetResolution(960, 544);
 			antialiasing = 2;
 			r_idx = -1;

@@ -229,6 +229,12 @@ extern	const char *gl_renderer;
 extern	const char *gl_version;
 extern	const char *gl_extensions;
 
+// Stereo
+extern  cvar_t  st_separation;
+extern  cvar_t  st_zeropdist;
+extern  cvar_t  st_fustbal;
+//end stereo
+
 void R_TranslatePlayerSkin (int playernum);
 void GL_Bind (int texnum);
 
