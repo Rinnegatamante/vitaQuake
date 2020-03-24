@@ -763,11 +763,11 @@ int quake_main (unsigned int argc, void* argv){
 						param.type = (m_state == m_lanconfig && lanConfig_cursor == 0) ? SCE_IME_TYPE_NUMBER : SCE_IME_TYPE_BASIC_LATIN;
 						param.title = title;
 						param.maxTextLength = (m_state == m_lanconfig && lanConfig_cursor == 0) ? 5 : SCE_IME_DIALOG_MAX_TEXT_LENGTH;
-						/*if (key_dest == key_console)
+						if (key_dest == key_console)
 						{
-							strcpy(initial_text, key_lines[edit_line] + 1);
-							strcpy(input_text, key_lines[edit_line] + 1);
-						}*/
+							ascii2utf(initial_text, key_lines[edit_line] + 1);
+							ascii2utf(input_text, key_lines[edit_line] + 1);
+						}
 						param.initialText = initial_text;
 						param.inputTextBuffer = input_text;
 						sceImeDialogInit(&param);
