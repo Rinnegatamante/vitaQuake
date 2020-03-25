@@ -26,7 +26,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define BIGSTACK_SIZE 20 * 1024 * 1024
 byte sys_bigstack[BIGSTACK_SIZE];
 int sys_bigstack_cursize;
+
 uint8_t is_uma0 = 0;
+int tex_cache = 1;
+
 extern int antialiasing;
 extern uint8_t netcheck_dialog_running;
 extern uint8_t proto_idx;
@@ -634,6 +637,10 @@ int quake_main (unsigned int argc, void* argv){
 			}
 		}
 	}
+	
+	// Texture cache
+	if (COM_CheckParm("-no_tex_cache"))
+		tex_cache = 0;
 	
 	if (COM_CheckParm("-mem"))
 	{

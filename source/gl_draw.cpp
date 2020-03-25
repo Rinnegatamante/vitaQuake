@@ -60,6 +60,8 @@ extern cvar_t scr_conalpha;
 extern cvar_t scr_menuscale;
 extern cvar_t scr_sbarscale;
 
+extern int tex_cache;
+
 byte		*draw_chars;				// 8*8 graphic characters
 qpic_t		*draw_disc;
 qpic_t		*draw_backtile;
@@ -114,9 +116,7 @@ static int LoadExternalPic(char *identifier)
 }
 
 // FIXME: It seems the texture manager fails with Half Life BSPs
-// Turned off for the moment since not strictly required for the engine to correctly work
-// Rinnegatamante - 20/08/19
-#ifndef DISABLE_TEXTURE_CACHE
+
 /*
  * Texture Manager - derived from glesquake
  */
@@ -344,7 +344,7 @@ private:
 
     static const size_t TEXTURE_STORE_SIZE = 16 * 1024 * 1024;
     static const size_t LIVE_TEXTURE_LIMIT = 1 * 1024 * 1024;
-    static const size_t TEXTURE_STORE_NUM_TEXTURES = 1024;
+    static const size_t TEXTURE_STORE_NUM_TEXTURES = 512;
 
     byte* mBase;
     size_t mLength;
@@ -366,18 +366,17 @@ private:
 };
 
 textureStore* textureStore::g_pTextureCache;
-#endif
 
 void GL_Bind (int texnum)
 {
 	if (currenttexture == texnum)
 		return;
 	currenttexture = texnum;
-#ifdef DISABLE_TEXTURE_CACHE
-	glBindTexture(GL_TEXTURE_2D, texnum);
-#else
-	textureStore::get()->bind(texnum);
-#endif
+	
+	if (tex_cache)
+		textureStore::get()->bind(texnum);
+	else
+		glBindTexture(GL_TEXTURE_2D, texnum);
 }
 
 /*
@@ -1430,11 +1429,12 @@ int GL_LoadTexture (const char *identifier, int width, int height, byte *data, b
 	glt->mipmap = mipmap;
 
 	GL_Bind(texture_extension_number );
-#ifdef DISABLE_TEXTURE_CACHE
-	GL_Upload8 (data, width, height, mipmap, alpha);
-#else
-	textureStore::get()->create(width, height, data, mipmap, alpha, false);
-#endif
+	
+	if (tex_cache)
+		textureStore::get()->create(width, height, data, mipmap, alpha, false);
+	else
+		GL_Upload8 (data, width, height, mipmap, alpha);
+
 	texture_extension_number++;
 
 	return texture_extension_number-1;
@@ -1485,11 +1485,12 @@ int GL_LoadTexture32 (const char *identifier, int width, int height, byte *data,
 	glt->mipmap = mipmap;
 	
 	GL_Bind(texture_extension_number );
-#ifdef DISABLE_TEXTURE_CACHE
-	GL_Upload32 ((unsigned*)data, width, height, mipmap, alpha);
-#else
-	textureStore::get()->create(width, height, data, mipmap, alpha, true);
-#endif
+	
+	if (tex_cache)
+		textureStore::get()->create(width, height, data, mipmap, alpha, true);
+	else
+		GL_Upload32 ((unsigned*)data, width, height, mipmap, alpha);
+	
 	texture_extension_number++;
 
 	return texture_extension_number-1;
