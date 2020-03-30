@@ -47,6 +47,7 @@ CVAR	(gl_nobind, 0, CVAR_NONE)
 CVAR	(gl_max_size, 4096, CVAR_NONE)
 CVAR	(gl_picmip, 0, CVAR_NONE)
 CVAR	(gl_bilinear, 1, CVAR_ARCHIVE)
+CVAR	(gl_compress, 0, CVAR_ARCHIVE)
 
 extern cvar_t crosshaircolor_r;
 extern cvar_t crosshaircolor_g;
@@ -1053,7 +1054,7 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
 		}
 	}
 	
-	glTexImage2D (GL_TEXTURE_2D, 0, gl_alpha_format, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
+	glTexImage2D (GL_TEXTURE_2D, 0, gl_compress.value ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : gl_alpha_format, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1313,7 +1314,10 @@ void GL_Upload32 (unsigned *data, int width, int height,  bool mipmap, bool alph
 	if (scaled_width * scaled_height > sizeof(scaled)/4)
 		Sys_Error ("GL_LoadTexture: too big");
 
-	samples = alpha ? gl_alpha_format : gl_solid_format;
+	if (gl_compress.value) {
+		samples = alpha ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		mipmap = false; // Compressed textures do not support mipmaps yet in vitaGL
+	} else samples = alpha ? gl_alpha_format : gl_solid_format;
 
 	texels += scaled_width * scaled_height;
 

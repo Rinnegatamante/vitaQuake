@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 extern cvar_t gl_torchflares;
+extern cvar_t gl_compress;
 
 /*
 ==================
@@ -92,8 +93,8 @@ void R_InitParticleTexture (void)
 
 	GL_EnableState(GL_MODULATE);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 /*
@@ -140,6 +141,8 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_finish);
 	Cvar_RegisterVariable (&gl_clear);
 	Cvar_RegisterVariable (&gl_texsort);
+	
+	Cvar_RegisterVariable (&gl_compress);
 
 	Cvar_RegisterVariable (&gl_cull);
 	Cvar_RegisterVariable (&gl_smoothmodels);
@@ -277,7 +280,7 @@ void R_TranslatePlayerSkin (int playernum)
 			frac += fracstep;
 		}
 	}
-	glTexImage2D (GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D (GL_TEXTURE_2D, 0, gl_compress.value ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	GL_EnableState(GL_MODULATE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
