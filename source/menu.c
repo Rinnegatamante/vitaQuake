@@ -387,9 +387,8 @@ void M_Main_Draw (void)
 	
 	M_PrintCentered (190, " Thanks for the awesome support ");
 	M_PrintCentered (198, "         on Patreon to:         ");
-	M_PrintCentered (206, "     Tain Sueiras, Polytoad     ");
-	M_PrintCentered (214, "      drd7of14, RaveHeart       ");
-	M_PrintCentered (222, "       The Vita3K Projecy       ");
+	M_PrintCentered (206, "     Tain Sueiras, polytoad     ");
+	M_PrintCentered (214, "  drd7of14, The Vita3K Project  ");
 }
 
 
