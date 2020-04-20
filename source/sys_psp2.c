@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1996-1997 Id Software, Inc.
+Copyright (C) 2020 Asakura Reiko
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -487,7 +488,12 @@ int quake_main (unsigned int argc, void* argv){
 	}
 	cfg_width = scr_width;
 	cfg_height = scr_height;
-	
+
+	if (!sceKernelIsPSVitaTV() && (scr_width > 960 || scr_height > 544)) {
+		scr_width = 960;
+		scr_height = 544;
+	}
+
 	// Initializing vitaGL
 	switch (antialiasing) {
 	case 1:
