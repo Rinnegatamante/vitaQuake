@@ -72,7 +72,7 @@ float   mouse_x, mouse_y;
 float	old_mouse_x, old_mouse_y;
 int		mx, my;
 
-int scr_width = 960, scr_height = 544;
+int scr_width = 1280, scr_height = 720;
 
 /*-----------------------------------------------------------------------*/
 
