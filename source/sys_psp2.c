@@ -489,10 +489,25 @@ int quake_main (unsigned int argc, void* argv){
 	cfg_width = scr_width;
 	cfg_height = scr_height;
 
-	if (!sceKernelIsPSVitaTV() && (scr_width > 960 || scr_height > 544)) {
-		scr_width = 960;
-		scr_height = 544;
+	// Check framebuffer size is valid
+	int scr_pitch = (scr_width + 63) & ~63;
+	void *fb_base = memalign(64 * 4, scr_pitch * scr_height * 4);
+	SceDisplayFrameBuf fb = {
+		sizeof(fb),
+		fb_base,
+		scr_pitch,
+		SCE_DISPLAY_PIXELFORMAT_A8B8G8R8,
+		scr_width,
+		scr_height
+	};
+	if (sceDisplaySetFrameBuf(&fb, SCE_DISPLAY_SETBUF_NEXTFRAME) != 0) {
+		scr_width = cfg_width = 960;
+		scr_height = cfg_height = 544;
 	}
+	free(fb_base);
+
+	// Set framebuffer to blank to prevent garbage from showing on screen
+	sceDisplaySetFrameBuf(NULL, SCE_DISPLAY_SETBUF_NEXTFRAME);
 
 	// Initializing vitaGL
 	switch (antialiasing) {

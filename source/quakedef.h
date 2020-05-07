@@ -61,6 +61,7 @@ extern int m_state;
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <malloc.h>
 #include "neon_mathfun.h"
 
 #if defined(_WIN32) && !defined(WINDED)
