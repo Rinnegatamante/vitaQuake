@@ -5,7 +5,8 @@ An official channel to discuss the development of this source port can be found 
 
 # Features
 - Hardware accelerated GPU rendering
-- Native 1920x1080 resolution (with [Sharpscale](https://forum.devchroma.nl/index.php/topic,112.0.html))
+- Native 960x544 resolution
+- Rendering resolution up to 1920x1080 on the PSTV with [Sharpscale](https://git.shotatoshounenwachigau.moe/vita/sharpscale)
 - MSAA 2x and MSAA 4x support
 - Dual analogs support
 - Native IME for inputing commands/text
