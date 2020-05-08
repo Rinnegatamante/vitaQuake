@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1996-1997 Id Software, Inc.
+Copyright (C) 2020 Asakura Reiko
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1150,8 +1151,16 @@ void M_Mods_Key (int k)
 
 int	graphics_cursor;
 
-int w_res[] = {480, 640, 720, 960};
-int h_res[] = {272, 368, 408, 544};
+#define N_RES 7
+static const int res[N_RES][2] = {
+	{480, 272},
+	{640, 368},
+	{720, 408},
+	{960, 544},
+	{1280, 720},
+	{1440, 1080},
+	{1920, 1080},
+};
 int r_idx = -1;
 
 void M_Menu_Graphics_f (void)
@@ -1239,14 +1248,12 @@ void M_AdjustSliders2 (int dir)
 		break;
 	case 12:	// resolution
 		if (r_idx == -1) {
-			for (r_idx = 0; r_idx < 4; r_idx++) {
-				if (cfg_width == w_res[r_idx]) break;
+			for (r_idx = 0; r_idx < N_RES; r_idx++) {
+				if (cfg_width == res[r_idx][0]) break;
 			}
 		}
-		r_idx += dir;
-		if (r_idx > 3) r_idx = 0;
-		else if (r_idx < 0) r_idx = 3;
-		SetResolution(w_res[r_idx], h_res[r_idx]);
+		r_idx = (r_idx + dir + N_RES) % N_RES;
+		SetResolution(res[r_idx][0], res[r_idx][1]);
 		break;
 	case 13:
 		Cvar_SetValue ("vid_vsync", !vid_vsync.value);

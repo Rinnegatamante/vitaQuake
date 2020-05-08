@@ -6,6 +6,7 @@ An official channel to discuss the development of this source port can be found 
 # Features
 - Hardware accelerated GPU rendering
 - Native 960x544 resolution
+- Rendering resolution up to 1920x1080 on the PSTV with [Sharpscale](https://git.shotatoshounenwachigau.moe/vita/sharpscale)
 - MSAA 2x and MSAA 4x support
 - Dual analogs support
 - Native IME for inputing commands/text
@@ -102,3 +103,4 @@ YPOD | [Free](https://www.quakewiki.net/archives/doom/) | ![#007f00](https://pla
 - EasyRPG Team for the audio decoder used for CDAudio support
 - Ch0wW for various improvements and code cleanup
 - JPG for ProQuake and some various fixes.
+- Cuevavirus for 1920x1080 rendering
