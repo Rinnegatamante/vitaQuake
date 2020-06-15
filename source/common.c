@@ -1614,7 +1614,7 @@ void COM_InitFilesystem (void)
 		proghack = true;
 }
 
-int COM_Clamp(int value, int min, int max)
+float COM_Clamp(float value, float min, float max)
 {
 	return value < min ? min : (value > max ? max : value);
 }

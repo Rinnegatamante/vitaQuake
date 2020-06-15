@@ -199,7 +199,7 @@ byte *COM_LoadStackFile (char *path, void *buffer, int bufsize, unsigned int *pa
 byte *COM_LoadTempFile (const char *path, unsigned int *path_id);
 byte *COM_LoadHunkFile (const char *path, unsigned int *path_id);
 
-int COM_Clamp(int value, int min, int max);
+float COM_Clamp(float value, float min, float max);
 
 extern	struct cvar_s	registered;
 
