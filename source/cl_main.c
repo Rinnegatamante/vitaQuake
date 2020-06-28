@@ -198,7 +198,7 @@ CL_SignonReply
 An svc_signonnum has been received, perform a client side setup
 =====================
 */
-cshift_t	cshift_empty;
+extern cshift_t	cshift_empty;
 void CL_SignonReply (void)
 {
 	char 	str[8192];
