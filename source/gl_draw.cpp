@@ -22,8 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // vid buffer
 
 extern "C"{
-	#include "quakedef.h"
-	extern unsigned short CRC_Block(byte *data, int size);
+#include <vitasdk.h>
+#include "quakedef.h"
+extern unsigned short CRC_Block(byte *data, int size);
 }
 
 #define GL_COLOR_INDEX8_EXT     0x80E5

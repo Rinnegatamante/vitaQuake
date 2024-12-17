@@ -18,7 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // common.c -- misc functions used in client and server
-
+#define _GNU_SOURCE
+#include <string.h>
 #include "quakedef.h"
 #include <assert.h>
 #include <ctype.h>

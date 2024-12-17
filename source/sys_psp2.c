@@ -488,44 +488,28 @@ int quake_main (unsigned int argc, void* argv){
 	}
 	cfg_width = scr_width;
 	cfg_height = scr_height;
-
-	// Check framebuffer size is valid
-	int scr_pitch = (scr_width + 63) & ~63;
-	void *fb_base = memalign(64 * 4, scr_pitch * scr_height * 4);
-	SceDisplayFrameBuf fb = {
-		sizeof(fb),
-		fb_base,
-		scr_pitch,
-		SCE_DISPLAY_PIXELFORMAT_A8B8G8R8,
-		scr_width,
-		scr_height
-	};
-	if (sceDisplaySetFrameBuf(&fb, SCE_DISPLAY_SETBUF_NEXTFRAME) != 0) {
-		scr_width = cfg_width = 960;
-		scr_height = cfg_height = 544;
-	}
-	free(fb_base);
-
-	// Set framebuffer to blank to prevent garbage from showing on screen
-	sceDisplaySetFrameBuf(NULL, SCE_DISPLAY_SETBUF_NEXTFRAME);
-
+	
 	// Initializing vitaGL
+	GLboolean invalid_res = GL_FALSE;
 	switch (antialiasing) {
 	case 1:
 	case 5:
 	case 6:
-		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_2X);
+		invalid_res = vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_2X);
 		break;
 	case 2:
 	case 7:
 	case 8:
-		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_4X);
+		invalid_res = vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_4X);
 		break;
 	default:
-		vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_NONE);
+		invalid_res = vglInitExtended(0x1400000, scr_width, scr_height, 0x1000000, SCE_GXM_MULTISAMPLE_NONE);
 		break;
 	}
-	vglUseVram(GL_TRUE);
+	if (invalid_res) {
+		cfg_width = scr_width = 960;
+		cfg_height = scr_height = 544;
+	}
 	
 	// Properly setting SSAA
 	switch (antialiasing) {
@@ -569,11 +553,8 @@ int quake_main (unsigned int argc, void* argv){
 			param.initialText = initial_text;
 			param.inputTextBuffer = input_text;
 			sceImeDialogInit(&param);
-			while (sceImeDialogGetStatus() != 2) {
-				vglStartRendering();
-				vglStopRenderingInit();
-				vglUpdateCommonDialog();
-				vglStopRenderingTerm();
+			while (sceImeDialogGetStatus() != SCE_COMMON_DIALOG_STATUS_FINISHED) {
+				vglSwapBuffers(GL_TRUE);
 			}
 			SceCommonDialogStatus status = sceImeDialogGetStatus();
 			SceImeDialogResult result;
@@ -827,7 +808,6 @@ int main(int argc, char **argv)
 	SceUID main_thread = sceKernelCreateThread("Quake", quake_main, 0x40, 0x800000, 0, 0, NULL);
 	if (main_thread >= 0){
 		sceKernelStartThread(main_thread, 0, NULL);
-		sceKernelWaitThreadEnd(main_thread, NULL, NULL);
 	}
-	return 0;
+	return sceKernelExitDeleteThread(0);
 }
