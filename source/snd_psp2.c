@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define u64 uint64_t
 #define u8 uint8_t
 
-#define SAMPLE_RATE   48000
-#define AUDIOSIZE   16384
+#define SAMPLE_RATE (48000)
+#define AUDIOSIZE (16384)
 
 u8 *audiobuffer;
 SceRtcTick initial_tick;
@@ -43,11 +43,7 @@ static int audio_thread(int args, void *argp)
 	
     while (!stop_audio)
     {
-		//if (update){ 
-			sceAudioOutOutput(chn, audiobuffer);
-			//update = false;
-		//}
-		
+		sceAudioOutOutput(chn, audiobuffer);
     }
 	 
 	sceAudioOutReleasePort(chn);
@@ -91,7 +87,7 @@ bool SNDDMA_Init(void)
 
 int SNDDMA_GetDMAPos(void)
 {
-	if(!snd_initialized)
+	if (!snd_initialized)
 		return 0;
 
 	SceRtcTick tick;
@@ -105,10 +101,10 @@ int SNDDMA_GetDMAPos(void)
 
 void SNDDMA_Shutdown(void)
 {
-  if(snd_initialized){
-	stop_audio = true;
-	chn = -1;
-  }
+	if(snd_initialized){
+		stop_audio = true;
+		chn = -1;
+	}
 }
 
 /*

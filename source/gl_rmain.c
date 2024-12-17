@@ -68,6 +68,7 @@ float r_fovx, r_fovy;
 // idea originally nicked from LordHavoc
 // re-worked + extended - muff 5 Feb 2001
 // called inside polyblend
+float *gamma_vertices = NULL;
 void DoGamma()
 {
 
@@ -85,15 +86,16 @@ void DoGamma()
 	glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
 	float color[4] = {1, 1, 1, v_gamma.value};
 	
-	float vertices[3*4] = {
-		10, 100, 100,
-		10,-100, 100,
-		10,-100,-100,
-		10, 100,-100
-	};
-	
+	if (gamma_vertices == NULL) {
+		gamma_vertices = malloc(3 * 4 * sizeof(float));
+		gamma_vertices[0] = gamma_vertices[3] = gamma_vertices[6] = gamma_vertices[9] = 10;
+		gamma_vertices[1] = gamma_vertices[2] = gamma_vertices[5] = gamma_vertices[10] = 100;
+		gamma_vertices[4] = gamma_vertices[7] = gamma_vertices[8] = gamma_vertices[11] = -100;
+	}
+
 	glUniform4fv(monocolor, 1, color);
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertices);
+	vglVertexAttribPointerMapped(0, gamma_vertices);
+	
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 	
 	//if we do this twice, we double the brightening effect for a wider range of gamma's
@@ -337,6 +339,7 @@ R_DrawSpriteModel
 
 =================
 */
+float *sprite_model_tcoords = NULL;
 void R_DrawSpriteModel (entity_t *e)
 {
 	vec3_t	point;
@@ -368,12 +371,12 @@ void R_DrawSpriteModel (entity_t *e)
 	GL_EnableState(GL_ALPHA_TEST);
 
 	float* pPoint = gVertexBuffer;
-	float texCoords[] = {
-		0, 1,
-		0, 0,
-		1, 0,
-		1, 1
-	};
+	
+	if (sprite_model_tcoords == NULL) {
+		sprite_model_tcoords = (float *)malloc(sizeof(float) * 8);
+		sprite_model_tcoords[0] = sprite_model_tcoords[2] = sprite_model_tcoords[3] = sprite_model_tcoords[5] = 0;
+		sprite_model_tcoords[1] = sprite_model_tcoords[4] = sprite_model_tcoords[6] = sprite_model_tcoords[7] = 1;
+	}
 	
 	VectorMA (e->origin, frame->down, up, point);
 	VectorMA (point, frame->left, right, gVertexBuffer);
@@ -392,7 +395,7 @@ void R_DrawSpriteModel (entity_t *e)
 	gVertexBuffer += 3;
 	
 	vglVertexAttribPointerMapped(0, pPoint);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texCoords);
+	vglVertexAttribPointerMapped(1, sprite_model_tcoords);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 	
 
@@ -1456,16 +1459,16 @@ void R_PolyBlend (void)
 
 	GL_Color(v_blend[0],v_blend[1],v_blend[2],v_blend[3]);
 	
-	if (v_blend[3]){
+	if (v_blend[3]) {
 	
-		float vertex[3*4] = {
-			10, 100, 100,
-			10, -100, 100,
-			10, -100, -100,
-			10, 100, -100
-		};
+		if (gamma_vertices == NULL) {
+			gamma_vertices = malloc(3 * 4 * sizeof(float));
+			gamma_vertices[0] = gamma_vertices[3] = gamma_vertices[6] = gamma_vertices[9] = 10;
+			gamma_vertices[1] = gamma_vertices[2] = gamma_vertices[5] = gamma_vertices[10] = 100;
+			gamma_vertices[4] = gamma_vertices[7] = gamma_vertices[8] = gamma_vertices[11] = -100;
+		}
 
-		vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+		vglVertexAttribPointerMapped(0, gamma_vertices);
 		glUniform4fv(monocolor, 1, v_blend);
 		GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 		

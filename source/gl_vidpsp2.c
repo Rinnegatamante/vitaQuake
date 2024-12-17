@@ -319,17 +319,18 @@ void GL_Color(float r, float g, float b, float a) {
 bool shaders_set = false;
 void GL_ResetShaders() {
 	glFinish();
-	if (shaders_set){
-		for (int i = 0; i < NUM_FRAG_SHADERS; i++){
+	if (shaders_set) {
+		for (int i = 0; i < NUM_FRAG_SHADERS; i++) {
 			glDeleteProgram(programs[i]);
 		}
-		for (int i = 0; i < NUM_FRAG_SHADERS; i++){
+		for (int i = 0; i < NUM_FRAG_SHADERS; i++) {
 			glDeleteShader(fs[i]);
 		}
-		for (int i = 0; i < NUM_VERT_SHADERS; i++){
+		for (int i = 0; i < NUM_VERT_SHADERS; i++) {
 			glDeleteShader(vs[i]);
 		}
-	}else shaders_set = true; 
+	} else
+		shaders_set = true; 
 	
 	// Loading shaders
 	for (int i = 0; i < NUM_FRAG_SHADERS; i++) {
@@ -374,7 +375,7 @@ void GL_ResetShaders() {
 				glAttachShader(programs[i], vs[TEXTURE2D]);
 				vglBindAttribLocation(programs[i], 0, "position", 3, GL_FLOAT);
 				vglBindAttribLocation(programs[i], 1, "texcoord", 2, GL_FLOAT);
-						glLinkProgram(programs[i]);
+				glLinkProgram(programs[i]);
 				break;
 			case TEX2D_MODUL:
 				glAttachShader(programs[i], fs[MODULATE]);
@@ -493,7 +494,7 @@ void GL_Init (void)
 	Cvar_RegisterVariable(&vid_vsync);
 	
 	indices = (uint16_t*)malloc(sizeof(uint16_t)*MAX_INDICES);
-	for (int i = 0; i < MAX_INDICES; i++){
+	for (int i = 0; i < MAX_INDICES; i++) {
 		indices[i] = i;
 	}
 	gVertexBufferPtr = (float*)malloc(0x400000);
@@ -539,6 +540,8 @@ void GL_EndRendering (void)
 		GL_DrawBenchmark ();
 	else
 		GL_DrawFPS ();
+	
+	vglSwapBuffers(isKeyboard || netcheck_dialog_running);
 	GL_SetCanvas(CANVAS_DEFAULT);
 
 	if (gl_ssaa > 1) {
@@ -563,8 +566,6 @@ void GL_EndRendering (void)
 		glVertex3f(0, 544, 0);
 		glEnd();
 	}
-	
-	vglSwapBuffers(isKeyboard || netcheck_dialog_running);
 }
 
 static void Check_Gamma (unsigned char *pal)

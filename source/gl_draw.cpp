@@ -847,10 +847,16 @@ void Draw_Init (void)
 
 void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float b, float a)
 {
-	float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
+	gVertexBuffer[0] = gVertexBuffer[9] = x;
+	gVertexBuffer[1] = gVertexBuffer[4] = y;
+	gVertexBuffer[3] = gVertexBuffer[6] = x+w;
+	gVertexBuffer[7] = gVertexBuffer[10] = y+h;
+	gVertexBuffer[2] = gVertexBuffer[5] = gVertexBuffer[8] = gVertexBuffer[11] = 0.5f;
+	
 	float color[4] = {r,g,b,a};
 	GL_DisableState(GL_TEXTURE_COORD_ARRAY);
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
+	vglVertexAttribPointerMapped(0, gVertexBuffer);
+	gVertexBuffer += 12;
 	glUniform4fv(monocolor, 1, color);
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 	GL_EnableState(GL_TEXTURE_COORD_ARRAY);
@@ -858,10 +864,21 @@ void DrawQuad_NoTex(float x, float y, float w, float h, float r, float g, float 
 
 void DrawQuad(float x, float y, float w, float h, float u, float v, float uw, float vh)
 {
-	float texcoord[2*4] = {u, v, u + uw, v, u + uw, v + vh, u, v + vh};
-	float vertex[3*4] = {x,y,0.5f,x+w,y,0.5f, x+w, y+h,0.5f, x, y+h,0.5f};
-	vglVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 4, vertex);
-	vglVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 4, texcoord);
+	gTexCoordBuffer[0] = gTexCoordBuffer[6] = u;
+	gTexCoordBuffer[1] = gTexCoordBuffer[3] = v;
+	gTexCoordBuffer[2] = gTexCoordBuffer[4] = u+uw;
+	gTexCoordBuffer[5] = gTexCoordBuffer[7] = v+vh;
+
+	gVertexBuffer[0] = gVertexBuffer[9] = x;
+	gVertexBuffer[1] = gVertexBuffer[4] = y;
+	gVertexBuffer[3] = gVertexBuffer[6] = x+w;
+	gVertexBuffer[7] = gVertexBuffer[10] = y+h;
+	gVertexBuffer[2] = gVertexBuffer[5] = gVertexBuffer[8] = gVertexBuffer[11] = 0.5f;
+		
+	vglVertexAttribPointerMapped(0, gVertexBuffer);
+	vglVertexAttribPointerMapped(1, gTexCoordBuffer);
+	gVertexBuffer += 12;
+	gTexCoordBuffer += 8;
 	GL_DrawPolygon(GL_TRIANGLE_FAN, 4);
 }
 
