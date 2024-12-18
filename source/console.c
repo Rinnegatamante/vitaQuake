@@ -552,8 +552,7 @@ void Con_DrawNotify (void)
 		clearnotify = 0;
 		scr_copytop = 1;
 
-		for (x = 0 ; x < con_linewidth ; x++)
-			Draw_Character ( (x+1)<<3, v, text[x]);
+		Batch_String(8, v, text, 0);
 
 		v += 8;
 	}
@@ -566,15 +565,14 @@ void Con_DrawNotify (void)
 
 		x = 0;
 
-		Draw_String (8, v, "say:", 0);
-		while(chat_buffer[x])
-		{
-			Draw_Character ( (x+5)<<3, v, chat_buffer[x]);
-			x++;
-		}
-		Draw_Character ( (x+5)<<3, v, 10+((int)(realtime*con_cursorspeed)&1));
+		Batch_String (8, v, "say:", 0);
+		Batch_String(40, v, chat_buffer[x], 0);
+		x += strlen(chat_buffer[x]);
+		Batch_Character ( (x+5)<<3, v, 10+((int)(realtime*con_cursorspeed)&1));
 		v += 8;
 	}
+	
+	Draw_Batched();
 
 	if (v > con_notifylines)
 		con_notifylines = v;

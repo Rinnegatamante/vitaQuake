@@ -39,15 +39,16 @@ extern int gl_ssaa;
 // Mods support
 int max_mod_idx = -1;
 
-ModsList* mods;
+ModsList *mods = NULL;
 
-ModsList* addMod(char* name, ModsList* db){
+ModsList *addMod(char* name, ModsList* db){
 	ModsList* entry = (ModsList*)malloc(sizeof(ModsList));
 	strcpy(entry->name, name);
-	if (db == NULL) return entry;
-	else{
+	if (db == NULL)
+		return entry;
+	else {
 		ModsList* ptr = db;
-		while (ptr->next != NULL){
+		while (ptr->next != NULL) {
 			ptr = ptr->next;
 		}
 		ptr->next = entry;
@@ -802,8 +803,7 @@ int quake_main (unsigned int argc, void* argv){
 	return 0;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	// We need a bigger stack to run Quake, so we create a new thread with a proper stack size
 	SceUID main_thread = sceKernelCreateThread("Quake", quake_main, 0x40, 0x800000, 0, 0, NULL);
 	if (main_thread >= 0){

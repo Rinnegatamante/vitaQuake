@@ -974,6 +974,123 @@ void Draw_String (int x, int y, const char *str, int delta)
 
 /*
 ================
+Batch_Character
+================
+*/
+int batched_vertices = 0;
+float *batched_vbuffer = NULL;
+float *batched_tbuffer = NULL;
+int is_batching = 0;
+void Batch_Character (int x, int y, int num) {
+	if (!is_batching) {
+		is_batching = 1;
+		batched_vbuffer = gVertexBuffer;
+		batched_tbuffer = gTexCoordBuffer;
+		batched_vertices = 0;
+	}
+
+	int				row, col;
+	float			frow, fcol, size;
+
+	if (num == 0x20)
+		return;		// space
+
+	num &= 255;
+	
+	if (y <= -8)
+		return;			// totally off screen
+
+	row = num>>4;
+	col = num&15;
+
+	frow = row*0.0625;
+	fcol = col*0.0625;
+	size = 0.0625;
+	
+	gVertexBuffer[0] = gVertexBuffer[3] = gVertexBuffer[9] = x;
+	gVertexBuffer[1] = gVertexBuffer[10] = gVertexBuffer[13] = y;
+	gVertexBuffer[4] = gVertexBuffer[7] = gVertexBuffer[16] = y + 8;
+	gVertexBuffer[6] = gVertexBuffer[12] = gVertexBuffer[15] = x + 8;
+	gVertexBuffer[2] = gVertexBuffer[5] = gVertexBuffer[8] = gVertexBuffer[11] = gVertexBuffer[14] = gVertexBuffer[17] = 0.5f;
+				
+	gTexCoordBuffer[0] = gTexCoordBuffer[2] = gTexCoordBuffer[6] = fcol;
+	gTexCoordBuffer[1] = gTexCoordBuffer[7] = gTexCoordBuffer[9] = frow;
+	gTexCoordBuffer[3] = gTexCoordBuffer[5] = gTexCoordBuffer[11] = frow+size;
+	gTexCoordBuffer[4] = gTexCoordBuffer[8] = gTexCoordBuffer[10] = fcol+size;
+		
+	gVertexBuffer += 18;
+	gTexCoordBuffer += 12;
+	batched_vertices += 6;
+}
+
+/*
+================
+Batch_String
+================
+*/
+void Batch_String (int x, int y, const char *str, int delta) {
+	if (!is_batching) {
+		is_batching = 1;
+		batched_vbuffer = gVertexBuffer;
+		batched_tbuffer = gTexCoordBuffer;
+		batched_vertices = 0;
+	}
+	
+	while (*str)
+	{
+		int num = (*str) + delta;
+		int	row, col;
+		float frow, fcol, size;
+
+		if (num != 0x20) {
+			num &= 255;
+			if (y > -8) {
+				row = num>>4;
+				col = num&15;
+
+				frow = row*0.0625;
+				fcol = col*0.0625;
+				size = 0.0625;
+				
+				gVertexBuffer[0] = gVertexBuffer[3] = gVertexBuffer[9] = x;
+				gVertexBuffer[1] = gVertexBuffer[10] = gVertexBuffer[13] = y;
+				gVertexBuffer[4] = gVertexBuffer[7] = gVertexBuffer[16] = y + 8;
+				gVertexBuffer[6] = gVertexBuffer[12] = gVertexBuffer[15] = x + 8;
+				gVertexBuffer[2] = gVertexBuffer[5] = gVertexBuffer[8] = gVertexBuffer[11] = gVertexBuffer[14] = gVertexBuffer[17] = 0.5f;
+				
+				gTexCoordBuffer[0] = gTexCoordBuffer[2] = gTexCoordBuffer[6] = fcol;
+				gTexCoordBuffer[1] = gTexCoordBuffer[7] = gTexCoordBuffer[9] = frow;
+				gTexCoordBuffer[3] = gTexCoordBuffer[5] = gTexCoordBuffer[11] = frow+size;
+				gTexCoordBuffer[4] = gTexCoordBuffer[8] = gTexCoordBuffer[10] = fcol+size;
+		
+				gVertexBuffer += 18;
+				gTexCoordBuffer += 12;
+				batched_vertices += 6;
+			}
+		}
+
+		str++;
+		x += 8;
+	}
+}
+
+/*
+================
+Draw_Batched
+================
+*/
+void Draw_Batched() {
+	if (batched_vertices > 0) {
+		GL_Bind (char_texture);
+		vglVertexAttribPointerMapped(0, batched_vbuffer);
+		vglVertexAttribPointerMapped(1, batched_tbuffer);
+		GL_DrawPolygon(GL_TRIANGLES, batched_vertices);
+		is_batching = 0;
+	}
+}
+
+/*
+================
 Draw_DebugChar
 
 Draws a single character directly to the upper right corner of the screen.
@@ -1597,9 +1714,10 @@ void GL_DrawBenchmark(void)
 
 	x = 320 - strlen(st) * 8 - 16;
 	GL_SetCanvas (CANVAS_TOPRIGHT);
-	Draw_String(x, 2, st, 0);
-	Draw_String(x, 10, st2, 0);
-	Draw_String(x, 18, st3, 0);
+	Batch_String(x, 2, st, 0);
+	Batch_String(x, 10, st2, 0);
+	Batch_String(x, 18, st3, 0);
+	Draw_Batched();
 	
 	if (bBlinkBenchmark) {	// Neato messaji
 		GL_SetCanvas (CANVAS_MENU);

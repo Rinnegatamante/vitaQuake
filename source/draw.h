@@ -40,3 +40,7 @@ void Draw_String (int x, int y, const char *str, int delta);
 void Draw_Crosshair(void);
 qpic_t *Draw_PicFromWad (const char *name);
 qpic_t *Draw_CachePic (char *path);
+
+void Batch_Character (int x, int y, int num);
+void Batch_String (int x, int y, const char *str, int delta);
+void Draw_Batched();

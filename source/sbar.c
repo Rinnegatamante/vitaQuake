@@ -294,7 +294,7 @@ Sbar_DrawString
 */
 void Sbar_DrawString (int x, int y, char *str)
 {
-	Draw_String (x, y + 24, str, 0);
+	Batch_String (x, y + 24, str, 0);
 }
 
 /*
@@ -470,6 +470,8 @@ void Sbar_SoloScoreboard (void)
 // draw level name
 	l = strlen (cl.levelname);
 	Sbar_DrawString (232 - l*4, 12, cl.levelname);
+	
+	Draw_Batched();
 }
 
 /*
@@ -1070,15 +1072,16 @@ void Sbar_DeathmatchOverlay (void)
 		f = s->frags;
 		sprintf (num, "%3i",f);
 
-		Draw_Character ( x+8 , y, num[0]);
-		Draw_Character ( x+16 , y, num[1]);
-		Draw_Character ( x+24 , y, num[2]);
+		Batch_Character ( x+8 , y, num[0]);
+		Batch_Character ( x+16 , y, num[1]);
+		Batch_Character ( x+24 , y, num[2]);
 
 		if (k == cl.viewentity - 1)
-			Draw_Character ( x - 8, y, 12);
+			Batch_Character ( x - 8, y, 12);
 
 	// draw name
 		M_Print (x+64, y, s->name);
+		Draw_Batched();
 
 		y += 10;
 	}
@@ -1157,17 +1160,18 @@ void Sbar_MiniDeathmatchOverlay (void)
 		f = s->frags;
 		sprintf (num, "%3i",f);
 
-		Draw_Character ( x+8 , y, num[0]);
-		Draw_Character ( x+16 , y, num[1]);
-		Draw_Character ( x+24 , y, num[2]);
+		Batch_Character ( x+8 , y, num[0]);
+		Batch_Character ( x+16 , y, num[1]);
+		Batch_Character ( x+24 , y, num[2]);
 
 		if (k == cl.viewentity - 1) {
-			Draw_Character ( x, y, 16);
-			Draw_Character ( x + 32, y, 17);
+			Batch_Character ( x, y, 16);
+			Batch_Character ( x + 32, y, 17);
 		}
 
 	// draw name
-		Draw_String (x+48, y, s->name, 0);
+		Batch_String (x+48, y, s->name, 0);
+		Draw_Batched();
 
 		y += 8;
 	}

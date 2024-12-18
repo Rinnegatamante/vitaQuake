@@ -183,24 +183,24 @@ Draws one solid graphics character
 */
 void M_DrawCharacter (int cx, int line, int num)
 {
-	Draw_Character ( cx, line, num);
+	Batch_Character ( cx, line, num);
 }
 
 void M_Print (int cx, int cy, char *str)
 {
-	Draw_String(cx, cy, str, 128);
+	Batch_String(cx, cy, str, 128);
 }
 
 void M_PrintCentered (int cy, char *str)
 {
 	int cx = 160 - strlen(str) * 4;
-	Draw_String(cx, cy, str, 128);
+	Batch_String(cx, cy, str, 128);
 }
 
 
 void M_PrintWhite (int cx, int cy, char *str)
 {
-	Draw_String(cx, cy, str, 0);
+	Batch_String(cx, cy, str, 0);
 }
 
 void M_DrawTransPic (int x, int y, qpic_t *pic)
@@ -375,6 +375,7 @@ void M_Main_Draw (void)
 	M_PrintCentered (198, "         on Patreon to:         ");
 	M_PrintCentered (206, "     Tain Sueiras, polytoad     ");
 	M_PrintCentered (214, "  drd7of14, The Vita3K Project  ");
+	Draw_Batched();
 }
 
 
@@ -585,6 +586,8 @@ void M_Load_Draw (void)
 
 // line cursor
 	M_DrawCharacter (8, 32 + load_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -601,6 +604,8 @@ void M_Save_Draw (void)
 
 // line cursor
 	M_DrawCharacter (8, 32 + load_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -715,7 +720,8 @@ void M_MultiPlayer_Draw (void)
 
 	if (tcpipAvailable)
 		return;
-	M_PrintWhite ((320/2) - ((27*8)/2), 148, "No Communications Available");
+
+	Draw_String ((320/2) - ((27*8)/2), 148, "No Communications Available", 0);
 }
 
 
@@ -787,6 +793,8 @@ void M_Benchmark_Draw (void)
 	M_Print (64, 40, s);
 	M_Print (64, 48, s1);
 	M_Print (64, 56, s2);
+	
+	Draw_Batched();
 }
 
 
@@ -838,29 +846,25 @@ void M_Setup_Draw (void)
 	M_DrawTransPic (16, 4, Draw_CachePic ("gfx/qplaque.lmp") );
 	p = Draw_CachePic ("gfx/p_multi.lmp");
 	M_DrawPic ( (320-p->width)/2, 4, p);
-
-	M_Print (64, 40, "Hostname");
 	M_DrawTextBox (160, 32, 16, 1);
-	M_Print (168, 40, setup_hostname);
-
-	M_Print (64, 56, "Your name");
 	M_DrawTextBox (160, 48, 16, 1);
-	M_Print (168, 56, setup_myname);
-
-	M_Print (64, 80, "Shirt color");
     M_DrawColorBar (64, 88, setup_top);
-    M_Print (64, 104, "Pants color");
     M_DrawColorBar (64, 112, setup_bottom);
-
 	M_DrawTextBox (64, 140-8, 14, 1);
-	M_Print (72, 140, "Accept Changes");
-
 	p = Draw_CachePic ("gfx/bigbox.lmp");
 	M_DrawTransPic (176, 64, p);
 	p = Draw_CachePic ("gfx/menuplyr.lmp");
 	M_BuildTranslationTable(setup_top*16, setup_bottom*16);
 	M_DrawTransPicTranslate (188, 72, p);
-
+	
+	M_Print (64, 40, "Hostname");
+	M_Print (168, 40, setup_hostname);
+	M_Print (64, 56, "Your name");
+	M_Print (168, 56, setup_myname);
+	M_Print (64, 80, "Shirt color");
+	M_Print (64, 104, "Pants color");
+	M_Print (72, 140, "Accept Changes");
+	
 	M_DrawCharacter (56, setup_cursor_table [setup_cursor], 12+((int)(realtime*4)&1));
 
 	if (setup_cursor == 0)
@@ -868,6 +872,8 @@ void M_Setup_Draw (void)
 
 	if (setup_cursor == 1)
 		M_DrawCharacter (168 + 8*strlen(setup_myname), setup_cursor_table [setup_cursor], 10+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -1033,7 +1039,7 @@ void M_Net_Draw (void)
 	f = (320-26*8)/2;
 	M_DrawTextBox (f, 134, 24, 4);
 	f += 8;
-	M_Print (f, 166, net_helpMessage[m_net_cursor*4+0]);
+	Draw_String (f, 166, net_helpMessage[m_net_cursor*4+0], 128);
 
 	f = (int)(host_time * 10)%6;
 	M_DrawTransPic (54, 32 + m_net_cursor * 20,Draw_CachePic( va("gfx/menudot%i.lmp", f+1 ) ) );
@@ -1079,6 +1085,8 @@ void M_Mods_Draw (void)
 
 	// cursor
 	M_DrawCharacter (50, 32 + mods_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -1369,8 +1377,12 @@ void M_Graphics_Draw (void)
 	}
 	
 // cursor
-	if (graphics_cursor == GRAPHICS_ITEMS) M_DrawCharacter (200, 152, 12+((int)(realtime*4)&1));
-	else M_DrawCharacter (200, 32 + graphics_cursor*8, 12+((int)(realtime*4)&1));
+	if (graphics_cursor == GRAPHICS_ITEMS)
+		M_DrawCharacter (200, 152, 12+((int)(realtime*4)&1));
+	else
+		M_DrawCharacter (200, 32 + graphics_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 void M_Graphics_Key (int k)
@@ -1600,9 +1612,12 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 152, show_fps.value);
 	
 	M_Print (16, 160,"        Show Crosshair");
-	if (crosshair.value == 0) M_Print (220, 160, "Off");
-	else if (crosshair.value == 1) M_Print (220, 160, "Original");
-	else M_Print (220, 160, "Custom");
+	if (crosshair.value == 0)
+		M_Print (220, 160, "Off");
+	else if (crosshair.value == 1)
+		M_Print (220, 160, "Original");
+	else
+		M_Print (220, 160, "Custom");
 	
 	M_Print (16, 168,"       Weapon Position");
 	if (w_pos_idx == -1) {
@@ -1624,6 +1639,8 @@ void M_Options_Draw (void)
 	M_DrawCheckbox (220, 192, gl_xflip.value);
 
 	M_DrawCharacter (200, 32 + options_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -1886,6 +1903,8 @@ void M_Keys_Draw (void)
 		M_DrawCharacter (130, 48 + keys_cursor*8, '=');
 	else
 		M_DrawCharacter (130, 48 + keys_cursor*8, 12+((int)(realtime*4)&1));
+	
+	Draw_Batched();
 }
 
 
@@ -2167,6 +2186,8 @@ void M_Quit_Draw (void)
 	M_Print (64, 100, quitMessage[msgNumber*4+2]);
 	M_Print (64, 108, quitMessage[msgNumber*4+3]);
 #endif
+
+	Draw_Batched();
 }
 
 
@@ -2223,6 +2244,18 @@ void M_LanConfig_Draw (void)
 	if (proto_idx == 0) sprintf(protocol, "TCP/IP");
 	else sprintf(protocol, "AdHoc");
 	
+	M_DrawTextBox (basex+8*8, lanConfig_cursor_table[0]-8, 6, 1);
+	if (JoiningGame) {
+		M_DrawTextBox (basex+8, lanConfig_cursor_table[3]-8, 22, 1);
+		M_Print (basex, lanConfig_cursor_table[2], "Search for local games...");
+		M_Print (basex, 128, "Join game at:");
+		M_Print (basex+16, lanConfig_cursor_table[3], lanConfig_joinname);
+		M_Print (basex, 158, "Join an online server");
+	} else {
+		M_DrawTextBox (basex, lanConfig_cursor_table[2]-8, 2, 1);
+		M_Print (basex+8, lanConfig_cursor_table[2], "OK");
+	}
+
 	M_Print (basex, 32, va ("%s - %s", startJoin, protocol));
 	basex += 8;
 
@@ -2230,23 +2263,9 @@ void M_LanConfig_Draw (void)
 	M_Print (basex+9*8, 52, my_tcpip_address);
 
 	M_Print (basex, lanConfig_cursor_table[0], "Port");
-	M_DrawTextBox (basex+8*8, lanConfig_cursor_table[0]-8, 6, 1);
 	M_Print (basex+9*8, lanConfig_cursor_table[0], lanConfig_portname);
 	M_Print (basex, lanConfig_cursor_table[1], "Protocol");
 	M_Print (basex+9*8, lanConfig_cursor_table[1], protocol);
-	if (JoiningGame)
-	{
-		M_Print (basex, lanConfig_cursor_table[2], "Search for local games...");
-		M_Print (basex, 128, "Join game at:");
-		M_DrawTextBox (basex+8, lanConfig_cursor_table[3]-8, 22, 1);
-		M_Print (basex+16, lanConfig_cursor_table[3], lanConfig_joinname);
-		M_Print (basex, 158, "Join an online server");
-	}
-	else
-	{
-		M_DrawTextBox (basex, lanConfig_cursor_table[2]-8, 2, 1);
-		M_Print (basex+8, lanConfig_cursor_table[2], "OK");
-	}
 
 	M_DrawCharacter (basex-8, lanConfig_cursor_table [lanConfig_cursor], 12+((int)(realtime*4)&1));
 
@@ -2258,6 +2277,8 @@ void M_LanConfig_Draw (void)
 
 	if (*m_return_reason)
 		M_PrintWhite (basex, 168, m_return_reason);
+	
+	Draw_Batched();
 }
 
 
@@ -2450,6 +2471,8 @@ void M_OnlineServerList_Draw (void)
 
 	if (*m_return_reason)
 		M_PrintWhite (basex, 148, m_return_reason);
+	
+	Draw_Batched();
 }
 
 
@@ -2775,19 +2798,22 @@ void M_GameOptions_Draw (void)
 	{
 		if ((realtime - m_serverInfoMessageTime) < 5.0)
 		{
-			x = (320-26*8)/2;
-			M_DrawTextBox (x, 138, 24, 4);
-			x += 8;
+			x = (320-26*8)/2 + 8;
 			M_Print (x, 146, "  More than 4 players   ");
 			M_Print (x, 154, " requires using command ");
 			M_Print (x, 162, "line parameters; please ");
 			M_Print (x, 170, "   see techinfo.txt.    ");
+			Draw_Batched();
+
+			M_DrawTextBox ((320-26*8)/2, 138, 24, 4);
 		}
 		else
 		{
+			Draw_Batched();
 			m_serverInfoMessage = false;
 		}
-	}
+	} else
+		Draw_Batched();
 }
 
 
@@ -2985,7 +3011,7 @@ void M_Search_Draw (void)
 	M_DrawPic ( (320-p->width)/2, 4, p);
 	x = (320/2) - ((12*8)/2) + 4;
 	M_DrawTextBox (x-8, 32, 12, 1);
-	M_Print (x, 40, "Searching...");
+	Draw_String (x, 40, "Searching...", 128);
 
 	if(slistInProgress)
 	{
@@ -3005,7 +3031,7 @@ void M_Search_Draw (void)
 		return;
 	}
 
-	M_PrintWhite ((320/2) - ((22*8)/2), 64, "No Quake servers found");
+	Draw_String ((320/2) - ((22*8)/2), 64, "No Quake servers found", 0);
 	if ((realtime - searchCompleteTime) < 3.0)
 		return;
 
