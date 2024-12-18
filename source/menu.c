@@ -188,35 +188,19 @@ void M_DrawCharacter (int cx, int line, int num)
 
 void M_Print (int cx, int cy, char *str)
 {
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, (*str)+128);
-		str++;
-		cx += 8;
-	}
+	Draw_String(cx, cy, str, 128);
 }
 
 void M_PrintCentered (int cy, char *str)
 {
 	int cx = 160 - strlen(str) * 4;
-	
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, (*str)+128);
-		str++;
-		cx += 8;
-	}
+	Draw_String(cx, cy, str, 128);
 }
 
 
 void M_PrintWhite (int cx, int cy, char *str)
 {
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, *str);
-		str++;
-		cx += 8;
-	}
+	Draw_String(cx, cy, str, 0);
 }
 
 void M_DrawTransPic (int x, int y, qpic_t *pic)

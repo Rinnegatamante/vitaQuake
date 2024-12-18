@@ -566,7 +566,7 @@ void Con_DrawNotify (void)
 
 		x = 0;
 
-		Draw_String (8, v, "say:");
+		Draw_String (8, v, "say:", 0);
 		while(chat_buffer[x])
 		{
 			Draw_Character ( (x+5)<<3, v, chat_buffer[x]);

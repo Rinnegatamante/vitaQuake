@@ -893,10 +893,6 @@ smoothly scrolled off.
 */
 void Draw_Character (int x, int y, int num)
 {
-	byte			*dest;
-	byte			*source;
-	unsigned short	*pusdest;
-	int				drawline;	
 	int				row, col;
 	float			frow, fcol, size;
 
@@ -918,7 +914,6 @@ void Draw_Character (int x, int y, int num)
 	GL_Bind (char_texture);
 
 	DrawQuad(x, y, 8, 8, fcol, frow, size, size);
-	
 }
 
 /*
@@ -926,13 +921,54 @@ void Draw_Character (int x, int y, int num)
 Draw_String
 ================
 */
-void Draw_String (int x, int y, const char *str)
+void Draw_String (int x, int y, const char *str, int delta)
 {
+	GL_Bind (char_texture);
+	float *str_vbuffer = gVertexBuffer;
+	float *str_tbuffer = gTexCoordBuffer;
+	int num_vertices = 0;
+	
 	while (*str)
 	{
-		Draw_Character (x, y, *str);
+		int num = (*str) + delta;
+		int	row, col;
+		float frow, fcol, size;
+
+		if (num != 0x20) {
+			num &= 255;
+			if (y > -8) {
+				row = num>>4;
+				col = num&15;
+
+				frow = row*0.0625;
+				fcol = col*0.0625;
+				size = 0.0625;
+				
+				gVertexBuffer[0] = gVertexBuffer[3] = gVertexBuffer[9] = x;
+				gVertexBuffer[1] = gVertexBuffer[10] = gVertexBuffer[13] = y;
+				gVertexBuffer[4] = gVertexBuffer[7] = gVertexBuffer[16] = y + 8;
+				gVertexBuffer[6] = gVertexBuffer[12] = gVertexBuffer[15] = x + 8;
+				gVertexBuffer[2] = gVertexBuffer[5] = gVertexBuffer[8] = gVertexBuffer[11] = gVertexBuffer[14] = gVertexBuffer[17] = 0.5f;
+				
+				gTexCoordBuffer[0] = gTexCoordBuffer[2] = gTexCoordBuffer[6] = fcol;
+				gTexCoordBuffer[1] = gTexCoordBuffer[7] = gTexCoordBuffer[9] = frow;
+				gTexCoordBuffer[3] = gTexCoordBuffer[5] = gTexCoordBuffer[11] = frow+size;
+				gTexCoordBuffer[4] = gTexCoordBuffer[8] = gTexCoordBuffer[10] = fcol+size;
+		
+				gVertexBuffer += 18;
+				gTexCoordBuffer += 12;
+				num_vertices += 6;
+			}
+		}
+
 		str++;
 		x += 8;
+	}
+	
+	if (num_vertices > 0) {
+		vglVertexAttribPointerMapped(0, str_vbuffer);
+		vglVertexAttribPointerMapped(1, str_tbuffer);
+		GL_DrawPolygon(GL_TRIANGLES, num_vertices);
 	}
 }
 
@@ -1561,13 +1597,13 @@ void GL_DrawBenchmark(void)
 
 	x = 320 - strlen(st) * 8 - 16;
 	GL_SetCanvas (CANVAS_TOPRIGHT);
-	Draw_String(x, 2, st);
-	Draw_String(x, 10, st2);
-	Draw_String(x, 18, st3);
+	Draw_String(x, 2, st, 0);
+	Draw_String(x, 10, st2, 0);
+	Draw_String(x, 18, st3, 0);
 	
 	if (bBlinkBenchmark) {	// Neato messaji
 		GL_SetCanvas (CANVAS_MENU);
-		Draw_String(160 - 37 * 4, 200*0.25, "Benchmark in progress, please wait...");
+		Draw_String(160 - 37 * 4, 200*0.25, "Benchmark in progress, please wait...", 0);
 	}
 }
 
@@ -1595,7 +1631,7 @@ void GL_DrawFPS(void){
 
 	x = 329 - strlen(st) * 8 - 16;
 	GL_SetCanvas (CANVAS_TOPRIGHT);
-	Draw_String(x, 2, st);
+	Draw_String(x, 2, st, 0);
 }
 
 void GL_SetCanvas (int newcanvas)

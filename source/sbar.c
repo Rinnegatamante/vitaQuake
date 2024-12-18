@@ -294,7 +294,7 @@ Sbar_DrawString
 */
 void Sbar_DrawString (int x, int y, char *str)
 {
-	Draw_String (x, y + 24, str);
+	Draw_String (x, y + 24, str, 0);
 }
 
 /*
@@ -1167,7 +1167,7 @@ void Sbar_MiniDeathmatchOverlay (void)
 		}
 
 	// draw name
-		Draw_String (x+48, y, s->name);
+		Draw_String (x+48, y, s->name, 0);
 
 		y += 8;
 	}
