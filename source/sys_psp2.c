@@ -44,6 +44,7 @@ ModsList *mods = NULL;
 ModsList *addMod(char* name, ModsList* db){
 	ModsList* entry = (ModsList*)malloc(sizeof(ModsList));
 	strcpy(entry->name, name);
+	entry->next = NULL;
 	if (db == NULL)
 		return entry;
 	else {
@@ -599,9 +600,9 @@ int quake_main (unsigned int argc, void* argv){
 	int dd = sceIoDopen(parms.basedir);
 	SceIoDirent entry;
 	int res;
-	while (sceIoDread(dd, &entry) > 0){
-		if (SCE_S_ISDIR(entry.d_stat.st_mode)){
-			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))){
+	while (sceIoDread(dd, &entry) > 0) {
+		if (SCE_S_ISDIR(entry.d_stat.st_mode)) {
+			if (CheckForMod(va("%s/%s", parms.basedir, entry.d_name))) {
 				mods = addMod(entry.d_name, mods);
 				max_mod_idx++;
 			}

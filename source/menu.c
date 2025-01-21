@@ -1063,7 +1063,7 @@ void M_Menu_Mods_f (void)
 	m_entersound = true;
 }
 
-ModsList* cur = NULL;
+ModsList *cur = NULL;
 
 void M_Mods_Draw (void)
 {
@@ -1074,9 +1074,9 @@ void M_Mods_Draw (void)
 
 	M_Print (60, 10, "Select the mod to load");
 
-	ModsList* ptr = mods;
+	ModsList *ptr = mods;
 	int j = 0;
-	while (ptr != NULL){
+	while (ptr != NULL) {
 		M_Print (60, 32 + j * 8, ptr->name);
 		if (j == mods_cursor) cur = ptr;
 		ptr = ptr->next;
