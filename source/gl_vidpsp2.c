@@ -192,7 +192,7 @@ void	VID_SetPalette (unsigned char *palette)
 
 #define NUM_FRAG_SHADERS (9)
 #define NUM_VERT_SHADERS (4)
-#define MAX_INDICES (4096)
+#define MAX_INDICES (32768)
 uint16_t* indices;
 
 GLuint fs[9];

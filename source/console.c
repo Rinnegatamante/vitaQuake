@@ -512,7 +512,7 @@ void Con_DrawInput (void)
 
 // draw it
 	for (i=0 ; i<con_linewidth ; i++)
-		Draw_Character ( (i+1)<<3, vid.conheight - 16, text[i]);
+		Batch_Character ( (i+1)<<3, vid.conheight - 16, text[i]);
 
 // remove cursor
 	key_lines[edit_line][key_linepos] = 0;
@@ -552,7 +552,8 @@ void Con_DrawNotify (void)
 		clearnotify = 0;
 		scr_copytop = 1;
 
-		Batch_String(8, v, text, 0);
+		for (x = 0 ; x < con_linewidth ; x++)
+			Batch_Character ( (x+1)<<3, v, text[x]);
 
 		v += 8;
 	}
@@ -566,8 +567,8 @@ void Con_DrawNotify (void)
 		x = 0;
 
 		Batch_String (8, v, "say:", 0);
-		Batch_String(40, v, chat_buffer[x], 0);
-		x += strlen(chat_buffer[x]);
+		Batch_String(40, v, chat_buffer, 0);
+		x += strlen(chat_buffer);
 		Batch_Character ( (x+5)<<3, v, 10+((int)(realtime*con_cursorspeed)&1));
 		v += 8;
 	}
@@ -616,9 +617,9 @@ void Con_DrawConsole (int lines, bool drawinput)
 		if (j < 0)
 			j = 0;
 		text = con_text + (j % con_totallines)*con_linewidth;
-
-		for (x = 0; x < con_linewidth; x++)
-			Draw_Character ( (x + 1)<<3, y, text[x]);
+		
+		for (x = 0 ; x < con_linewidth ; x++)
+			Batch_Character ( (x+1)<<3, y, text[x]);
 	}
 
 // draw scrollback arrows
@@ -626,7 +627,7 @@ void Con_DrawConsole (int lines, bool drawinput)
 	{
 		y += 8; // blank line
 		for (x = 0; x < con_linewidth; x += 4)
-			Draw_Character ((x + 1)<<3, y, '^');
+			Batch_Character ((x + 1)<<3, y, '^');
 		y += 8;
 	}
 
@@ -637,8 +638,9 @@ void Con_DrawConsole (int lines, bool drawinput)
 //draw version number in bottom right
 	y += 8;
 	snprintf (ver, sizeof(ver), "vitaQuake v.%.2f", VERSION);
-	for (x = 0; x < (int)strlen(ver); x++)
-		Draw_Character ((con_linewidth - strlen(ver) + x + 2)<<3, y, ver[x] /*+ 128*/);
+	Batch_String((con_linewidth - strlen(ver) + 2)<<3, y, ver, 0);
+	
+	Draw_Batched();
 }
 
 

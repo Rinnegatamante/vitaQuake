@@ -492,6 +492,7 @@ int quake_main (unsigned int argc, void* argv){
 	cfg_height = scr_height;
 	
 	// Initializing vitaGL
+	vglSetVertexPoolSize(64 * 1024 * 1024);
 	GLboolean invalid_res = GL_FALSE;
 	switch (antialiasing) {
 	case 1:

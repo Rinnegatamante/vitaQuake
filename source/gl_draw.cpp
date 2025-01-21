@@ -1028,7 +1028,7 @@ void Batch_Character (int x, int y, int num) {
 Batch_String
 ================
 */
-void Batch_String (int x, int y, const char *str, int delta) {
+void Batch_String (int x, int y, const char *str, int delta) {	
 	if (!is_batching) {
 		is_batching = 1;
 		batched_vbuffer = gVertexBuffer;
@@ -1085,8 +1085,9 @@ void Draw_Batched() {
 		vglVertexAttribPointerMapped(0, batched_vbuffer);
 		vglVertexAttribPointerMapped(1, batched_tbuffer);
 		GL_DrawPolygon(GL_TRIANGLES, batched_vertices);
-		is_batching = 0;
 	}
+	
+	is_batching = 0;
 }
 
 /*
