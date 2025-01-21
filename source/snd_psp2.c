@@ -58,6 +58,7 @@ bool SNDDMA_Init(void)
 	snd_initialized = 0;
 
 	audiobuffer = malloc(AUDIOSIZE);
+	memset(audiobuffer, 0, AUDIOSIZE);
 
 	/* Fill the audio DMA information block */
 	shm = &sn;
