@@ -61,7 +61,7 @@ int old_char;
 extern int setup_cursor;
 extern int lanConfig_cursor;
 int isKeyboard;
-extern uint64_t rumble_tick;
+extern uint32_t rumble_tick;
 extern cvar_t psvita_touchmode;
 extern cvar_t vid_vsync;
 extern int scr_width;
@@ -697,7 +697,7 @@ int quake_main (unsigned int argc, void* argv){
 
 		// Rumble effect managing (PSTV only)
 		if (rumble_tick != 0) {
-			if (sceKernelGetProcessTimeWide() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
+			if (sceKernelGetProcessTimeLow() - rumble_tick > 500000) IN_StopRumble(); // 0.5 sec
 		}
 		
 		// AdHoc Message Dialog
