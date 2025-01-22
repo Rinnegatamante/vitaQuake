@@ -55,7 +55,8 @@ static int audio_thread(int args, void *argp)
 
 bool SNDDMA_Init(void)
 {
-	snd_initialized = 0;
+	if (snd_initialized)
+		return 1;
 
 	audiobuffer = malloc(AUDIOSIZE);
 	memset(audiobuffer, 0, AUDIOSIZE);
