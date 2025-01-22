@@ -986,7 +986,6 @@ void Batch_Character (int x, int y, int num) {
 		is_batching = 1;
 		batched_vbuffer = gVertexBuffer;
 		batched_tbuffer = gTexCoordBuffer;
-		batched_vertices = 0;
 	}
 
 	int				row, col;
@@ -1033,7 +1032,6 @@ void Batch_String (int x, int y, const char *str, int delta) {
 		is_batching = 1;
 		batched_vbuffer = gVertexBuffer;
 		batched_tbuffer = gTexCoordBuffer;
-		batched_vertices = 0;
 	}
 	
 	while (*str)
@@ -1085,6 +1083,7 @@ void Draw_Batched() {
 		vglVertexAttribPointerMapped(0, batched_vbuffer);
 		vglVertexAttribPointerMapped(1, batched_tbuffer);
 		GL_DrawPolygon(GL_TRIANGLES, batched_vertices);
+		batched_vertices = 0;
 	}
 	
 	is_batching = 0;
@@ -1159,13 +1158,11 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 	byte			*dest, *source;
 	unsigned short	*pusdest;
 	int				v, u;
-	glpic_t			*gl;
+	glpic_t			*gl = (glpic_t *)pic->data;
 
 	if (scrap_dirty)
 		Scrap_Upload ();
-	glpic_t temp;
-	memcpy(&temp, pic->data, sizeof(temp));
-	gl = &temp;
+
 	GL_Color(1, 1, 1, 1);
 	GL_Bind (gl->texnum);
 
