@@ -260,7 +260,7 @@ void Sbar_Init (void)
 Sbar_DrawPic
 =============
 */
-void Sbar_DrawPic (int x, int y, qpic_t *pic)
+inline __attribute__((always_inline)) void Sbar_DrawPic (int x, int y, qpic_t *pic)
 {
 	Draw_Pic (x, y + 24, pic);
 }
@@ -270,7 +270,7 @@ void Sbar_DrawPic (int x, int y, qpic_t *pic)
 Sbar_DrawPicAlpha
 =============
 */
-void Sbar_DrawPicAlpha (int x, int y, qpic_t *pic, float alpha)
+inline __attribute__((always_inline)) void Sbar_DrawPicAlpha (int x, int y, qpic_t *pic, float alpha)
 {
 	Draw_AlphaPic (x, y + 24, pic, alpha);
 }
@@ -282,9 +282,9 @@ Sbar_DrawCharacter
 Draws one solid graphics character
 ================
 */
-void Sbar_DrawCharacter (int x, int y, int num)
+inline __attribute__((always_inline)) void Sbar_DrawCharacter (int x, int y, int num)
 {
-	Draw_Character (x, y + 24, num);
+	Batch_Character (x, y + 24, num);
 }
 
 /*
@@ -292,7 +292,7 @@ void Sbar_DrawCharacter (int x, int y, int num)
 Sbar_DrawString
 ================
 */
-void Sbar_DrawString (int x, int y, char *str)
+inline __attribute__((always_inline)) void Sbar_DrawString (int x, int y, char *str)
 {
 	Batch_String (x, y + 24, str, 0);
 }
@@ -619,6 +619,7 @@ void Sbar_DrawInventory (void)
 		if (num[2] != ' ')
 			Sbar_DrawCharacter ( (6*i+3)*8 - 2, -24, 18 + num[2] - '0');
 	}
+	Draw_Batched();
 
 	flashon = 0;
    // items
@@ -752,6 +753,7 @@ void Sbar_DrawFrags (void)
 			Sbar_DrawCharacter (x + 6, -24, 16);
 			Sbar_DrawCharacter (x + 32, -24, 17);
 		}
+		Draw_Batched();
 	}
 }
 
@@ -814,6 +816,7 @@ void Sbar_DrawFace (void)
 			Sbar_DrawCharacter ( 116, 3, num[1]);
 			Sbar_DrawCharacter ( 123, 3, num[2]);
 		}
+		Draw_Batched();
 		
 		return;
 	}
