@@ -9,7 +9,8 @@ LIBS = -lvitaGL -lvitashark -lSceShaccCgExt -ltaihen_stub -lvorbisfile -lvorbis 
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lSceDisplay_stub -lSceGxm_stub \
 	-Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive \
 	-lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
-	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl -lssl -lcrypto -lz
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl -lssl -lcrypto -lz \
+	-lScePerf_stub
 
 COMMON_OBJS =	source/chase.o \
 	source/cl_demo.o \
@@ -77,13 +78,14 @@ CFILES	:= $(COMMON_OBJS)
 CPPFILES   := $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
 CGFILES  := $(foreach dir,$(SHADERS), $(wildcard $(dir)/*.cg))
 CGSHADERS  := $(CGFILES:.cg=.h)
-OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
+OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) source/profiler.o
 
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 CFLAGS  = -fsigned-char -Wl,-q -O3 -g -fno-optimize-sibling-calls \
-	-ffast-math -mtune=cortex-a9 -mfpu=neon \
+	-ffast-math -mtune=cortex-a9 -mfpu=neon -finstrument-functions \
+	-finstrument-functions-exclude-function-list=__cyg_profile_func_enter,__cyg_profile_func_exit \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
 	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11

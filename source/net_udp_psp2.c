@@ -74,7 +74,7 @@ struct sockaddr {
     char              sa_data[14];  // 14 bytes of protocol address
 };
 
-inline int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* dst){
+int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr_in* dst){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sin_family = src->sin_family;
 	dst->sin_port = src->sin_port;
@@ -82,7 +82,7 @@ inline int convertSceNetSockaddrIn(struct SceNetSockaddrIn* src, struct sockaddr
 	return 0;
 }
 
-inline int convertSockaddrIn(struct SceNetSockaddrIn* dst, const struct sockaddr_in* src){
+int convertSockaddrIn(struct SceNetSockaddrIn* dst, const struct sockaddr_in* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sin_family = src->sin_family;
 	dst->sin_port = src->sin_port;
@@ -90,14 +90,14 @@ inline int convertSockaddrIn(struct SceNetSockaddrIn* dst, const struct sockaddr
 	return 0;
 }
 
-inline int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* dst){
+int convertSceNetSockaddr(struct SceNetSockaddr* src, struct sockaddr* dst){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sa_family = src->sa_family;
 	memcpy(dst->sa_data,src->sa_data,14);
 	return 0;
 }
 
-inline int convertSockaddr(struct SceNetSockaddr* dst, const struct sockaddr* src){
+int convertSockaddr(struct SceNetSockaddr* dst, const struct sockaddr* src){
 	if (dst == NULL || src == NULL) return -1;
 	dst->sa_family = src->sa_family;
 	memcpy(dst->sa_data,src->sa_data,14);
