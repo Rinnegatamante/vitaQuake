@@ -446,7 +446,6 @@ bool CheckForMod(char* dir)
 extern void init_perf_profiler();
 
 int __attribute__((no_instrument_function)) quake_main (unsigned int argc, void* argv){
-	sceSysmoduleLoadModule(SCE_SYSMODULE_PERF);
 	init_perf_profiler();
 	
 	cl_entities = malloc(sizeof(entity_t) * MAX_EDICTS);

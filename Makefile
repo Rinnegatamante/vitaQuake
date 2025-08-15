@@ -85,7 +85,7 @@ CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 CFLAGS  = -fsigned-char -Wl,-q -O3 -g -fno-optimize-sibling-calls \
 	-ffast-math -mtune=cortex-a9 -mfpu=neon -finstrument-functions \
-	-finstrument-functions-exclude-function-list=__cyg_profile_func_enter,__cyg_profile_func_exit \
+	-finstrument-functions-exclude-function-list=__cyg_profile_func_enter,__cyg_profile_func_exit,init_perf_profiler,main,quake_main \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
 	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
 CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11

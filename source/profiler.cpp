@@ -45,7 +45,6 @@ void __attribute__((no_instrument_function)) init_perf_profiler() {
 		startline = endline + 1;
 		endline = strstr(startline, "\n");
 	}
-    fclose(f);
 	
 	free(buf);
 	sym_table_ready = 1;
@@ -58,7 +57,7 @@ void __attribute__((no_instrument_function)) __cyg_profile_func_enter(void *this
 	} else {
 		char addr[32];
 		sprintf(addr, "func %x\n", this_fn);
-		sceRazorCpuPushMarkerWithHud(addr , 0x8000ffff, 0);
+		sceRazorCpuPushMarkerWithHud(addr, 0x8000ffff, 0);
 	}
 }
 
