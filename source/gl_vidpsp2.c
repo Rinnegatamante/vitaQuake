@@ -208,9 +208,9 @@ void* GL_LoadShader(const char* filename, GLuint idx, GLboolean fragment) {
 	fread(res, 1, size, f);
 	fclose(f);
 	if (fragment)
-		glShaderBinary(1, &fs[idx], 0, res, size);
+		vglShaderGxpBinary(1, &fs[idx], res, size);
 	else
-		glShaderBinary(1, &vs[idx], 0, res, size);
+		vglShaderGxpBinary(1, &vs[idx], res, size);
 	free(res);
 }
 
