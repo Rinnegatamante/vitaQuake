@@ -443,10 +443,7 @@ bool CheckForMod(char* dir)
 	return ret;
 }
 
-extern void init_perf_profiler();
-
-int __attribute__((no_instrument_function)) quake_main (unsigned int argc, void* argv){
-	init_perf_profiler();
+int quake_main (unsigned int argc, void* argv){
 	
 	cl_entities = malloc(sizeof(entity_t) * MAX_EDICTS);
 	cl_temp_entities = malloc(sizeof(entity_t) * MAX_TEMP_ENTITIES);
@@ -496,7 +493,7 @@ int __attribute__((no_instrument_function)) quake_main (unsigned int argc, void*
 	cfg_height = scr_height;
 	
 	// Initializing vitaGL
-	vglSetVertexPoolSize(64 * 1024 * 1024);
+	vglSetCircularPoolSize(64 * 1024 * 1024);
 	GLboolean invalid_res = GL_FALSE;
 	switch (antialiasing) {
 	case 1:
@@ -805,7 +802,6 @@ int __attribute__((no_instrument_function)) quake_main (unsigned int argc, void*
 
 	}
 
-	vglEnd();
 	return 0;
 }
 
