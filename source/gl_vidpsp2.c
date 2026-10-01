@@ -306,7 +306,7 @@ void GL_DrawPolygon(GLenum prim, int num) {
 		glUniform4fv(modulcolor[0], 1, cur_clr);
 	else if (state_mask == 0x0D)
 		glUniform4fv(modulcolor[1], 1, cur_clr);
-	vglDrawObjects(prim, num, GL_TRUE);
+	vglDrawObjects(prim, num);
 }
 
 void GL_Color(float r, float g, float b, float a) {

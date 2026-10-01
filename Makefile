@@ -3,13 +3,16 @@ TITLE		:= QUAK00001
 GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 SHADERS     := shaders
 
+PKG_CONFIG = arm-vita-eabi-pkg-config
+CURL_LIBS := $(shell $(PKG_CONFIG) --static --libs libcurl)
+
 LIBS = -lvitaGL -lvitashark -lSceShaccCgExt -ltaihen_stub -lvorbisfile -lvorbis -logg \
 	-lspeexdsp -lmpg123 -lScePspnetAdhoc_stub -lSceShaccCg_stub -lSceKernelDmacMgr_stub \
 	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub -lmathneon \
 	-lSceNet_stub -lSceNetCtl_stub -lpng -lSceDisplay_stub -lSceGxm_stub \
 	-Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive \
 	-lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm -lSceAppMgr_stub \
-	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl -lssl -lcrypto -lz
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub $(CURL_LIBS) -lz
 
 COMMON_OBJS =	source/chase.o \
 	source/cl_demo.o \
@@ -82,12 +85,14 @@ OBJS     := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS  = -fsigned-char -Wl,-q -O3 -g -fno-optimize-sibling-calls \
+# Preserve the original pre-C23 callback and argument-promotion semantics.
+CFLAGS  = -std=gnu17 -fsigned-char -Wl,-q -O3 -g -fno-optimize-sibling-calls \
 	-ffast-math -mtune=cortex-a9 -mfpu=neon \
 	-DGLQUAKE -DHAVE_OGGVORBIS -DHAVE_MPG123 -DHAVE_LIBSPEEXDSP \
 	-DUSE_AUDIO_RESAMPLER -DGIT_VERSION=\"$(GIT_VERSION)\"
-CXXFLAGS  = $(CFLAGS) -fno-exceptions -std=gnu++11
+CXXFLAGS  = $(filter-out -std=gnu17,$(CFLAGS)) -fno-exceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
+LDFLAGS += -pthread
 
 all: $(TARGET).vpk
 
@@ -97,7 +102,8 @@ $(TARGET).vpk: $(TARGET).velf
 	cp -f param.sfo build/sce_sys/param.sfo
 	vita-pack-vpk -s param.sfo -b build/eboot.bin $(TARGET).vpk \
 		-a build/shaders=shaders \
-		-a build/sce_sys=sce_sys
+		-a build/sce_sys/icon0.png=sce_sys/icon0.png \
+		-a build/sce_sys/livearea=sce_sys/livearea
 
 %_f.h:
 	psp2cgc -profile sce_fp_psp2 $(@:_f.h=_f.cg) -Wperf -fastprecision -O3 -o build/$(@:_f.h=_f.gxp)
@@ -113,7 +119,7 @@ shaders: $(CGSHADERS)
 	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o $@
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf $(TARGET).vpk build/eboot.bin build/sce_sys/param.sfo ./param.sfo
